@@ -6,7 +6,7 @@ import glob, os.path
 import lsst.SConsUtils as scons
 
 env = scons.makeEnv("movingobj",
-                    r"$HeadURL: svn+ssh://svn.lsstcorp.org/DC2/nightmops/tickets/271/SConstruct $",
+                    r"$HeadURL$",
                     [])
 
 #
