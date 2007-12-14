@@ -95,7 +95,7 @@ def fetchCandidateEphems(dbLogicalLocation, sliceId, numSlices, mjd, deltaMjd=1.
     db.setRetrieveLocation(loc)
     db.startTransaction()
     db.setTableForQuery("ephem")
-    db.setQueryWhere("orbit_id % " + str(numSlices) + "=" + str(sliceId-1) + " and abs(mjd-" +
+    db.setQueryWhere("orbit_id % " + str(numSlices) + "=" + str(sliceId) + " and abs(mjd-" +
                      str(mjd) + ") < " + str(deltaMjd))
     db.outColumn("orbit_id")
     db.outColumn("mjd")

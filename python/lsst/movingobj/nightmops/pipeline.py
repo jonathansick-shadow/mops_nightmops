@@ -1,6 +1,7 @@
 import lsst.dps.Stage
 import lsst.mwi.data as datap
 import lsst.mwi.policy as policy
+import lsst.mwi.utils as mwiu
 import lsst.fw.Core.fwCatalog as fwCat
 import lsst.movingobj.nightmops.ephemeris as eph
 import lsst.movingobj.nightmops.ephemDB as ephDB
@@ -26,14 +27,16 @@ class MopsStage(lsst.dps.Stage.Stage):
         -write those orbits out to a known database table so AP can read them
         """
 
+        mwiu.Trace_setVerbosity("lsst.movingobj", 5)
+        
         sliceId = self.getRank()
-        numSlices = self.getUniverseSize()
+        numSlices = self.getUniverseSize() - 1  # want only real slices
 
         #########
         #
         # Get needed params from policy
         #
-        ephemDBFromPolicy = self._policy.get('ephemDB')
+        ephemDbFromPolicy = self._policy.get('ephemDB')
 
         fovDiamFromPolicy = self._policy.get('fovDiam')
 
@@ -44,27 +47,30 @@ class MopsStage(lsst.dps.Stage.Stage):
         #
         self.activeClipboard = self.inputQueue.getNextDataset()
 
-        triggerEvent = activeClipboard.get('mops1Event')
+        triggerEvent = self.activeClipboard.get('mops1Event')
 
         fovRAItem = triggerEvent.findUnique('FOVRA')
-        fovRA = fovRANameItem.getValueString()
+        fovRA = fovRAItem.getValueDouble()
 
         fovDecItem = triggerEvent.findUnique('FOVDec')
-        fovDec = fovRANameItem.getValueString()
+        fovDec = fovDecItem.getValueDouble()
 
         visitIdItem = triggerEvent.findUnique('visitId')
-        fovRA = fovRANameItem.getValueString()
+        visitId = visitIdItem.getValueInt()
 
         MJDItem = triggerEvent.findUnique('visitTime')
-        mjd = MJDItem.getValueString()
+        mjd = MJDItem.getValueDouble()
 
         # get this Slice's set of potential objects in the FOV
 
         candidateEphems = ephDB.fetchCandidateEphems(ephemDbFromPolicy, sliceId, numSlices, mjd)
 
+        mwiu.Trace("lsst.movingobj.MopsStage", 3, 'Number of candidate ephems: %d' % len(candidateEphems))
+        
         # get a list of predicted ephems that actually fall in our fov
 
-        ephPreds = ephDB.selectOrbitsForFOV(orbitsAndEphems, mjd, fovRA, fovDEC, fovDiamFromPolicy)
+        ephPreds = ephDB.selectOrbitsForFOV(candidateEphems, mjd, fovRA, fovDec, fovDiamFromPolicy)
+        mwiu.Trace("lsst.movingobj.MopsStage", 3, 'Number of ephems in fov: %d' % len(ephPreds))
 
         # build a MopsPredVec for our Stage output
         
@@ -84,7 +90,7 @@ class MopsStage(lsst.dps.Stage.Stage):
         
         # put output of selectOrbitsForFOV on the clipboard
 
-        activeClipboard.put('MopsPreds', mopsPreds)
+        self.activeClipboard.put('MopsPreds', mopsPreds)
         
         self.outputQueue.addDataset(self.activeClipboard)
 
