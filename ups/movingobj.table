@@ -1,0 +1,7 @@
+setupRequired(python 2.5)
+setupRequired(dps trunk)
+setupRequired(mysqlclient)
+setupRequired(numpy)
+
+envAppend(PYTHONPATH, ${PRODUCT_DIR}/python)
+
