@@ -8,14 +8,6 @@ import lsst.movingobj.nightmops.ephemDB as ephDB
 class MopsStage(lsst.dps.Stage.Stage):
 
     #------------------------------------------------------------------------
-
-    def __init__(self):
-        """
-        Do initialization for the whole pipeline run
-        """
-
-
-    #------------------------------------------------------------------------
     def process(self): 
         """
         Execute the needed processing code for this Stage
