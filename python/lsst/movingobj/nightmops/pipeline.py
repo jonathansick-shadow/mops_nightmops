@@ -13,7 +13,9 @@ import lsst.movingobj.nightmops.ephemDB as ephDB
 class MopsStage(lsst.dps.Stage.Stage):
 
     #------------------------------------------------------------------------
-    def __init__(self):
+    def __init__(self, stageId = -1, policy = None):
+
+        lsst.dps.Stage.Stage.__init__(self, stageId, policy)
 
         self.mopsLog = Log(Log.getDefaultLog(), "movingobj.stage")
 
