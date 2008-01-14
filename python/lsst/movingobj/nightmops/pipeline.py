@@ -78,7 +78,8 @@ class MopsStage(lsst.dps.Stage.Stage):
         LogRec(self.mopsLog, Log.INFO) \
                                   <<  "Began mops stage" \
                                   << DataProperty("visitId", visitId) \
-                                  << DataProperty("MJD", mjd)
+                                  << DataProperty("MJD", mjd) \
+                                  << LogRec.endr
 
         # get this Slice's set of potential objects in the FOV
 
@@ -96,9 +97,11 @@ class MopsStage(lsst.dps.Stage.Stage):
         # Log the number of predicted ephems
         #
         LogRec(self.mopsLog, Log.INFO) \
-                                  <<  "Predicted ephems" \
-                                  << DataProperty("possible objects at this MJD", len(candidateEphems)) \
-                                  << DataProperty("predicted objects in the FOV", len(ephPreds))
+              <<  "Predicted ephems" \
+              << DataProperty("possible objects at this MJD",
+                              len(candidateEphems)) \
+              << DataProperty("predicted objects in the FOV", len(ephPreds)) \
+              << LogRec.endr
 
          # build a MopsPredVec for our Stage output
         
@@ -122,7 +125,7 @@ class MopsStage(lsst.dps.Stage.Stage):
         
         self.outputQueue.addDataset(self.activeClipboard)
 
-        self.mopsLog.log("Mops stage processing ended")
+        self.mopsLog.log(Log.INFO, "Mops stage processing ended")
 
 
 
