@@ -1,5 +1,5 @@
 setupRequired(python 2.5)
-setupRequired(dps trunk)
+setupRequired(dps)
 setupRequired(mysqlclient)
 setupRequired(numpy)
 
