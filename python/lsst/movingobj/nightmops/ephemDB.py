@@ -1,7 +1,7 @@
-import lsst.mwi.persistence as mwiper
-import lsst.mwi.utils as mwiu
-import lsst.fw.Core.fwLib as fw
-#import lsst.movingobject.nightmops.ephemeris as eph
+import lsst.daf.persistence as mwiper
+import lsst.pex.utils as mwiu
+import lsst.afw.Core.fwLib as afw
+#import lsst.mops.nightmops.ephemeris as eph
 import ephemeris as eph
 import numpy
 

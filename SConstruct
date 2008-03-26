@@ -5,7 +5,7 @@
 import glob, os.path
 import lsst.SConsUtils as scons
 
-env = scons.makeEnv("movingobj",
+env = scons.makeEnv("mops",
                     r"$HeadURL$",
                     [])
 

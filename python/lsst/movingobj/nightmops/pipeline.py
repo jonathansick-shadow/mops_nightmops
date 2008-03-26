@@ -1,23 +1,23 @@
-import lsst.dps.Stage
-import lsst.mwi.data as datap
-import lsst.mwi.policy as policy
-import lsst.mwi.utils as mwiu
-from lsst.mwi.logging import Log
-from lsst.mwi.logging import LogRec
-from lsst.mwi.data import DataProperty
+import lsst.pcons.dps.Stage
+import lsst.daf.data as datap
+import lsst.pex.policy as policy
+import lsst.pex.utils as mwiu
+from lsst.pex.logging import Log
+from lsst.pex.logging import LogRec
+from lsst.daf.data import DataProperty
 
-import lsst.fw.Core.fwCatalog as fwCat
-import lsst.movingobj.nightmops.ephemeris as eph
-import lsst.movingobj.nightmops.ephemDB as ephDB
+import lsst.afw.Core.fwCatalog as fwCat
+import lsst.mops.nightmops.ephemeris as eph
+import lsst.mops.nightmops.ephemDB as ephDB
 
-class MopsStage(lsst.dps.Stage.Stage):
+class MopsStage(lsst.pcons.dps.Stage.Stage):
 
     #------------------------------------------------------------------------
     def __init__(self, stageId = -1, policy = None):
 
-        lsst.dps.Stage.Stage.__init__(self, stageId, policy)
+        lsst.pcons.dps.Stage.Stage.__init__(self, stageId, policy)
 
-        self.mopsLog = Log(Log.getDefaultLog(), "movingobj.stage")
+        self.mopsLog = Log(Log.getDefaultLog(), "mops.stage")
 
     def process(self): 
         """
@@ -37,7 +37,7 @@ class MopsStage(lsst.dps.Stage.Stage):
         -write those orbits out to a known database table so AP can read them
         """
 
-        mwiu.Trace_setVerbosity("lsst.movingobj", 5)
+        mwiu.Trace_setVerbosity("lsst.mops", 5)
         
         sliceId = self.getRank()
         numSlices = self.getUniverseSize() - 1  # want only real slices
@@ -85,12 +85,12 @@ class MopsStage(lsst.dps.Stage.Stage):
 
         candidateEphems = ephDB.fetchCandidateEphems(ephemDbFromPolicy, sliceId, numSlices, mjd)
 
-        mwiu.Trace("lsst.movingobj.MopsStage", 3, 'Number of candidate ephems: %d' % len(candidateEphems))
+        mwiu.Trace("lsst.mops.MopsStage", 3, 'Number of candidate ephems: %d' % len(candidateEphems))
         
         # get a list of predicted ephems that actually fall in our fov
 
         ephPreds = ephDB.selectOrbitsForFOV(candidateEphems, mjd, fovRA, fovDec, fovDiamFromPolicy)
-        mwiu.Trace("lsst.movingobj.MopsStage", 3, 'Number of ephems in fov: %d' % len(ephPreds))
+        mwiu.Trace("lsst.mops.MopsStage", 3, 'Number of ephems in fov: %d' % len(ephPreds))
 
         ###########
         #
