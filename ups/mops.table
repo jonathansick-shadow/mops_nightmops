@@ -1,5 +1,10 @@
 setupRequired(python 2.5)
-setupRequired(dps)
+setupRequired(pex_logging)
+setupRequired(pex_dps)
+setupRequired(pex_persistence)
+setupRequired(pex_policy)
+setupRequired(pex_data)
+setupRequired(afw_Core)
 setupRequired(mysqlclient)
 setupRequired(numpy)
 

@@ -1,7 +1,8 @@
-import lsst.pcons.dps.Stage
+import lsst.pex.dps.Stage
 import lsst.daf.data as datap
 import lsst.pex.policy as policy
-import lsst.pex.utils as mwiu
+from lsst.pex.logging import Trace
+from lsst.pex.logging import Trace_setVerbosity
 from lsst.pex.logging import Log
 from lsst.pex.logging import LogRec
 from lsst.daf.data import DataProperty
@@ -10,12 +11,12 @@ import lsst.afw.Core.fwCatalog as fwCat
 import lsst.mops.nightmops.ephemeris as eph
 import lsst.mops.nightmops.ephemDB as ephDB
 
-class MopsStage(lsst.pcons.dps.Stage.Stage):
+class MopsStage(lsst.pex.dps.Stage.Stage):
 
     #------------------------------------------------------------------------
     def __init__(self, stageId = -1, policy = None):
 
-        lsst.pcons.dps.Stage.Stage.__init__(self, stageId, policy)
+        lsst.pex.dps.Stage.Stage.__init__(self, stageId, policy)
 
         self.mopsLog = Log(Log.getDefaultLog(), "mops.stage")
 
@@ -37,7 +38,7 @@ class MopsStage(lsst.pcons.dps.Stage.Stage):
         -write those orbits out to a known database table so AP can read them
         """
 
-        mwiu.Trace_setVerbosity("lsst.mops", 5)
+        Trace_setVerbosity("lsst.mops", 5)
         
         sliceId = self.getRank()
         numSlices = self.getUniverseSize() - 1  # want only real slices
@@ -85,12 +86,12 @@ class MopsStage(lsst.pcons.dps.Stage.Stage):
 
         candidateEphems = ephDB.fetchCandidateEphems(ephemDbFromPolicy, sliceId, numSlices, mjd)
 
-        mwiu.Trace("lsst.mops.MopsStage", 3, 'Number of candidate ephems: %d' % len(candidateEphems))
+        Trace("lsst.mops.MopsStage", 3, 'Number of candidate ephems: %d' % len(candidateEphems))
         
         # get a list of predicted ephems that actually fall in our fov
 
         ephPreds = ephDB.selectOrbitsForFOV(candidateEphems, mjd, fovRA, fovDec, fovDiamFromPolicy)
-        mwiu.Trace("lsst.mops.MopsStage", 3, 'Number of ephems in fov: %d' % len(ephPreds))
+        Trace("lsst.mops.MopsStage", 3, 'Number of ephems in fov: %d' % len(ephPreds))
 
         ###########
         #

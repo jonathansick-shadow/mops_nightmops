@@ -12,6 +12,9 @@ env = scons.makeEnv("mops",
 #
 # Build/install things
 #
+# ........................ NEED TO ADD tests/SConscript.............#
+for d in Split('include/lsst/mops python/lsst/mops'):
+    SConscript(os.path.join(d, 'SConscript'))
 
 env['IgnoreFiles'] = r"(~$|\.pyc$|^\.svn$|\.o$)"
 

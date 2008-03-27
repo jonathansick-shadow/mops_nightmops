@@ -1,4 +1,9 @@
->merge: dps
+>merge: pex_persistence
+>merge: pex_logging
+>merge: pex_dps
+>merge: pex_data
+>merge: pex_policy
+>merge: afw_Core
 >merge: mysqlclient
 >merge: numpy
 >self
