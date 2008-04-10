@@ -1,4 +1,4 @@
-appStages:"lsst.pcons.dps.IOStage.InputStage" "lsst.mops.nightmops.pipeline.MopsStage" "lsst.dps.IOStage.OutputStage"
+appStages:"lsst.pex.harness.IOStage.InputStage" "lsst.mops.nightmops.pipeline.MopsStage" "lsst.pex.harness.IOStage.OutputStage"
 eventTopics:"mops1Event" "None" "None"
 stagePolicies:"policy/input_policy.paf" "policy/NightMopsStagePolicy.paf" "policy/output_policy.paf" 
 

@@ -8,35 +8,34 @@
 //!
 //##====----------------                                ----------------====##/
 
-#ifndef LSST_FW_FORMATTERS_MOVING_OBJECT_PREDICTION_FORMATTERS_H
-#define LSST_FW_FORMATTERS_MOVING_OBJECT_PREDICTION_FORMATTERS_H
+#ifndef LSST_MOPS_FORMATTERS_MOVING_OBJECT_PREDICTION_FORMATTERS_H
+#define LSST_MOPS_FORMATTERS_MOVING_OBJECT_PREDICTION_FORMATTERS_H
 
 #include <string>
 #include <vector>
 
-#include <lsst/mwi/data/DataProperty.h>
-#include <lsst/mwi/policy/Policy.h>
-#include <lsst/mwi/persistence/Formatter.h>
-#include <lsst/mwi/persistence/DbStorage.h>
+#include <lsst/daf/data/DataProperty.h>
+#include <lsst/pex/policy/Policy.h>
+#include <lsst/daf/persistence/Formatter.h>
+#include <lsst/daf/persistence/DbStorage.h>
 
 #include "lsst/fw/MovingObjectPrediction.h"
 
 
 namespace lsst {
-namespace fw {
-namespace formatters {
+namespace mops {
 
-using namespace lsst::mwi::persistence;
-using lsst::mwi::policy::Policy;
-using lsst::mwi::data::DataProperty;
+using namespace lsst::daf::persistence;
+using lsst::pex::policy::Policy;
+using lsst::daf::base::DataProperty;
 
 
 /*!
     Formatter that supports persistence and retrieval with
 
-    - lsst::mwi::persistence::DbStorage
-    - lsst::mwi::persistence::DbTsvStorage
-    - lsst::mwi::persistence::BoostStorage
+    - lsst::daf::persistence::DbStorage
+    - lsst::daf::persistence::DbTsvStorage
+    - lsst::daf::persistence::BoostStorage
 
     for MovingObjectPredictionVector instances.
  */
@@ -65,7 +64,7 @@ private:
 };
 
 
-}}}  // end of namespace lsst::fw::formatters
+}}}  // end of namespace lsst::mops
 
-#endif // LSST_FW_FORMATTERS_MOVING_OBJECT_PREDICTION_FORMATTERS_H
+#endif // LSST_MOPS_FORMATTERS_MOVING_OBJECT_PREDICTION_FORMATTERS_H
 

@@ -9,25 +9,24 @@
 
 #include <memory>
 
-#include <lsst/mwi/exceptions.h>
-#include <lsst/mwi/persistence/BoostStorage.h>
-#include <lsst/mwi/persistence/DbStorage.h>
-#include <lsst/mwi/persistence/DbTsvStorage.h>
-#include <lsst/mwi/persistence/FormatterImpl.h>
+#include <lsst/pex/exceptions.h>
+#include <lsst/daf/persistence/BoostStorage.h>
+#include <lsst/daf/persistence/DbStorage.h>
+#include <lsst/daf/persistence/DbTsvStorage.h>
+#include <lsst/daf/persistence/FormatterImpl.h>
 
 #include <boost/any.hpp>
 #include <boost/format.hpp>
 
-#include "lsst/fw/MovingObjectPrediction.h"
-#include "lsst/fw/formatters/MovingObjectPredictionFormatters.h"
-#include "lsst/fw/formatters/Utils.h"
+#include "lsst/mops/MovingObjectPrediction.h"
+#include "lsst/mops/MovingObjectPredictionFormatters.h"
+#include "lsst/afw/formatters/Utils.h"
 
 
 namespace lsst {
-namespace fw {
-namespace formatters {
+namespace mops {
 
-namespace ex = lsst::mwi::exceptions;
+namespace ex = lsst::pex::exceptions;
 
 
 // -- MovingObjectPredictionVectorFormatter ----------------
@@ -55,7 +54,7 @@ Formatter::Ptr MovingObjectPredictionVectorFormatter::createInstance(Policy::Ptr
 
 /*!
     Inserts a single MovingObjectPrediction into a database table using \a db
-    (an instance of lsst::mwi::persistence::DbStorage or subclass thereof).
+    (an instance of lsst::daf::persistence::DbStorage or subclass thereof).
  */
 template <typename T>
 void MovingObjectPredictionVectorFormatter::insertRow(T & db, MovingObjectPrediction const & p) {
@@ -247,5 +246,5 @@ void MovingObjectPredictionVectorFormatter::update(Persistable*, Storage::Ptr, D
 }
 
 
-}}} // end of namespace lsst::fw::formatters
+}}} // end of namespace lsst::mops:
 

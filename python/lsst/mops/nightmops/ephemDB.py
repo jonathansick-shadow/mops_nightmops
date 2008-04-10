@@ -1,13 +1,13 @@
-import lsst.daf.persistence as mwiper
-import lsst.afw.Core.fwLib as afw
+import lsst.daf.persistence as dafPer
+import lsst.afw.image.imageLib as imageLib
 #import lsst.mops.nightmops.ephemeris as eph
 import ephemeris as eph
 import numpy
 
 def fetchAllEphems(dbLogicalLocation):
     
-    db = mwiper.DbStorage()
-    loc = mwiper.LogicalLocation(dbLogicalLocation)
+    db = dafPer.DbStorage()
+    loc = dafPer.LogicalLocation(dbLogicalLocation)
     db.setRetrieveLocation(loc)
     db.startTransaction()
     db.setTableForQuery("ephem")
@@ -47,8 +47,8 @@ def fetchAllEphems(dbLogicalLocation):
 
 def fetchRangeOfEphems(dbLogicalLocation, mjdMin, mjdMax):
     
-    db = mwiper.DbStorage()
-    loc = mwiper.LogicalLocation(dbLogicalLocation)
+    db = dafPer.DbStorage()
+    loc = dafPer.LogicalLocation(dbLogicalLocation)
     db.setRetrieveLocation(loc)
     db.startTransaction()
     db.setTableForQuery("ephem")
@@ -89,8 +89,8 @@ def fetchRangeOfEphems(dbLogicalLocation, mjdMin, mjdMax):
  
 def fetchCandidateEphems(dbLogicalLocation, sliceId, numSlices, mjd, deltaMjd=1.0):
     
-    db = mwiper.DbStorage()
-    loc = mwiper.LogicalLocation(dbLogicalLocation)
+    db = dafPer.DbStorage()
+    loc = dafPer.LogicalLocation(dbLogicalLocation)
     db.setRetrieveLocation(loc)
     db.startTransaction()
     db.setTableForQuery("ephem")
@@ -143,7 +143,7 @@ def selectOrbitsForFOV(candidateEphems, mjd, fovRA, fovDEC, fovDiam):
 
    mopsPreds = []
 
-   fovBox = fw.BBox2f(fovRA - fovDiam/2, fovDEC - fovDiam, fovDiam, fovDiam)
+   fovBox = imageLib.BBox2f(fovRA - fovDiam/2, fovDEC - fovDiam, fovDiam, fovDiam)
 
    currentOrbitId = -9999   # all real orbitId's are positive
    ephInterpSet = []
@@ -166,7 +166,7 @@ def selectOrbitsForFOV(candidateEphems, mjd, fovRA, fovDEC, fovDiam):
 
 def contains(eph, box):
 
-   coord = fw.Vector2f(eph.RA, eph.Dec)
+   coord = imageLib.Vector2f(eph.RA, eph.Dec)
    return box.contains(coord)
 
 

@@ -13,11 +13,11 @@ import pdb
 import unittest
 import time
 import random
-import lsst.mwi.data as data
-import lsst.mwi.policy as policy
-import lsst.mwi.persistence as persistence
-import lsst.mwi.tests as tests
-import lsst.afw.Core.fwCatalog as cat
+import lsst.daf.base as dafBase
+import lsst.pex.policy as policy
+import lsst.daf.persistence as persistence
+import lsst.utils.tests as tests
+import lsst.afw.image.afwCatalog as cat
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -86,11 +86,11 @@ class MopsPredTestCase(unittest.TestCase):
             pol  = policy.PolicyPtr()
             pers = persistence.Persistence.getPersistence(pol)
             loc  =  persistence.LogicalLocation("mysql://lsst10.ncsa.uiuc.edu:3306/test")
-            dp = data.SupportFactory.createPropertyNode("root")
-            dp.addProperty(data.DataProperty("visitId", int(time.clock())*16384 + random.randint(0,16383)))
-            dp.addProperty(data.DataProperty("sliceId", 0))
-            dp.addProperty(data.DataProperty("numSlices", 1))
-            dp.addProperty(data.DataProperty("itemName", "MovingObjectPrediction"))
+            dp = dafBase.DataProperty.createPropertyNode("root")
+            dp.addProperty(dafBase.DataProperty("visitId", int(time.clock())*16384 + random.randint(0,16383)))
+            dp.addProperty(dafBase.DataProperty("sliceId", 0))
+            dp.addProperty(dafBase.DataProperty("numSlices", 1))
+            dp.addProperty(dafBase.DataProperty("itemName", "MovingObjectPrediction"))
             stl = persistence.StorageList()
             stl.push_back(pers.getPersistStorage("DbStorage", loc))
             pers.persist(self.mpv1, stl, dp)

@@ -27,27 +27,27 @@ namespace boost { namespace filesystem {} }
 %}
 
 %pythoncode %{
-import lsst.fw.exceptions
+import lsst.afw.image.afwExceptions
 %}
 
-%include "lsst/daf/p_lsstSwig.i"
+%include "lsst/utils/p_lsstSwig.i"
 %include "lsst/daf/persistence/persistenceMacros.i"
 %import "lsst/daf/persistence/Persistable.h"
 
-%import "lsst/daf/data/Citizen.h"
+%import "lsst/daf/base/Citizen.h"
 %import "lsst/pex/policy/Policy.h"
 %import "lsst/daf/persistence/LogicalLocation.h"
 %import "lsst/daf/persistence/Persistence.h"
 %import "lsst/daf/persistence/Storage.h"
-%import "lsst/daf/data/DataProperty.h"
+%import "lsst/daf/base/DataProperty.h"
 
 
 %include <stdint.i>
 %include <std_vector.i>
 %include <typemaps.i>
 
-%rename(MopsPred)      lsst::fw::MovingObjectPrediction; 
-%rename(MopsPredVec)   lsst::fw::MovingObjectPredictionVector;
+%rename(MopsPred)      lsst::mops::MovingObjectPrediction; 
+%rename(MopsPredVec)   lsst::mops::MovingObjectPredictionVector;
 
 %include "lsst/afw/detection/Source.h"
 %include "lsst/mops/MovingObjectPrediction.h"
@@ -56,7 +56,7 @@ import lsst.fw.exceptions
 
 // Provide semi-useful printing of catalog records
 
-%extend lsst::fw::MovingObjectPrediction {
+%extend lsst::mops::MovingObjectPrediction {
     std::string toString() {
         std::ostringstream os;
         os << "Source " << $self->getId();
@@ -77,16 +77,16 @@ MopsPred.__str__  = MopsPred.toString
 %{
 namespace swig {
     template <>
-    struct traits_asptr<lsst::fw::MovingObjectPredictionVector>  {
-        static int asptr(PyObject *obj, lsst::fw::MovingObjectPredictionVector **vec) {
-            return traits_asptr_stdseq<lsst::fw::MovingObjectPredictionVector>::asptr(obj, vec);
+    struct traits_asptr<lsst::mops::MovingObjectPredictionVector>  {
+        static int asptr(PyObject *obj, lsst::mops::MovingObjectPredictionVector **vec) {
+            return traits_asptr_stdseq<lsst::mops::MovingObjectPredictionVector>::asptr(obj, vec);
         }
     };
 
     template <>
-    struct traits_from<lsst::fw::MovingObjectPredictionVector> {
-        static PyObject *from(const lsst::fw::MovingObjectPredictionVector& vec) {
-            return traits_from_stdseq<lsst::fw::MovingObjectPredictionVector>::from(vec);
+    struct traits_from<lsst::mops::MovingObjectPredictionVector> {
+        static PyObject *from(const lsst::mops::MovingObjectPredictionVector& vec) {
+            return traits_from_stdseq<lsst::mops::MovingObjectPredictionVector>::from(vec);
         }
     };
 }
@@ -153,7 +153,7 @@ namespace lsst {
 namespace mops {
 
 
-class MovingObjectPredictionVector : public lsst::mwi::persistence::Persistable {
+class MovingObjectPredictionVector : public lsst::daf::persistence::Persistable {
 public:
     typedef size_t size_type;
     typedef ptrdiff_t difference_type;
@@ -164,39 +164,39 @@ public:
     typedef const MovingObjectPrediction& const_reference;
     typedef std::allocator<MovingObjectPrediction> allocator_type;
 
-    %traits_swigtype(lsst::fw::MovingObjectPrediction);
+    %traits_swigtype(lsst::mops::MovingObjectPrediction);
 
-    %fragment(SWIG_Traits_frag(lsst::fw::MovingObjectPredictionVector), "header",
-              fragment=SWIG_Traits_frag(lsst::fw::MovingObjectPrediction),
+    %fragment(SWIG_Traits_frag(lsst::mops::MovingObjectPredictionVector), "header",
+              fragment=SWIG_Traits_frag(lsst::mops::MovingObjectPrediction),
               fragment="MovingObjectPredictionVectorTraits") {
         namespace swig {
-            template <>  struct traits<lsst::fw::MovingObjectPredictionVector> {
+            template <>  struct traits<lsst::mops::MovingObjectPredictionVector> {
                 typedef pointer_category category;
                 static const char* type_name() {
-                    return "lsst::fw::MovingObjectPredictionVector";
+                    return "lsst::mops::MovingObjectPredictionVector";
                 }
             };
         }
     }
 
-    %typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, lsst::fw::MovingObjectPredictionVector);
+    %typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, lsst::mops::MovingObjectPredictionVector);
 
     #ifdef %swig_vector_methods
     // Add swig/language extra methods
-    %swig_vector_methods(lsst::fw::MovingObjectPredictionVector);
+    %swig_vector_methods(lsst::mops::MovingObjectPredictionVector);
     #endif
 
-    %lsst_vector_methods(lsst::fw::MovingObjectPredictionVector);
+    %lsst_vector_methods(lsst::mops::MovingObjectPredictionVector);
 };
 
 }}
 
 // Make sure SWIG generates type information for boost::shared_ptr<lsst::mwi::Persistable> *,
 // even though that type is actually wrapped in the persistence module
-%types(boost::shared_ptr<lsst::mwi::persistence::Persistable> *);
+%types(boost::shared_ptr<lsst::daf::persistence::Persistable> *);
 
 // Export instantiations of boost::shared_ptr for persistable data vectors
-%lsst_persistable_shared_ptr(MopsPredVecSharedPtr, lsst::fw::MovingObjectPredictionVector);
+%lsst_persistable_shared_ptr(MopsPredVecSharedPtr, lsst::mops::MovingObjectPredictionVector);
 
 
 %pythoncode %{

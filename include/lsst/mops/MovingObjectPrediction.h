@@ -7,13 +7,13 @@
 //
 //##====----------------                                ----------------====##/
 
-#ifndef LSST_FW_MOVING_OBJECT_PREDICTION_H
-#define LSST_FW_MOVING_OBJECT_PREDICTION_H
+#ifndef LSST_MOPS_MOVING_OBJECT_PREDICTION_H
+#define LSST_MOPS_MOVING_OBJECT_PREDICTION_H
 
 #include <boost/cstdint.hpp>
 
-#include <lsst/mwi/data/Citizen.h>
-#include <lsst/mwi/persistence/Persistable.h>
+#include <lsst/daf/data/Citizen.h>
+#include <lsst/daf/persistence/Persistable.h>
 
 
 namespace boost {
@@ -23,16 +23,11 @@ namespace serialization {
 
 
 namespace lsst {
-namespace fw {
+namespace mops {
 
 #ifndef SWIG
 using boost::int64_t;
 #endif
-
-// forward declarations for formatters
-namespace formatters {
-    class MovingObjectPredictionVectorFormatter;
-}
 
 
 /*!
@@ -94,7 +89,7 @@ private :
     }
 
     friend class boost::serialization::access;
-    friend class formatters::MovingObjectPredictionVectorFormatter;
+    friend class MovingObjectPredictionVectorFormatter;
 };
 
 inline bool operator!=(MovingObjectPrediction const & d1, MovingObjectPrediction const & d2) {
@@ -109,8 +104,8 @@ inline bool operator!=(MovingObjectPrediction const & d1, MovingObjectPrediction
     A persistable container of MovingObjectPrediction instances, implemented using std::vector.
  */
 class MovingObjectPredictionVector :
-    public lsst::mwi::persistence::Persistable,
-    public lsst::mwi::data::Citizen
+    public lsst::daf::persistence::Persistable,
+    public lsst::daf::base::Citizen
 {
 public :
 
@@ -134,7 +129,7 @@ public :
 
     template <typename InputIterator>
     MovingObjectPredictionVector(InputIterator beg, InputIterator end) :
-        lsst::mwi::data::Citizen(typeid(*this)),
+        lsst::daf::base::Citizen(typeid(*this)),
         _vec(beg, end)
     {}
 
@@ -199,7 +194,7 @@ public :
 
 private :
 
-    LSST_PERSIST_FORMATTER(formatters::MovingObjectPredictionVectorFormatter);
+    LSST_PERSIST_FORMATTER(MovingObjectPredictionVectorFormatter);
 
     Vector _vec;
 };
@@ -207,8 +202,8 @@ private :
 #endif // SWIG
 
 
-}}  // end of namespace lsst::fw
+}}  // end of namespace lsst::mops
 
-#endif // LSST_FW_MOVING_OBJECT_PREDICTION_H
+#endif // LSST_MOPS_MOVING_OBJECT_PREDICTION_H
 
 

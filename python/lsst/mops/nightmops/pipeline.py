@@ -1,22 +1,22 @@
-import lsst.pex.dps.Stage
-import lsst.daf.data as datap
+import lsst.pex.harness.Stage
+import lsst.daf.base as datap
 import lsst.pex.policy as policy
 from lsst.pex.logging import Trace
 from lsst.pex.logging import Trace_setVerbosity
 from lsst.pex.logging import Log
 from lsst.pex.logging import LogRec
-from lsst.daf.data import DataProperty
+from lsst.daf.base import DataProperty
 
-import lsst.afw.Core.fwCatalog as fwCat
+import lsst.afw.image.afwCatalog as afwCat
 import lsst.mops.nightmops.ephemeris as eph
 import lsst.mops.nightmops.ephemDB as ephDB
 
-class MopsStage(lsst.pex.dps.Stage.Stage):
+class MopsStage(lsst.pex.harness.Stage.Stage):
 
     #------------------------------------------------------------------------
     def __init__(self, stageId = -1, policy = None):
 
-        lsst.pex.dps.Stage.Stage.__init__(self, stageId, policy)
+        lsst.pex.harness.Stage.Stage.__init__(self, stageId, policy)
 
         self.mopsLog = Log(Log.getDefaultLog(), "mops.stage")
 
@@ -106,10 +106,10 @@ class MopsStage(lsst.pex.dps.Stage.Stage):
 
          # build a MopsPredVec for our Stage output
         
-        mopsPreds = fwCat.MopsPredVec()
+        mopsPreds = afwCat.MopsPredVec()
 
         for eph in ephPreds:
-            mopsPred = fwCat.MopsPred()
+            mopsPred = afwCat.MopsPred()
             mopsPred.setId(eph.orbitId)
             mopsPred.setMjd(eph.MJD)
             mopsPred.setRa(eph.RA)

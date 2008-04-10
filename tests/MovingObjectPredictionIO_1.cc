@@ -13,30 +13,29 @@
 
 #include <boost/cstdint.hpp>
 
-#include <lsst/mwi/exceptions.h>
-#include <lsst/mwi/data/DataProperty.h>
-#include <lsst/mwi/data/SupportFactory.h>
-#include <lsst/mwi/policy/Policy.h>
-#include <lsst/mwi/persistence/DbAuth.h>
-#include <lsst/mwi/persistence/Persistence.h>
-#include <lsst/mwi/persistence/LogicalLocation.h>
+#include <lsst/pex/exceptions.h>
+#include <lsst/daf/base/DataProperty.h>
+#include <lsst/pex/policy/Policy.h>
+#include <lsst/daf/persistence/DbAuth.h>
+#include <lsst/daf/persistence/Persistence.h>
+#include <lsst/daf/persistence/LogicalLocation.h>
 
-#include "lsst/fw/MovingObjectPrediction.h"
-#include "lsst/fw/formatters/Utils.h"
+#include "lsst/mops/MovingObjectPrediction.h"
+#include "lsst/afw/formatters/Utils.h"
 
 #include <stdexcept>
 
 using boost::int64_t;
 
-using lsst::mwi::data::DataProperty;
-using lsst::mwi::data::SupportFactory;
-using lsst::mwi::policy::Policy;
-using lsst::mwi::persistence::LogicalLocation;
-using lsst::mwi::persistence::Persistence;
-using lsst::mwi::persistence::Persistable;
-using lsst::mwi::persistence::Storage;
+using lsst::daf::base::DataProperty;
+using lsst::pex::policy::Policy;
+using lsst::daf::persistence::LogicalLocation;
+using lsst::daf::persistence::Persistence;
+using lsst::daf::persistence::Persistable;
+using lsst::daf::persistence::Storage;
 
-using namespace lsst::fw;
+using namespace lsst::afw;
+using namespace lsst::mops
 
 
 #define Assert(pred, msg) do { if (!(pred)) { doThrow((msg), __LINE__); } } while(false)
@@ -83,7 +82,7 @@ static void initTestData(MovingObjectPredictionVector & v, int sliceId = 0) {
 static void testBoost(void) {
     // Create a blank Policy and DataProperty.
     Policy::Ptr           policy(new Policy);
-    DataProperty::PtrType props = SupportFactory::createPropertyNode("root");
+    DataProperty::PtrType props = DataProperty::createPropertyNode("root");
 
     // Setup test location
     LogicalLocation loc(makeTempFile());
@@ -141,10 +140,10 @@ static DataProperty::PtrType createDbTestProps(
 ) {
     Assert(sliceId < numSlices && numSlices > 0, "invalid slice parameters");
 
-    DataProperty::PtrType props = SupportFactory::createPropertyNode("root");
+    DataProperty::PtrType props = DataProperty::createPropertyNode("root");
 
     if (numSlices > 1) {
-        DataProperty::PtrType dias = SupportFactory::createPropertyNode("MovingObjectPrediction");
+        DataProperty::PtrType dias = DataProperty::createPropertyNode("MovingObjectPrediction");
         dias->addProperty(DataProperty("isPerSliceTable", boost::any(true)));
         dias->addProperty(DataProperty("numSlices",       boost::any(numSlices)));
         props->addProperty(dias);
@@ -281,27 +280,27 @@ static void testDb2(std::string const & storageType) {
 int main(int const argc, char const * const * const argv) {
     try {
         testBoost();
-        if (lsst::mwi::persistence::DbAuth::available()) {
+        if (lsst::daf::persistence::DbAuth::available()) {
             testDb("DbStorage");
             testDb("DbTsvStorage");
             testDb2("DbStorage");
             testDb2("DbTsvStorage");
         }
-        if (lsst::mwi::data::Citizen::census(0) == 0) {
+        if (lsst::daf::base::Citizen::census(0) == 0) {
             std::clog << "No leaks detected" << std::endl;
         } else {
             Assert(false, "Had memory leaks");
         }
         return EXIT_SUCCESS;
-    } catch (lsst::mwi::exceptions::ExceptionStack & exs) {
+    } catch (lsst::pex::exceptions::ExceptionStack & exs) {
         std::clog << exs.what() << exs.getStack()->toString("...", true) << std::endl;
     } catch (std::exception & ex) {
         std::clog << ex.what() << std::endl;
     }
 
-    if (lsst::mwi::data::Citizen::census(0) != 0) {
+    if (lsst::daf::base::Citizen::census(0) != 0) {
         std::clog << "Leaked memory blocks:" << std::endl;
-        lsst::mwi::data::Citizen::census(std::clog);
+        lsst::daf::base::Citizen::census(std::clog);
     }
 
     return EXIT_FAILURE;

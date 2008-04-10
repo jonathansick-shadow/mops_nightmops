@@ -6,10 +6,10 @@
 //!
 //##====----------------                                ----------------====##/
 
-#include "lsst/fw/MovingObjectPrediction.h"
+#include "lsst/mops/MovingObjectPrediction.h"
 
 namespace lsst {
-namespace fw {
+namespace mops {
 
 
 // -- MovingObjectPrediction ----------------
@@ -46,19 +46,19 @@ bool MovingObjectPrediction::operator==(MovingObjectPrediction const & d) const 
 // -- MovingObjectPredictionVector ----------------
 
 MovingObjectPredictionVector::MovingObjectPredictionVector() :
-    lsst::mwi::data::Citizen(typeid(*this)),
+    lsst::daf::base::Citizen(typeid(*this)),
     _vec()
 {}
 
 
 MovingObjectPredictionVector::MovingObjectPredictionVector(size_type n) :
-    lsst::mwi::data::Citizen(typeid(*this)),
+    lsst::daf::base::Citizen(typeid(*this)),
     _vec(n)
 {}
 
 
 MovingObjectPredictionVector::MovingObjectPredictionVector(size_type n, value_type const & val) :
-    lsst::mwi::data::Citizen(typeid(*this)),
+    lsst::daf::base::Citizen(typeid(*this)),
     _vec(n, val)
 {}
 
@@ -67,13 +67,13 @@ MovingObjectPredictionVector::~MovingObjectPredictionVector() {}
 
 
 MovingObjectPredictionVector::MovingObjectPredictionVector(MovingObjectPredictionVector const & v) :
-    lsst::mwi::data::Citizen(typeid(*this)),
+    lsst::daf::base::Citizen(typeid(*this)),
     _vec(v._vec)
 {}
 
 
 MovingObjectPredictionVector::MovingObjectPredictionVector(Vector const & v) :
-    lsst::mwi::data::Citizen(typeid(*this)),
+    lsst::daf::base::Citizen(typeid(*this)),
     _vec(v)
 {}
 
@@ -93,5 +93,5 @@ MovingObjectPredictionVector & MovingObjectPredictionVector::operator=(Vector co
 }
 
 
-}} // end of namespace lsst::fw
+}} // end of namespace lsst::mops
 
