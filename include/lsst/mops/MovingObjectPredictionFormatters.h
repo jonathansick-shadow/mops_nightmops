@@ -14,12 +14,12 @@
 #include <string>
 #include <vector>
 
-#include <lsst/daf/data/DataProperty.h>
+#include <lsst/daf/base/DataProperty.h>
 #include <lsst/pex/policy/Policy.h>
 #include <lsst/daf/persistence/Formatter.h>
 #include <lsst/daf/persistence/DbStorage.h>
 
-#include "lsst/fw/MovingObjectPrediction.h"
+#include "lsst/mops/MovingObjectPrediction.h"
 
 
 namespace lsst {

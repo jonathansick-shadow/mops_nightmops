@@ -191,7 +191,7 @@ public:
 
 }}
 
-// Make sure SWIG generates type information for boost::shared_ptr<lsst::mwi::Persistable> *,
+// Make sure SWIG generates type information for boost::shared_ptr<lsst::pex::Persistable> *,
 // even though that type is actually wrapped in the persistence module
 %types(boost::shared_ptr<lsst::daf::persistence::Persistable> *);
 

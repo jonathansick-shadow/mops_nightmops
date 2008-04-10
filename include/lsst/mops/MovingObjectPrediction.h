@@ -12,7 +12,7 @@
 
 #include <boost/cstdint.hpp>
 
-#include <lsst/daf/data/Citizen.h>
+#include <lsst/daf/base/Citizen.h>
 #include <lsst/daf/persistence/Persistable.h>
 
 
