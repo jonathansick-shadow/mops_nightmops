@@ -32,7 +32,7 @@ import lsst.afw.image.afwExceptions
 
 %include "lsst/utils/p_lsstSwig.i"
 %include "lsst/daf/persistence/persistenceMacros.i"
-%import "lsst/daf/persistence/Persistable.h"
+%import "lsst/daf/base/Persistable.h"
 
 %import "lsst/daf/base/Citizen.h"
 %import "lsst/pex/policy/Policy.h"
@@ -153,7 +153,7 @@ namespace lsst {
 namespace mops {
 
 
-class MovingObjectPredictionVector : public lsst::daf::persistence::Persistable {
+class MovingObjectPredictionVector : public lsst::daf::base::Persistable {
 public:
     typedef size_t size_type;
     typedef ptrdiff_t difference_type;
@@ -191,9 +191,9 @@ public:
 
 }}
 
-// Make sure SWIG generates type information for boost::shared_ptr<lsst::pex::Persistable> *,
+// Make sure SWIG generates type information for boost::shared_ptr<lsst::pex::base::Persistable> *,
 // even though that type is actually wrapped in the persistence module
-%types(boost::shared_ptr<lsst::daf::persistence::Persistable> *);
+%types(boost::shared_ptr<lsst::daf::base::Persistable> *);
 
 // Export instantiations of boost::shared_ptr for persistable data vectors
 %lsst_persistable_shared_ptr(MopsPredVecSharedPtr, lsst::mops::MovingObjectPredictionVector);

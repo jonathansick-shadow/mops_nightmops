@@ -13,7 +13,7 @@
 #include <boost/cstdint.hpp>
 
 #include <lsst/daf/base/Citizen.h>
-#include <lsst/daf/persistence/Persistable.h>
+#include <lsst/daf/base/Persistable.h>
 
 
 namespace boost {
@@ -104,7 +104,7 @@ inline bool operator!=(MovingObjectPrediction const & d1, MovingObjectPrediction
     A persistable container of MovingObjectPrediction instances, implemented using std::vector.
  */
 class MovingObjectPredictionVector :
-    public lsst::daf::persistence::Persistable,
+    public lsst::daf::base::Persistable,
     public lsst::daf::base::Citizen
 {
 public :
