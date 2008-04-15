@@ -14,6 +14,7 @@
 
 #include <lsst/daf/base/Citizen.h>
 #include <lsst/daf/base/Persistable.h>
+#include <lsst/mops/MovingObjectPredictionFormatters.h>
 
 
 namespace boost {
@@ -29,6 +30,8 @@ namespace mops {
 using boost::int64_t;
 #endif
 
+// forward declarations 
+class MovingObjectPredictionVectorFormatter;
 
 /*!
     Contains predicted attributes of a moving object at a sepcific time. This class is useful

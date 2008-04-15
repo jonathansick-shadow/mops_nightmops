@@ -29,6 +29,9 @@ using namespace lsst::daf::persistence;
 using lsst::pex::policy::Policy;
 using lsst::daf::base::DataProperty;
 
+// forward declarations
+class MovingObjectPrediction;
+
 
 /*!
     Formatter that supports persistence and retrieval with
