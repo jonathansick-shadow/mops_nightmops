@@ -27,6 +27,7 @@ namespace lsst {
 namespace mops {
 
 namespace ex = lsst::pex::exceptions;
+namespace afwUtils = lsst::afw::formatters;
 
 
 // -- MovingObjectPredictionVectorFormatter ----------------
@@ -94,10 +95,10 @@ template <class Archive>
 void MovingObjectPredictionVectorFormatter::delegateSerialize(
     Archive &          archive,
     unsigned int const version,
-    Persistable *      persistable
+    lsst::daf::base::Persistable *      persistable
 ) {
     MovingObjectPredictionVector * p = dynamic_cast<MovingObjectPredictionVector *>(persistable);
-    archive & boost::serialization::base_object<Persistable>(*p);
+    archive & boost::serialization::base_object<lsst::daf::base::Persistable>(*p);
     MovingObjectPredictionVector::size_type sz;
 
     if (Archive::is_loading::value) {
@@ -119,21 +120,21 @@ void MovingObjectPredictionVectorFormatter::delegateSerialize(
 }
 
 template void MovingObjectPredictionVectorFormatter::delegateSerialize<boost::archive::text_oarchive>(
-    boost::archive::text_oarchive &, unsigned int const, Persistable *
+    boost::archive::text_oarchive &, unsigned int const, lsst::daf::base::Persistable *
 );
 template void MovingObjectPredictionVectorFormatter::delegateSerialize<boost::archive::text_iarchive>(
-    boost::archive::text_iarchive &, unsigned int const, Persistable *
+    boost::archive::text_iarchive &, unsigned int const, lsst::daf::base::Persistable *
 );
 //template void MovingObjectPredictionVectorFormatter::delegateSerialize<boost::archive::binary_oarchive>(
-//    boost::archive::binary_oarchive &, unsigned int const, Persistable *
+//    boost::archive::binary_oarchive &, unsigned int const, lsst::daf::base::Persistable *
 //);
 //template void MovingObjectPredictionVectorFormatter::delegateSerialize<boost::archive::binary_iarchive>(
-//    boost::archive::binary_iarchive &, unsigned int const, Persistable *
+//    boost::archive::binary_iarchive &, unsigned int const, lsst::daf::base::Persistable *
 //);
 
 
 void MovingObjectPredictionVectorFormatter::write(
-    Persistable const *   persistable,
+    lsst::daf::base::Persistable const *   persistable,
     Storage::Ptr          storage,
     DataProperty::PtrType additionalData
 ) {
@@ -156,14 +157,14 @@ void MovingObjectPredictionVectorFormatter::write(
         }
         bs->getOArchive() & *p;
     } else if (typeid(*storage) == typeid(DbStorage) || typeid(*storage) == typeid(DbTsvStorage)) {
-        std::string itemName(getItemName(additionalData));
-        std::string name(getVisitSliceTableName(_policy, additionalData));
-        std::string model = extractPolicyString(
+        std::string itemName(afwUtils::getItemName(additionalData));
+        std::string name(afwUtils::getVisitSliceTableName(_policy, additionalData));
+        std::string model = afwUtils::extractPolicyString(
             _policy,
             itemName + ".templateTableName",
             itemName + "Template"
         );
-        bool mayExist = !extractOptionalFlag(additionalData, itemName + ".isPerSliceTable");
+        bool mayExist = !afwUtils::extractOptionalFlag(additionalData, itemName + ".isPerSliceTable");
         if (typeid(*storage) == typeid(DbStorage)) {
             DbStorage * db = dynamic_cast<DbStorage *>(storage.get());
             if (db == 0) {
@@ -193,7 +194,7 @@ void MovingObjectPredictionVectorFormatter::write(
 }
 
 
-Persistable* MovingObjectPredictionVectorFormatter::read(
+lsst::daf::base::Persistable* MovingObjectPredictionVectorFormatter::read(
     Storage::Ptr          storage,
     DataProperty::PtrType additionalData
 ) {
@@ -211,7 +212,7 @@ Persistable* MovingObjectPredictionVectorFormatter::read(
             throw ex::Runtime("Didn't get DbStorage");
         }
         std::vector<std::string> tables;
-        getAllVisitSliceTableNames(tables, _policy, additionalData);
+        afwUtils::getAllVisitSliceTableNames(tables, _policy, additionalData);
 
         // loop over all retrieve tables, reading in everything
         std::vector<std::string>::const_iterator const end = tables.end();
@@ -241,10 +242,10 @@ Persistable* MovingObjectPredictionVectorFormatter::read(
 }
 
 
-void MovingObjectPredictionVectorFormatter::update(Persistable*, Storage::Ptr, DataProperty::PtrType) {
+void MovingObjectPredictionVectorFormatter::update(lsst::daf::base::Persistable*, Storage::Ptr, DataProperty::PtrType) {
     throw ex::Runtime("MovingObjectPredictionVectorFormatter: updates not supported");
 }
 
 
-}}} // end of namespace lsst::mops:
+}} // end of namespace lsst::mops:
 

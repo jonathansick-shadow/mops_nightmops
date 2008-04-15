@@ -44,11 +44,11 @@ public:
 
     virtual ~MovingObjectPredictionVectorFormatter();
 
-    virtual void write(Persistable const *, Storage::Ptr, DataProperty::PtrType);
-    virtual Persistable* read(Storage::Ptr, DataProperty::PtrType);
-    virtual void update(Persistable*, Storage::Ptr, DataProperty::PtrType);
+    virtual void write(lsst::daf::base::Persistable const *, Storage::Ptr, DataProperty::PtrType);
+    virtual lsst::daf::base::Persistable* read(Storage::Ptr, DataProperty::PtrType);
+    virtual void update(lsst::daf::base::Persistable*, Storage::Ptr, DataProperty::PtrType);
 
-    template <class Archive> static void delegateSerialize(Archive &, unsigned int const, Persistable *);
+    template <class Archive> static void delegateSerialize(Archive &, unsigned int const, lsst::daf::base::Persistable *);
 
 private:
 
@@ -64,7 +64,7 @@ private:
 };
 
 
-}}}  // end of namespace lsst::mops
+}}  // end of namespace lsst::mops
 
 #endif // LSST_MOPS_FORMATTERS_MOVING_OBJECT_PREDICTION_FORMATTERS_H
 
