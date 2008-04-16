@@ -1,4 +1,4 @@
 """ MOPS  related classes
 """
-from mops import *
+from mopsLib import *
 

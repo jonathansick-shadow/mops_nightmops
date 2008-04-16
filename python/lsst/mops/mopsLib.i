@@ -6,40 +6,43 @@ Access to persistable C++ objects for MOPS catalog data.
 %enddef
 
 %feature("autodoc", "1");
-%module(docstring=mopsLib_DOCSTRING) mopsLib
+%module(package="lsst.mops", docstring=mopsLib_DOCSTRING) mopsLib
 
 // Suppress swig complaints
-// I had trouble getting %warnfilter to work; hence the pragmas
 #pragma SWIG nowarn=314                 // print is a python keyword (--> _print)
 #pragma SWIG nowarn=362                 // operator=  ignored
 
 %{
-#include "lsst/afw/detection/Source.h"
 #include "lsst/mops/MovingObjectPrediction.h"
 #include "lsst/afw/formatters/Utils.h"
+#include <sstream>
 %}
 
 %inline %{
-namespace boost { namespace filesystem {} }
+namespace boost {
+    namespace filesystem {}
+    class bad_any_cast;
+}
 %}
 
 %init %{
 %}
 
 %pythoncode %{
-import lsst.afw.image.afwExceptions
+import lsst.afw.image.imageExceptions
+import lsst.pex.exceptions
 %}
 
-%include "lsst/utils/p_lsstSwig.i"
-%include "lsst/daf/persistence/persistenceMacros.i"
-%import "lsst/daf/base/Persistable.h"
+%include "lsst/p_lsstSwig.i"
+%include "lsst/daf/base/persistenceMacros.i"
 
 %import "lsst/daf/base/Citizen.h"
+%import "lsst/daf/base/Persistable.h"
+%import "lsst/daf/base/DataProperty.h"
 %import "lsst/pex/policy/Policy.h"
 %import "lsst/daf/persistence/LogicalLocation.h"
 %import "lsst/daf/persistence/Persistence.h"
 %import "lsst/daf/persistence/Storage.h"
-%import "lsst/daf/base/DataProperty.h"
 
 
 %include <stdint.i>
@@ -49,7 +52,6 @@ import lsst.afw.image.afwExceptions
 %rename(MopsPred)      lsst::mops::MovingObjectPrediction; 
 %rename(MopsPredVec)   lsst::mops::MovingObjectPredictionVector;
 
-%include "lsst/afw/detection/Source.h"
 %include "lsst/mops/MovingObjectPrediction.h"
 %include "lsst/afw/formatters/Utils.h"
 
@@ -59,7 +61,7 @@ import lsst.afw.image.afwExceptions
 %extend lsst::mops::MovingObjectPrediction {
     std::string toString() {
         std::ostringstream os;
-        os << "Source " << $self->getId();
+        os << "MovingObjectPrediction " << $self->getId();
         os.precision(9);
         os << " (" << $self->getRa() << ", " << $self->getDec() << ")";
         return os.str();
@@ -207,7 +209,6 @@ def MopsPredVecPtr(*args):
     v.this.disown()
     out = MopsPredVecSharedPtr(v)
     return out
-
 
 %}
 

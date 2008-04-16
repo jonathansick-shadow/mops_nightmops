@@ -14,6 +14,7 @@ env = scons.makeEnv(
         ["boost", "boost/serialization/base_object.hpp", "boost_serialization:C++"],
         ["python", "Python.h"],
         ["cfitsio", "fitsio.h", "m cfitsio", "ffopen"],
+        ["wcslib", "wcslib/wcs.h", "wcs"],
         ["utils", "lsst/utils/Utils.h", "utils:C++"],
         ["daf_base", "lsst/daf/base.h", "daf_base:C++"],
         ["pex_exceptions", "lsst/pex/exceptions.h", "pex_exceptions:C++"],
@@ -29,16 +30,16 @@ env = scons.makeEnv(
 #
 # Libraries needed to link libraries/executables
 #
-env.libs["mops"] += env.getlibs("boost utils daf_base daf_data daf_persistence pex_exceptions pex_logging pex_policy security")
+env.libs["mops"] += env.getlibs("boost wcslib utils daf_base daf_data daf_persistence pex_exceptions pex_logging pex_policy security afw")
 
 #
 # Build/install things
 #
-# ........................ NEED TO ADD tests/SConscript.............#
 for d in (
     "include/lsst/mops",
     "lib",
-    "python/lsst/mops"
+    "python/lsst/mops",
+    "tests"
 ):
     SConscript(os.path.join(d, 'SConscript'))
 

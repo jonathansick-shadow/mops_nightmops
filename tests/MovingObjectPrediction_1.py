@@ -17,7 +17,7 @@ import lsst.daf.base as dafBase
 import lsst.pex.policy as policy
 import lsst.daf.persistence as persistence
 import lsst.utils.tests as tests
-import lsst.afw.image.afwCatalog as cat
+import lsst.mops as cat
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 

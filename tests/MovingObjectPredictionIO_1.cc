@@ -9,7 +9,10 @@
 //##====----------------                                ----------------====##/
 
 #include <sys/time.h>
-#include <cstdlib>
+#include <iostream>
+#include <sstream>
+#include <cstring>
+#include <stdexcept>
 
 #include <boost/cstdint.hpp>
 
@@ -23,8 +26,6 @@
 #include "lsst/mops/MovingObjectPrediction.h"
 #include "lsst/afw/formatters/Utils.h"
 
-#include <stdexcept>
-
 using boost::int64_t;
 
 using lsst::daf::base::DataProperty;
@@ -35,7 +36,7 @@ using lsst::daf::base::Persistable;
 using lsst::daf::persistence::Storage;
 
 using namespace lsst::afw;
-using namespace lsst::mops
+using namespace lsst::mops;
 
 
 #define Assert(pred, msg) do { if (!(pred)) { doThrow((msg), __LINE__); } } while(false)
