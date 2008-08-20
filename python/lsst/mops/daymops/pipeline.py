@@ -22,12 +22,13 @@ class DayMopsStage(lsst.pex.harness.Stage.Stage):
         self.mopsLog = Log(Log.getDefaultLog(), "daymops.stage")
         return
 
-    def process(self): 
+    def preprocess(self): 
         """
         Execute DayMOPS as a black box. This involves setting up the appropriate
         environment variables and passing control to mopper (part of the DayMOPS
         distribution). DayMOPS handles its processing and parallelism strategy 
-        independently, so we do now spawn any slices.
+        independently, so we do now spawn any slices. This is why mopper is 
+        invoked in the Stage preprocess method and not in process().
         """
         Trace_setVerbosity("lsst.mops", 5)
         
@@ -49,5 +50,35 @@ class DayMopsStage(lsst.pex.harness.Stage.Stage):
         
         self.mopsLog.log(Log.INFO, "Mops stage processing ended")
         return
+    
+    def process(self):
+        """
+        Do nothing. This is because the whole Stage behaviour is purely serial.
+        """
+        return
+    
+    def postprocess(self):
+        """
+        Do any postprocessing.
+        """
+        return
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
