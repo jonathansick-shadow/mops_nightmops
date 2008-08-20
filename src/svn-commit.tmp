@@ -1,0 +1,5 @@
+Moving MOPS prediction source into position.
+--This line, and those below, will be ignored--
+
+A    svn+ssh://rallsman@svn.lsstcorp.org/DMS/mops/trunk/src/MovingObjectPrediction.cc
+D    svn+ssh://rallsman@svn.lsstcorp.org/DMS/afw/trunk/src/MovingObjectPrediction.cc
