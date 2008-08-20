@@ -1,0 +1,10 @@
+#<?cfg paf policy ?>
+# Default NightMops policy file
+
+# 
+MOPS_HOME: "path/to/MOPS/root/installation"
+MOPS_CAET_DATA: "path/to/CAET_DATA/root/installation"
+MOPS_DBINSTANCE: "name/url of the MOPS database"
+#
+
+
