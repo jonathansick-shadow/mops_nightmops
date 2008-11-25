@@ -1,0 +1,6 @@
+# -*- python -*-
+Import("env")
+
+env.CheckSwig("python", ilang="c++", includedProducts="utils daf_base")
+env.LoadableModuleIncomplete("_mopsLib", Split("mopsLib.i"), LIBS=env.getlibs("mops"))
+

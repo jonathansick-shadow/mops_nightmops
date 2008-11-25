@@ -1,0 +1,11 @@
+# -*- python -*-
+Import('env')
+
+env.SharedLibrary(
+    'mops',
+    ["../src/%s" % (src,) for src in (
+        "MovingObjectPrediction.cc",
+        "MovingObjectPredictionFormatters.cc",
+    )],
+    LIBS=filter(lambda x: x != "mops", env.getlibs("mops"))
+)
