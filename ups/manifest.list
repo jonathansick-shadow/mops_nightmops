@@ -1,4 +1,0 @@
->merge: afw
->merge: mysqlclient
->merge: numpy
->self
