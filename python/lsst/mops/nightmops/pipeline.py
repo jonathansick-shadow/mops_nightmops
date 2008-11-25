@@ -7,7 +7,7 @@ from lsst.pex.logging import Log
 from lsst.pex.logging import LogRec
 from lsst.daf.base import DataProperty
 
-import lsst.afw.image.afwCatalog as afwCat
+import lsst.mops as mops
 import lsst.mops.nightmops.ephemeris as eph
 import lsst.mops.nightmops.ephemDB as ephDB
 
@@ -106,10 +106,10 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
 
          # build a MopsPredVec for our Stage output
         
-        mopsPreds = afwCat.MopsPredVec()
+        mopsPreds = mops.MopsPredVec()
 
         for eph in ephPreds:
-            mopsPred = afwCat.MopsPred()
+            mopsPred = mops.MopsPred()
             mopsPred.setId(eph.orbitId)
             mopsPred.setMjd(eph.MJD)
             mopsPred.setRa(eph.RA)
