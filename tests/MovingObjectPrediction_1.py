@@ -14,7 +14,7 @@ import unittest
 import time
 import random
 import lsst.daf.base as dafBase
-import lsst.pex.policy as policy
+import lsst.pex.policy
 import lsst.daf.persistence as persistence
 import lsst.utils.tests as tests
 import lsst.mops as cat
@@ -83,7 +83,7 @@ class MopsPredTestCase(unittest.TestCase):
 
     def testPersistence(self):
         if persistence.DbAuth.available():
-            pol  = policy.PolicyPtr()
+            pol  = lsst.pex.policy.getPolicy()
             pers = persistence.Persistence.getPersistence(pol)
             loc  =  persistence.LogicalLocation("mysql://lsst10.ncsa.uiuc.edu:3306/test")
             dp = dafBase.DataProperty.createPropertyNode("root")

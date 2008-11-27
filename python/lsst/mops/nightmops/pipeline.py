@@ -11,14 +11,18 @@ import lsst.afw.image.afwCatalog as afwCat
 import lsst.mops.nightmops.ephemeris as eph
 import lsst.mops.nightmops.ephemDB as ephDB
 
+
+
+
 class MopsStage(lsst.pex.harness.Stage.Stage):
-
-    #------------------------------------------------------------------------
-    def __init__(self, stageId = -1, policy = None):
-
+    def __init__(self, stageId=-1, policy=None):
+        """
+        Standard Stage initializer.
+        """
         lsst.pex.harness.Stage.Stage.__init__(self, stageId, policy)
+        self.mopsLog = Log(Log.getDefaultLog(), 'mops.stage')
+        return
 
-        self.mopsLog = Log(Log.getDefaultLog(), "mops.stage")
 
     def process(self): 
         """
@@ -37,96 +41,81 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
         -use propogateOrbit to interpolate those orbits to a known location
         -write those orbits out to a known database table so AP can read them
         """
-
-        Trace_setVerbosity("lsst.mops", 5)
+        Trace_setVerbosity('lsst.mops', 5)
         
+        # Get our slice ID  and tot number of slices(for simple parallelism 
+        # purposes).        
         sliceId = self.getRank()
         numSlices = self.getUniverseSize() - 1  # want only real slices
 
-        #########
-        #
         # Get needed params from policy
-        #
         ephemDbFromPolicy = self._policy.get('ephemDB')
-
         fovDiamFromPolicy = self._policy.get('fovDiam')
+        obscodeFromPolicy = self._policy.get('obscode')
 
-        
-        ###########
-        #
         # Get objects from clipboard
-        #
         self.activeClipboard = self.inputQueue.getNextDataset()
-
         triggerEvent = self.activeClipboard.get('mops1Event')
+        
+        fovRA = triggerEvent.findUnique('FOVRA').getValueDouble()
+        fovDec = triggerEvent.findUnique('FOVDec').getValueDouble()
+        visitId = triggerEvent.findUnique('visitId').getValueInt()
+        mjd = triggerEvent.findUnique('visitTime').getValueDouble()
 
-        fovRAItem = triggerEvent.findUnique('FOVRA')
-        fovRA = fovRAItem.getValueDouble()
-
-        fovDecItem = triggerEvent.findUnique('FOVDec')
-        fovDec = fovDecItem.getValueDouble()
-
-        visitIdItem = triggerEvent.findUnique('visitId')
-        visitId = visitIdItem.getValueInt()
-
-        MJDItem = triggerEvent.findUnique('visitTime')
-        mjd = MJDItem.getValueDouble()
-
-        ###########
-        #
         # Log the beginning of Mops stage for this slice
-        #
         LogRec(self.mopsLog, Log.INFO) \
-                                  <<  "Began mops stage" \
-                                  << DataProperty("visitId", visitId) \
-                                  << DataProperty("MJD", mjd) \
+                                  <<  'Began mops stage' \
+                                  << DataProperty('visitId', visitId) \
+                                  << DataProperty('MJD', mjd) \
                                   << LogRec.endr
 
         # get this Slice's set of potential objects in the FOV
+        candidateOrbits = ephDB.selectOrbitsForFOV(ephemDbFromPolicy, 
+                                                   sliceId, 
+                                                   numSlices, 
+                                                   fovRA,
+                                                   fovDec,
+                                                   fovDiamFromPolicy,
+                                                   mjd)
 
-        candidateEphems = ephDB.fetchCandidateEphems(ephemDbFromPolicy, sliceId, numSlices, mjd)
+        # Propagate each orbit to mjd.
+        ephems = [ephDB.propagateOrbit(o, mjd, obscodeFromPolicy) 
+                  for o in candidateOrbits]
+                  
+        # Try and reduce the list even further by discarding positions that are
+        # entirely outside of the Fov.
+        ephems = [e for e in ephems if ephDB._isinside(e, fovRA, fovDec, fovR)]
 
-        Trace("lsst.mops.MopsStage", 3, 'Number of candidate ephems: %d' % len(candidateEphems))
-        
-        # get a list of predicted ephems that actually fall in our fov
+        Trace('lsst.mops.MopsStage', 3, 
+              'Number of orbits in fov: %d' % len(candidateOrbits))
 
-        ephPreds = ephDB.selectOrbitsForFOV(candidateEphems, mjd, fovRA, fovDec, fovDiamFromPolicy)
-        Trace("lsst.mops.MopsStage", 3, 'Number of ephems in fov: %d' % len(ephPreds))
-
-        ###########
-        #
         # Log the number of predicted ephems
-        #
         LogRec(self.mopsLog, Log.INFO) \
-              <<  "Predicted ephems" \
-              << DataProperty("possible objects at this MJD",
-                              len(candidateEphems)) \
-              << DataProperty("predicted objects in the FOV", len(ephPreds)) \
+              <<  'Candidate orbits' \
+              << DataProperty('predicted objects in the FOV', len(candidateOrbits)) \
+              << DataProperty('predicted ephems in the FOV', len(ephems)) \
               << LogRec.endr
 
          # build a MopsPredVec for our Stage output
-        
         mopsPreds = afwCat.MopsPredVec()
 
-        for eph in ephPreds:
+        for e in ephems:
             mopsPred = afwCat.MopsPred()
-            mopsPred.setId(eph.orbitId)
-            mopsPred.setMjd(eph.MJD)
-            mopsPred.setRa(eph.RA)
-            mopsPred.setDec(eph.Dec)
-            mopsPred.setSemiMinorAxisLength(eph.SMIA)
-            mopsPred.setSemiMajorAxisLength(eph.SMAA)
-            mopsPred.setPositionAngle(eph.PA)
-            mopsPred.setMagnitude(eph.Mag)
+            mopsPred.setId(e.orbitId)
+            mopsPred.setMjd(e.MJD)
+            mopsPred.setRa(e.RA)
+            mopsPred.setDec(e.Dec)
+            mopsPred.setSemiMinorAxisLength(e.SMIA)
+            mopsPred.setSemiMajorAxisLength(e.SMAA)
+            mopsPred.setPositionAngle(e.PA)
+            mopsPred.setMagnitude(e.Mag)
             mopsPreds.push_back(mopsPred)
         
-        # put output of selectOrbitsForFOV on the clipboard
-
+        # put output on the clipboard
         self.activeClipboard.put('MopsPreds', mopsPreds)
-        
         self.outputQueue.addDataset(self.activeClipboard)
-
-        self.mopsLog.log(Log.INFO, "Mops stage processing ended")
+        self.mopsLog.log(Log.INFO, 'Mops stage processing ended')
+        return
 
 
 
