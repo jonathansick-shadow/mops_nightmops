@@ -15,7 +15,8 @@ namespace mops {
 // -- MovingObjectPrediction ----------------
 
 MovingObjectPrediction::MovingObjectPrediction() :
-    _orbitId( -1),
+    _movingObjectId( -1),
+    _movingObjectVersion(-1),
     _ra     (0.0),
     _dec    (0.0),
     _smaa   (0.0),
@@ -31,15 +32,16 @@ bool MovingObjectPrediction::operator==(MovingObjectPrediction const & d) const 
     if (this == &d) {
         return true;
     }
-    return _orbitId == d._orbitId &&
-           _ra      == d._ra      &&
-           _dec     == d._dec     &&
-           _smaa    == d._smaa    &&
-           _smia    == d._smia    &&
-           _pa      == d._pa      &&
-           _mjd     == d._mjd     &&
-           _mag     == d._mag     &&
-           _magErr  == d._magErr;
+    return _movingObjectId      == d._movingObjectId &&
+           _movingObjectVersion == d._movingObjectVersion &&
+           _ra                  == d._ra      &&
+           _dec                 == d._dec     &&
+           _smaa                == d._smaa    &&
+           _smia                == d._smia    &&
+           _pa                  == d._pa      &&
+           _mjd                 == d._mjd     &&
+           _mag                 == d._mag     &&
+           _magErr              == d._magErr;
 }
 
 

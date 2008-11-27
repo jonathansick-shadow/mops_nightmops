@@ -66,9 +66,7 @@ def fetchOrbitIdsAndEphems(dbLogicalLocation, sliceId, numSlices, mjd, deltaMJD=
     @param deltaMJD: temporal distance betweeb successive ephemerides.
 
     Return
-        {orbitId: [Ephemeris(RA, Dec, int(mjd)-deltaMJD),
-                   Ephemeris(RA, Dec, int(mjd)),
-                   Ephemeris(RA, Dec, int(mjd)+deltaMJD)]
+        [(internal_orbitId: Ephemeris obj), ] sorted by mjd
     """
     # Init the persistance middleware.
     db = dafPer.DbStorage()
@@ -84,12 +82,14 @@ def fetchOrbitIdsAndEphems(dbLogicalLocation, sliceId, numSlices, mjd, deltaMJD=
     
     # FIXME: What if the orbit_ids are not contiguous?
     where = 'mjd >= %f and mjd <= %f and ' %(mjdMin, mjdMax)
+    where += 'movingObjectVersion = max(movingObjectVersion) and '
     where += 'orbit_id % %d = %d' %(numSlices, sliceId)   # poor man parallelism
     
     db.startTransaction()
-    db.setTableForQuery('mops_ephem')
+    db.setTableForQuery('_tmpl_mops_Ephemeris')
     db.setQueryWhere(where)
-    db.outColumn('orbit_id')
+    db.outColumn('movingObjectId')
+    db.outColumn('movingObjectVersion')
     db.outColumn('mjd')
     db.outColumn('ra_deg')
     db.outColumn('dec_deg')
@@ -97,6 +97,7 @@ def fetchOrbitIdsAndEphems(dbLogicalLocation, sliceId, numSlices, mjd, deltaMJD=
     db.outColumn('smaa')
     db.outColumn('smia')
     db.outColumn('pa')
+    db.groupBy('movingObjectId')
     db.orderBy('orbit_id')
     db.orderBy('mjd')
     
@@ -106,16 +107,21 @@ def fetchOrbitIdsAndEphems(dbLogicalLocation, sliceId, numSlices, mjd, deltaMJD=
     # Fetch the results.
     res = []
     while db.next():
-        ephem = Ephemeris(db.getColumnByPosInt64(0),     # orbit_id
-                          db.getColumnByPosDouble(1),    # mjd
-                          db.getColumnByPosDouble(2),    # ra_deg
-                          db.getColumnByPosDouble(3),    # dec_deg
-                          db.getColumnByPosDouble(4),    # mag
-                          db.getColumnByPosDouble(5),    # smaa
-                          db.getColumnByPosDouble(6),    # smia
-                          db.getColumnByPosDouble(7))    # pa
-        # res= [(orbit_id, Ephemeris obj), ...]
-        res.append((db.getColumnByPosInt64(0), ephem))
+        ephem = Ephemeris(db.getColumnByPosInt64(0),     # movingObjectId
+                          db.getColumnByPosInt64(1),     # movingObjectVersion
+                          db.getColumnByPosDouble(2),    # mjd
+                          db.getColumnByPosDouble(3),    # ra_deg
+                          db.getColumnByPosDouble(4),    # dec_deg
+                          db.getColumnByPosDouble(5),    # mag
+                          db.getColumnByPosDouble(6),    # smaa
+                          db.getColumnByPosDouble(7),    # smia
+                          db.getColumnByPosDouble(8))    # pa
+        # We now create a new temp id made by concatenating the movingobject id 
+        # and its version. It will only be used internally.
+        # res= [(new_orbit_id, Ephemeris obj), ...]
+        res.append(('%d-%d', %(db.getColumnByPosInt64(0), 
+                               db.getColumnByPosInt64(0)),
+                    ephem))
     # We are done with the query.
     db.finishQuery()
     return(res)
@@ -123,11 +129,11 @@ def fetchOrbitIdsAndEphems(dbLogicalLocation, sliceId, numSlices, mjd, deltaMJD=
 
 def fetchOrbit(dbLogicalLocation, orbitId):
     """
-    Fetch the full Orbit corresponding to orbitId.
+    Fetch the full Orbit corresponding to the internal orbitId:
+        orbitId = '%d-%d' %(movingObjectId, movingObjectVersion)
     
     @param dbLogicalLocation: pointer to the DB.
     @param orbitId: orbit ID.
-    
     
     Return
         Orbit obj
@@ -139,10 +145,17 @@ def fetchOrbit(dbLogicalLocation, orbitId):
     loc = dafPer.LogicalLocation(dbLogicalLocation)
     db.setRetrieveLocation(loc)
     
+    # Remember that we defined a new internal orbitId as the concatenation of
+    # movingObjectId and movingObjectVersion: 
+    # orbitId = '%d-%d' %(movingObjectId, movingObjectVersion)
+    (movingObjectId, movingObjectVersion) = orbitId.split('-')
+    
     # Prepare the query.
+    where = 'movingObjectId=%s and movingObjectVersion=%s' \
+            %(movingObjectId, movingObjectVersion)
     db.startTransaction()
     db.setTableForQuery('MovingObject')
-    db.setQueryWhere('movingObjectId = %d' %(orbitId))
+    db.setQueryWhere(where)
     columns = ['q', 'e', 'i', 'node', 'argPer', 'timePe', 'epoch', 'h_v', 'g']
     columns += ['src%02d' %(i) for i in range(1, 22, 1)]
     errs = map(lambda c: db.outColumn(c), columns)
@@ -157,7 +170,7 @@ def fetchOrbit(dbLogicalLocation, orbitId):
     # We are done with the query.
     db.finishQuery()
     
-    args = [orbitId, ] + elements + [src]
+    args = [int(movingObjectId), int(movingObjectVersion), ] + elements + [src]
     return(Orbit(*args))
 
 
@@ -204,7 +217,18 @@ def propagateOrbit(orbit, mjd, obscode):
      smia, 
      pa) = ssd.ephemerides(orbitalParams, epoch, numpy.array([mjd, ]), obscode,
                            orbit.hv, orbit.g, covariance=orbit.src)
-    return(Ephemeris(mjd, ra, dec, mag, smaa, smia, pa))
+    
+    # Return the Ephemeris object.
+    (movingObjectId, movingObjectVersion) = orbitId.split('-')
+    return(Ephemeris(orbit.movingObjectId, 
+                     orbit.movingObjectVersion, 
+                     mjd, 
+                     ra, 
+                     dec, 
+                     mag, 
+                     smaa, 
+                     smia, 
+                     pa))
     
 
 

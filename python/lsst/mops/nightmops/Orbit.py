@@ -15,10 +15,13 @@ class Orbit(object):
     g
     src
 	"""
-    def __init__(self, orbitId, q, e, i, node, argPeri, timePeri, epoch, hv, g,
+    def __init__(self, movingObjectId, movingObjectVersion, 
+                 q, e, i, node, argPeri, timePeri, epoch, 
+                 hv, g,
                  src=None):
         """
-        orbitId: integer
+        movingObjectId: integer, ID of obj associated with this Orbit
+        movingObjectVersion: version of the obj associated with this Orbit
         q (AU)
         e
         i (deg)
@@ -30,7 +33,8 @@ class Orbit(object):
         g: slope parameter
         src: 21 element array (covariance matrix in diagonal form).
         """
-        self.orbitId = orbitId
+        self.movingObjectId = movingObjectId
+        self.movingObjectVersion = movingObjectVersion
         self.q = q
         self.e = e
         self.i = i

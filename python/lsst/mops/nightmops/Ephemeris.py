@@ -11,27 +11,30 @@ ephemeris calculation function.
 
 
 class Ephemeris(object):
-    def __init__(self, orbitId, MJD, RA, Dec, Mag, SMAA, SMIA, PA):
+    def __init__(self, movingObjectId, movingObjectVersion, 
+                 mjd, ra, dec, mag, smaa, smia, pa):
         """
         Ephemeris: A point in the sky of a moving object at some given time
 
-        orbitId: integer, ID of orbit associated with this Ephemeris
-        MJD: Mean Julian Date, floating point
-        RA: Right Ascension (deg)
-        Dec: Declination (deg)
-        Mag: Magnitude (optical)
-        SMAA: error ellipse semi major axis (deg)
-        SMIA: error ellipse semi minor axis (deg)
-        PA:  error ellipse position angle
+        movingObjectId: integer, ID of obj associated with this Ephemeris
+        movingObjectVersion: version of the obj associated with this Ephemeris
+        mjd: Mean Julian Date, floating point
+        ra: Right Ascension (deg)
+        dec: Declination (deg)
+        mag: Magnitude (optical)
+        smaa: error ellipse semi major axis (deg)
+        smia: error ellipse semi minor axis (deg)
+        pa:  error ellipse position angle
         """
-        self.orbitId = orbitId
-        self.MJD = MJD
-        self.RA = RA
-        self.Dec = Dec
-        self.Mag = Mag
-        self.SMAA = SMAA
-        self.SMIA = SMIA
-        self.PA = PA
+        self.movingObjectId = movingObjectId
+        self.movingObjectVersion = movingObjectVersion
+        self.mjd = mjd
+        self.ra = ra
+        self.dec = dec
+        self.mag = mag
+        self.smaa = smaa
+        self.smia = smia
+        self.pa = pa
         return
 
     def pr(self):

@@ -7,7 +7,7 @@ from lsst.pex.logging import Log
 from lsst.pex.logging import LogRec
 from lsst.daf.base import DataProperty
 
-import lsst.afw.image.afwCatalog as afwCat
+import lsst.mops.mopsLib
 import lsst.mops.nightmops.ephemeris as eph
 import lsst.mops.nightmops.ephemDB as ephDB
 
@@ -34,9 +34,11 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
         -get fov, ra, time, and FOVID from clipboard (done)
 
         - check whether current mjd range is still valid
-        - if not, load orbit_id's for our slice (orbit_id%universe_size == rank) and current mjd
+        - if not, load orbit_id's for our slice (orbit_id%universe_size == rank)
+          and current mjd
         
-        -get a python list of all orbits (use allOrbits function, which interrogates the DB)
+        -get a python list of all orbits (use allOrbits function, which 
+         interrogates the DB)
         -use rank to determine this slice's section of the orbits list
         -use propogateOrbit to interpolate those orbits to a known location
         -write those orbits out to a known database table so AP can read them
@@ -97,7 +99,7 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
               << LogRec.endr
 
          # build a MopsPredVec for our Stage output
-        mopsPreds = afwCat.MopsPredVec()
+        mopsPreds = mopsLib.MopsPredVec()
 
         for e in ephems:
             mopsPred = afwCat.MopsPred()

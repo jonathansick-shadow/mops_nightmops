@@ -59,15 +59,16 @@ Formatter::Ptr MovingObjectPredictionVectorFormatter::createInstance(Policy::Ptr
  */
 template <typename T>
 void MovingObjectPredictionVectorFormatter::insertRow(T & db, MovingObjectPrediction const & p) {
-    db.template setColumn<int64_t>("orbit_id", p._orbitId);
-    db.template setColumn<double> ("ra_deg",   p._ra);
-    db.template setColumn<double> ("dec_deg",  p._dec);
-    db.template setColumn<double> ("mjd",      p._mjd);
-    db.template setColumn<double> ("smia",     p._smia);
-    db.template setColumn<double> ("smaa",     p._smaa);
-    db.template setColumn<double> ("pa",       p._pa);
-    db.template setColumn<double> ("mag",      p._mag);
-    db.template setColumn<float>  ("magErr",   p._magErr);
+    db.template setColumn<int64_t>("movingObjectId",      p._movingObjectId);
+    db.template setColumn<int64_t>("movingObjectVersion", p._movingObjectVersion);
+    db.template setColumn<double> ("ra",                  p._ra);
+    db.template setColumn<double> ("decl",                p._dec);
+    db.template setColumn<double> ("mjd",                 p._mjd);
+    db.template setColumn<double> ("smia",                p._smia);
+    db.template setColumn<double> ("smaa",                p._smaa);
+    db.template setColumn<double> ("pa",                  p._pa);
+    db.template setColumn<double> ("mag",                 p._mag);
+    db.template setColumn<float>  ("magErr",              p._magErr);
     db.insertRow();
 }
 
@@ -79,15 +80,16 @@ template void MovingObjectPredictionVectorFormatter::insertRow<DbTsvStorage>(DbT
 
 /*! Prepares for reading MovingObjectPrediction instances from a database table. */
 void MovingObjectPredictionVectorFormatter::setupFetch(DbStorage & db, MovingObjectPrediction & p) {
-    db.outParam("orbit_id", &(p._orbitId));
-    db.outParam("ra_deg",   &(p._ra));
-    db.outParam("dec_deg",  &(p._dec));
-    db.outParam("mjd",      &(p._mjd));
-    db.outParam("smia",     &(p._smia));
-    db.outParam("smaa",     &(p._smaa));
-    db.outParam("pa",       &(p._pa));
-    db.outParam("mag",      &(p._mag));
-    db.outParam("magErr",   &(p._magErr));
+    db.outParam("movingObjectId",      &(p._movingObjectId));
+    db.outParam("movingObjectVersion", &(p._movingObjectVersion));
+    db.outParam("ra_deg",              &(p._ra));
+    db.outParam("dec_deg",             &(p._dec));
+    db.outParam("mjd",                 &(p._mjd));
+    db.outParam("smia",                &(p._smia));
+    db.outParam("smaa",                &(p._smaa));
+    db.outParam("pa",                  &(p._pa));
+    db.outParam("mag",                 &(p._mag));
+    db.outParam("magErr",              &(p._magErr));
 }
 
 

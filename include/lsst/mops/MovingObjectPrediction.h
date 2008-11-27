@@ -45,42 +45,46 @@ public :
     MovingObjectPrediction();
 
     // Getters required by association pipeline
-    int64_t getId()                  const { return _orbitId; }
-    double  getRa()                  const { return _ra;      }
-    double  getDec()                 const { return _dec;     }
-    double  getSemiMinorAxisLength() const { return _smia;    }
-    double  getSemiMajorAxisLength() const { return _smaa;    }
-    double  getPositionAngle()       const { return _pa;      }
-    double  getMjd()                 const { return _mjd;     }
-    double  getMagnitude()           const { return _mag;     }
-    float   getMagnitudeError()      const { return _magErr;  }
+    int64_t getId()                  const { return _movingObjectId;      }
+    int64_t getVersion()             const { return _movingObjectVersion; }
+    double  getRa()                  const { return _ra;                  }
+    double  getDec()                 const { return _dec;                 }
+    double  getSemiMinorAxisLength() const { return _smia;                }
+    double  getSemiMajorAxisLength() const { return _smaa;                }
+    double  getPositionAngle()       const { return _pa;                  }
+    double  getMjd()                 const { return _mjd;                 }
+    double  getMagnitude()           const { return _mag;                 }
+    float   getMagnitudeError()      const { return _magErr;              }
 
-    void setId                 (int64_t const id  ) { _orbitId = id;   }
-    void setRa                 (double  const ra  ) { _ra      = ra;   }
-    void setDec                (double  const dec ) { _dec     = dec;  }
-    void setSemiMinorAxisLength(double  const smia) { _smia    = smia; }
-    void setSemiMajorAxisLength(double  const smaa) { _smaa    = smaa; }
-    void setPositionAngle      (double  const pa  ) { _pa      = pa;   }
-    void setMjd                (double  const mjd ) { _mjd     = mjd;  }
-    void setMagnitude          (double  const mag ) { _mag     = mag;  }
-    void setMagnitudeError     (float   const err ) { _magErr  = err;  }
+    void setId                 (int64_t const id  ) { _movingObjectId = id;    }
+    void setVersion            (int64_t const v  )  { _movingObjectVersion = v;}
+    void setRa                 (double  const ra  ) { _ra      = ra;           }
+    void setDec                (double  const dec ) { _dec     = dec;          }
+    void setSemiMinorAxisLength(double  const smia) { _smia    = smia;         }
+    void setSemiMajorAxisLength(double  const smaa) { _smaa    = smaa;         }
+    void setPositionAngle      (double  const pa  ) { _pa      = pa;           }
+    void setMjd                (double  const mjd ) { _mjd     = mjd;          }
+    void setMagnitude          (double  const mag ) { _mag     = mag;          }
+    void setMagnitudeError     (float   const err ) { _magErr  = err;          }
 
     bool operator==(MovingObjectPrediction const & d) const;
 
 private :
 
-    int64_t _orbitId; //!< ID of the orbit this is a prediction for
-    double  _ra;      //!< right ascension (deg)
-    double  _dec;     //!< declination (deg)
-    double  _smaa;    //!< error ellipse semi major axis (deg)
-    double  _smia;    //!< error ellipse semi minor axis (deg)
-    double  _pa;      //!< error ellipse position angle (deg)
-    double  _mjd;     //!< input ephemerides date time (UTC MJD)
-    double  _mag;     //!< apparent magnitude (mag)
-    float   _magErr;  //!< error in apparent magnitude
+    int64_t _movingObjectId;      //!< ID of the orbit this is a prediction for
+    int64_t _movingObjectVersion; //!< version of the orbit this is a prediction for
+    double  _ra;                  //!< right ascension (deg)
+    double  _dec;                 //!< declination (deg)
+    double  _smaa;                //!< error ellipse semi major axis (deg)
+    double  _smia;                //!< error ellipse semi minor axis (deg)
+    double  _pa;                  //!< error ellipse position angle (deg)
+    double  _mjd;                 //!< input ephemerides date time (UTC MJD)
+    double  _mag;                 //!< apparent magnitude (mag)
+    float   _magErr;              //!< error in apparent magnitude
 
     template <typename Archive> void serialize(Archive & ar, unsigned int const version) {
-        ar & _orbitId;
+        ar & _movingObjectId;
+        ar & _movingObjectVersion;
         ar & _ra;
         ar & _dec;
         ar & _smaa;
