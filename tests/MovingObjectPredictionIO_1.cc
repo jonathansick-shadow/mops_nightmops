@@ -67,6 +67,7 @@ static void initTestData(MovingObjectPredictionVector & v, int sliceId = 0) {
         // Note: MovingObjectPrediction ids are generated in ascending order
         int j = i*16;
         data.setId                 (j + sliceId*8*16);
+        data.setVersion            (j + sliceId*8*16);
         data.setRa                 (static_cast<double>(j + 1));
         data.setDec                (static_cast<double>(j + 2));
         data.setSemiMinorAxisLength(static_cast<double>(j + 3));
@@ -93,6 +94,7 @@ static void testBoost(void) {
     MovingObjectPredictionVector mopv;
 
     mop.setId(1003);
+    mop.setVersion(1003);
     mop.setRa(30.1);
     mop.setDec(-85.3305);
     mop.setPositionAngle(-5.0314);
@@ -176,6 +178,7 @@ static void testDb(std::string const & storageType) {
     MovingObjectPrediction mop;
     MovingObjectPredictionVector mopv;
     mop.setId(13);
+    mop.setVersion(13);
     mop.setRa(360.0);
     mop.setDec(-85.0);
     mop.setPositionAngle(35.0);
