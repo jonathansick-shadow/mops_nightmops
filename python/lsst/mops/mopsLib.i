@@ -29,7 +29,6 @@ namespace boost {
 %}
 
 %pythoncode %{
-import lsst.afw.image.imageExceptions
 import lsst.pex.exceptions
 %}
 
