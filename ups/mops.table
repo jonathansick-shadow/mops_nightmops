@@ -7,8 +7,8 @@ setupRequired(daf_base)
 setupRequired(daf_data)
 setupRequired(daf_persistence)
 
-setupRequired(auton)
-setupRequired(ssd)
+setupOptional(auton)
+setupOptional(ssd)
 
 envPrepend(LD_LIBRARY_PATH, ${PRODUCT_DIR}/lib)
 envPrepend(DYLD_LIBRARY_PATH, ${PRODUCT_DIR}/lib)
