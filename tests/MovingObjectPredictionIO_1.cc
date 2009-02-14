@@ -1,51 +1,43 @@
 // -*- lsst-c++ -*-
-//
-//##====----------------                                ----------------====##/
-//
-//! \file   MovingObjectPredictionIO_1.cc
-//! \brief  Testing of IO via the persistence framework for
-//!         MovingObjectPrediction and MovingObjectPredictionVector.
-//
-//##====----------------                                ----------------====##/
-
+/**
+ * @file 
+ * @brief   Testing of IO via the persistence framework for
+ *          MovingObjectPrediction and MovingObjectPredictionVector.
+ */
 #include <sys/time.h>
 #include <iostream>
 #include <sstream>
 #include <cstring>
 #include <stdexcept>
 
-#include <boost/cstdint.hpp>
+#define BOOST_TEST_DYN_LINK
+#define BOOST_TEST_MODULE MovingObjectPredictionIO
 
-#include <lsst/pex/exceptions.h>
-#include <lsst/daf/base/DataProperty.h>
-#include <lsst/pex/policy/Policy.h>
-#include <lsst/daf/persistence/DbAuth.h>
-#include <lsst/daf/persistence/Persistence.h>
-#include <lsst/daf/persistence/LogicalLocation.h>
+#include "boost/test/unit_test.hpp"
 
-#include "lsst/mops/MovingObjectPrediction.h"
+#include "lsst/pex/exceptions.h"
+#include "lsst/daf/base.h"
+#include "lsst/pex/policy/Policy.h"
+#include "lsst/daf/persistence.h"
+
 #include "lsst/afw/formatters/Utils.h"
+#include "lsst/mops/MovingObjectPrediction.h"
 
+using boost::int32_t;
 using boost::int64_t;
 
-using lsst::daf::base::DataProperty;
+using lsst::daf::base::Citizen;
+using lsst::daf::base::Persistable;
+using lsst::daf::base::PropertySet;
 using lsst::pex::policy::Policy;
+using lsst::daf::persistence::DbAuth;
 using lsst::daf::persistence::LogicalLocation;
 using lsst::daf::persistence::Persistence;
-using lsst::daf::base::Persistable;
 using lsst::daf::persistence::Storage;
 
-using namespace lsst::afw;
+namespace fmt = lsst::afw::formatters;
+
 using namespace lsst::mops;
-
-
-#define Assert(pred, msg) do { if (!(pred)) { doThrow((msg), __LINE__); } } while(false)
-
-static void doThrow(std::string const & msg, int line) {
-    std::ostringstream oss;
-    oss << __FILE__ << ':' << line << ":\n" << msg << std::ends;
-    throw std::runtime_error(oss.str());
-}
 
 
 static std::string const makeTempFile() {
@@ -53,7 +45,7 @@ static std::string const makeTempFile() {
     std::strncpy(name, "MovingObjectPrediction_XXXXXX", 63);
     name[63] = 0;
     int const fd = ::mkstemp(name);
-    Assert(fd != -1, "Failed to create temporary file");
+    BOOST_REQUIRE_MESSAGE(fd != -1, "Failed to create temporary file");
     ::close(fd);
     return std::string(name);
 }
@@ -82,46 +74,37 @@ static void initTestData(MovingObjectPredictionVector & v, int sliceId = 0) {
 
 
 static void testBoost(void) {
-    // Create a blank Policy and DataProperty.
-    Policy::Ptr           policy(new Policy);
-    DataProperty::PtrType props = DataProperty::createPropertyNode("root");
+    // Create a blank Policy and PropertySet
+    Policy::Ptr policy(new Policy);
+    PropertySet::Ptr props(new PropertySet);
 
     // Setup test location
     LogicalLocation loc(makeTempFile());
 
     // Intialize test data
-    MovingObjectPrediction       mop;
-    MovingObjectPredictionVector mopv;
-
-    mop.setId(1003);
-    mop.setVersion(1003);
-    mop.setRa(30.1);
-    mop.setDec(-85.3305);
-    mop.setPositionAngle(-5.0314);
-    mop.setSemiMajorAxisLength(0.77);
-    mop.setSemiMinorAxisLength(0.40);
+    PersistableMovingObjectPredictionVector pvec;
+    MovingObjectPredictionVector & mopv = pvec.getPredictions();
     initTestData(mopv);
-    mopv.push_back(mop);
 
     Persistence::Ptr pers = Persistence::getPersistence(policy);
-
     // write out data
     {
         Storage::List storageList;
         storageList.push_back(pers->getPersistStorage("BoostStorage", loc));
-        pers->persist(mopv, storageList, props);
+        pers->persist(pvec, storageList, props);
     }
-
     // read in data
     {
         Storage::List storageList;
         storageList.push_back(pers->getRetrieveStorage("BoostStorage", loc));
-        Persistable::Ptr p = pers->retrieve("MovingObjectPredictionVector", storageList, props);
-        Assert(p.get() != 0, "Failed to retrieve Persistable");
-        MovingObjectPredictionVector::Ptr v =
-            boost::dynamic_pointer_cast<MovingObjectPredictionVector, Persistable>(p);
-        Assert(v, "Couldn't cast to MovingObjectPredictionVector");
-        Assert(*v == mopv, "persist()/retrieve() resulted in MovingObjectPredictionVector corruption");
+        Persistable::Ptr p =
+            pers->retrieve("PersistableMovingObjectPredictionVector", storageList, props);
+        BOOST_REQUIRE_MESSAGE(p.get() != 0, "Failed to retrieve Persistable");
+        PersistableMovingObjectPredictionVector::Ptr v =
+            boost::dynamic_pointer_cast<PersistableMovingObjectPredictionVector, Persistable>(p);
+        BOOST_REQUIRE_MESSAGE(v, "Couldn't cast to PersistableMovingObjectPredictionVector");
+        BOOST_CHECK_MESSAGE(v->getPredictions() == mopv,
+            "persist()/retrieve() resulted in PersistableMovingObjectPredictionVector corruption");
     }
     ::unlink(loc.locString().c_str());
 }
@@ -136,24 +119,22 @@ static int createVisitId() {
 }
 
 
-static DataProperty::PtrType createDbTestProps(
+static PropertySet::Ptr createDbTestProps(
     int         const   sliceId,
     int         const   numSlices,
     std::string const & itemName
 ) {
-    Assert(sliceId < numSlices && numSlices > 0, "invalid slice parameters");
+    BOOST_REQUIRE_MESSAGE(sliceId < numSlices && numSlices > 0, "invalid slice parameters");
 
-    DataProperty::PtrType props = DataProperty::createPropertyNode("root");
+    PropertySet::Ptr props(new PropertySet); 
 
     if (numSlices > 1) {
-        DataProperty::PtrType dias = DataProperty::createPropertyNode("MovingObjectPrediction");
-        dias->addProperty(DataProperty("isPerSliceTable", boost::any(true)));
-        dias->addProperty(DataProperty("numSlices",       boost::any(numSlices)));
-        props->addProperty(dias);
+        props->add("PersistableMovingObjectPredictionVector.isPerSliceTable", true);
+        props->add("PersistableMovingObjectPredictionVector.numSlices",       numSlices);
     }
-    props->addProperty(DataProperty("visitId",  boost::any(createVisitId())));
-    props->addProperty(DataProperty("sliceId",  boost::any(sliceId)));
-    props->addProperty(DataProperty("itemName", boost::any(itemName)));
+    props->add("visitId", createVisitId());
+    props->add("sliceId",  sliceId);
+    props->add("itemName", itemName);
     return props;
 }
 
@@ -168,15 +149,20 @@ struct MovingObjectPredictionLessThan {
 
 static void testDb(std::string const & storageType) {
     // Create the required Policy and DataProperty
-    Policy::Ptr           policy(new Policy);
-    DataProperty::PtrType props(createDbTestProps(0, 1, "MovingObjectPrediction"));
+    Policy::Ptr policy(new Policy);
+    // use custom table name patterns for this test
+    policy->set("Formatter.PersistableMovingObjectPredictionVector.TestPreds.templateTableName",
+        "_tmpl_mops_Prediction");
+    
+    PropertySet::Ptr props(createDbTestProps(0, 1, "TestPreds"));
 
     Persistence::Ptr pers = Persistence::getPersistence(policy);
     LogicalLocation loc("mysql://lsst10.ncsa.uiuc.edu:3306/test");
 
     // 1. Test on a single MovingObjectPrediction
     MovingObjectPrediction mop;
-    MovingObjectPredictionVector mopv;
+    PersistableMovingObjectPredictionVector pvec;
+    MovingObjectPredictionVector & mopv = pvec.getPredictions();
     mop.setId(13);
     mop.setVersion(13);
     mop.setRa(360.0);
@@ -190,20 +176,22 @@ static void testDb(std::string const & storageType) {
     {
         Storage::List storageList;
         storageList.push_back(pers->getPersistStorage(storageType, loc));
-        pers->persist(mopv, storageList, props);
+        pers->persist(pvec, storageList, props);
     }
     // and read it back in
     {
         Storage::List storageList;
         storageList.push_back(pers->getRetrieveStorage(storageType, loc));
-        Persistable::Ptr p = pers->retrieve("MovingObjectPredictionVector", storageList, props);
-        Assert(p != 0, "Failed to retrieve Persistable");
-        MovingObjectPredictionVector::Ptr d = 
-            boost::dynamic_pointer_cast<MovingObjectPredictionVector, Persistable>(p);
-        Assert(d.get() != 0, "Couldn't cast to MovingObjectPredictionVector");
-        Assert(d->at(0) == mop, "persist()/retrieve() resulted in MovingObjectPredictionVector corruption");
+        Persistable::Ptr p =
+            pers->retrieve("PersistableMovingObjectPredictionVector", storageList, props);
+        BOOST_REQUIRE_MESSAGE(p != 0, "Failed to retrieve Persistable");
+        PersistableMovingObjectPredictionVector::Ptr d =
+            boost::dynamic_pointer_cast<PersistableMovingObjectPredictionVector, Persistable>(p);
+        BOOST_REQUIRE_MESSAGE(d, "Couldn't cast to PersistableMovingObjectPredictionVector");
+        BOOST_CHECK_MESSAGE(d->getPredictions().at(0) == mop,
+            "persist()/retrieve() resulted in PersistableMovingObjectPredictionVector corruption");
     }
-    formatters::dropAllVisitSliceTables(loc, policy, props);
+    fmt::dropAllVisitSliceTables(loc, policy, props);
 
     // 2. Test on multiple MovingObjectPredictions
     mopv.clear();
@@ -212,35 +200,37 @@ static void testDb(std::string const & storageType) {
     {
         Storage::List storageList;
         storageList.push_back(pers->getPersistStorage(storageType, loc));
-        pers->persist(mopv, storageList, props);
+        pers->persist(pvec, storageList, props);
     }
     // and read it back in
     {
         Storage::List storageList;
         storageList.push_back(pers->getRetrieveStorage(storageType, loc));
-        Persistable::Ptr p = pers->retrieve("MovingObjectPredictionVector", storageList, props);
-        Assert(p != 0, "Failed to retrieve Persistable");
-        MovingObjectPredictionVector::Ptr d =
-            boost::dynamic_pointer_cast<MovingObjectPredictionVector, Persistable>(p);
-        Assert(d.get() != 0, "Couldn't cast to MovingObjectPredictionVector");
+        Persistable::Ptr pp =
+            pers->retrieve("PersistableMovingObjectPredictionVector", storageList, props);
+        BOOST_REQUIRE_MESSAGE(pp != 0, "Failed to retrieve Persistable");
+        PersistableMovingObjectPredictionVector::Ptr results =
+            boost::dynamic_pointer_cast<PersistableMovingObjectPredictionVector, Persistable>(pp);
+        BOOST_REQUIRE_MESSAGE(results, "Couldn't cast to PersistableMovingObjectPredictionVector");
         // sort in ascending id order (database does not give any ordering guarantees
         // in the absence of an ORDER BY clause)
-        std::sort(d->begin(), d->end(), MovingObjectPredictionLessThan());
-        Assert(d.get() != &mopv && *d == mopv,
-               "persist()/retrieve() resulted in MovingObjectPredictionVector corruption");
+        MovingObjectPredictionVector & v = results->getPredictions();
+        std::sort(v.begin(), v.end(), MovingObjectPredictionLessThan());
+        BOOST_CHECK_MESSAGE(&v != &mopv && v == mopv,
+            "persist()/retrieve() resulted in PersistableMovingObjectPredictionVector corruption");
     }
-    formatters::dropAllVisitSliceTables(loc, policy, props);
+    fmt::dropAllVisitSliceTables(loc, policy, props);
 }
 
 
 static void testDb2(std::string const & storageType) {
     // Create the required Policy and DataProperty
     Policy::Ptr policy(new Policy);
-    std::string policyRoot(std::string("Formatter.") + "MovingObjectPredictionVector");
+    std::string policyRoot("Formatter.PersistableMovingObjectPredictionVector");
     // use custom table name patterns for this test
-    policy->set(policyRoot + ".MovingObjectPredictions.templateTableName", "MovingObjectPredictionTemplate");
-    policy->set(policyRoot + ".MovingObjectPredictions.perVisitTableNamePattern", "MopsPred_%1%");
-    policy->set(policyRoot + ".MovingObjectPredictions.perSliceAndVisitTableNamePattern", "MopsPred_%1%_%2%");
+    policy->set(policyRoot + ".TestPreds.templateTableName", "_tmpl_mops_Prediction");
+    policy->set(policyRoot + ".TestPreds.perVisitTableNamePattern", "_tmp_test_v%1%");
+    policy->set(policyRoot + ".TestPreds.perSliceAndVisitTableNamePattern", "_tmp_test_v%1%_s%2%");
 
     Policy::Ptr nested(policy->getPolicy(policyRoot));
 
@@ -249,39 +239,41 @@ static void testDb2(std::string const & storageType) {
 
     MovingObjectPredictionVector all;
     int const numSlices = 3; // and use multiple slice tables
-    DataProperty::PtrType props(createDbTestProps(0, numSlices, "MovingObjectPredictions"));
+    PropertySet::Ptr props(createDbTestProps(0, numSlices, "TestPreds"));
 
     // 1. Write out each slice table seperately
     for (int sliceId = 0; sliceId < numSlices; ++sliceId) {
-        DataProperty::PtrType dp = props->findUnique("sliceId");
-        dp->setValue(boost::any(sliceId));
-        MovingObjectPredictionVector mopv;
+        props->set("sliceId", sliceId);
+        PersistableMovingObjectPredictionVector pvec;
+        MovingObjectPredictionVector & mopv = pvec.getPredictions();
         initTestData(mopv, sliceId);
         all.insert(all.end(), mopv.begin(), mopv.end());
         Storage::List storageList;
         storageList.push_back(pers->getPersistStorage(storageType, loc));
-        pers->persist(mopv, storageList, props);
+        pers->persist(pvec, storageList, props);
     }
 
     // 2. Read in all slice tables - simulates association pipeline
-    //    gathering the results of numSlices image processing pipeline slices
+    //    gathering the results of numSlices NightMOPS processing pipeline slices
     Storage::List storageList;
     storageList.push_back(pers->getRetrieveStorage(storageType, loc));
-    Persistable::Ptr p = pers->retrieve("MovingObjectPredictionVector", storageList, props);
-    Assert(p != 0, "Failed to retrieve Persistable");
-    MovingObjectPredictionVector::Ptr v =
-        boost::dynamic_pointer_cast<MovingObjectPredictionVector, Persistable>(p);
-    Assert(v, "Couldn't cast to MovingObjectPredictionVector");
+    Persistable::Ptr pp =
+        pers->retrieve("PersistableMovingObjectPredictionVector", storageList, props);
+    BOOST_REQUIRE_MESSAGE(pp != 0, "Failed to retrieve Persistable");
+    PersistableMovingObjectPredictionVector::Ptr results =
+        boost::dynamic_pointer_cast<PersistableMovingObjectPredictionVector, Persistable>(pp);
+    BOOST_REQUIRE_MESSAGE(results, "Couldn't cast to PersistableMovingObjectPredictionVector");
     // sort in ascending id order (database does not give any ordering guarantees
     // in the absence of an ORDER BY clause)
-    std::sort(v->begin(), v->end(), MovingObjectPredictionLessThan());
-    Assert(v.get() != &all && *v == all,
-           "persist()/retrieve() resulted in MovingObjectPredictionVector corruption");
-    formatters::dropAllVisitSliceTables(loc, nested, props);
+    MovingObjectPredictionVector & v = results->getPredictions();
+    std::sort(v.begin(), v.end(), MovingObjectPredictionLessThan());
+    BOOST_CHECK_MESSAGE(&v != &all && v == all,
+        "persist()/retrieve() resulted in PersistableMovingObjectPredictionVector corruption");
+    fmt::dropAllVisitSliceTables(loc, nested, props);
 }
 
 
-int main(int const argc, char const * const * const argv) {
+BOOST_AUTO_TEST_CASE(MovingObjectPredictionIO) {
     try {
         testBoost();
         if (lsst::daf::persistence::DbAuth::available()) {
@@ -290,22 +282,9 @@ int main(int const argc, char const * const * const argv) {
             testDb2("DbStorage");
             testDb2("DbTsvStorage");
         }
-        if (lsst::daf::base::Citizen::census(0) == 0) {
-            std::clog << "No leaks detected" << std::endl;
-        } else {
-            Assert(false, "Had memory leaks");
-        }
-        return EXIT_SUCCESS;
-    } catch (lsst::pex::exceptions::ExceptionStack & exs) {
-        std::clog << exs.what() << exs.getStack()->toString("...", true) << std::endl;
-    } catch (std::exception & ex) {
-        std::clog << ex.what() << std::endl;
+        BOOST_CHECK_MESSAGE(lsst::daf::base::Citizen::census(0) == 0, "Detected memory leaks");
+    } catch(std::exception const & ex) {
+        BOOST_FAIL(ex.what());
     }
-
-    if (lsst::daf::base::Citizen::census(0) != 0) {
-        std::clog << "Leaked memory blocks:" << std::endl;
-        lsst::daf::base::Citizen::census(std::clog);
-    }
-
-    return EXIT_FAILURE;
 }
+

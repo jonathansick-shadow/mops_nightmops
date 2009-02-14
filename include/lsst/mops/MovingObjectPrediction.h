@@ -1,86 +1,77 @@
 // -*- lsst-c++ -*-
-//
-//##====----------------                                ----------------====##/
-//
-//! \file   MovingObjectPrediction.h
-//! \brief  Persistable C++ data object for moving object predictions
-//
-//##====----------------                                ----------------====##/
+/**
+ * @file
+ * @brief   Persistable C++ data object for moving object predictions
+ */
 
 #ifndef LSST_MOPS_MOVING_OBJECT_PREDICTION_H
 #define LSST_MOPS_MOVING_OBJECT_PREDICTION_H
 
-#include <boost/cstdint.hpp>
+#include <algorithm>
 
-#include <lsst/daf/base/Citizen.h>
-#include <lsst/daf/base/Persistable.h>
-#include <lsst/mops/MovingObjectPredictionFormatters.h>
+#include "boost/cstdint.hpp"
+
+#include "lsst/daf/base/Citizen.h"
+#include "lsst/daf/base/Persistable.h"
 
 
-namespace boost {
-namespace serialization {
+namespace boost { namespace serialization {
     class access;
 }}
 
 
-namespace lsst {
-namespace mops {
-
-#ifndef SWIG
-using boost::int64_t;
-#endif
+namespace lsst { namespace mops {
 
 // forward declarations 
 class MovingObjectPredictionVectorFormatter;
 
-/*!
-    Contains predicted attributes of a moving object at a sepcific time. This class is useful
-    when an unadorned data structure is required (e.g. for placement into shared memory) or
-    is all that is necessary.
+/**
+ * The predicted attributes of a moving object at a specific time. This class is useful
+ * when an unadorned data structure is required (e.g. for placement into shared memory) or
+ * is all that is necessary.
  */
 class MovingObjectPrediction {
-
 public :
 
     MovingObjectPrediction();
 
     // Getters required by association pipeline
-    int64_t getId()                  const { return _movingObjectId;      }
-    int64_t getVersion()             const { return _movingObjectVersion; }
-    double  getRa()                  const { return _ra;                  }
-    double  getDec()                 const { return _dec;                 }
-    double  getSemiMinorAxisLength() const { return _smia;                }
-    double  getSemiMajorAxisLength() const { return _smaa;                }
-    double  getPositionAngle()       const { return _pa;                  }
-    double  getMjd()                 const { return _mjd;                 }
-    double  getMagnitude()           const { return _mag;                 }
-    float   getMagnitudeError()      const { return _magErr;              }
+    boost::int64_t getId() const { return _movingObjectId; }
+    boost::int32_t getVersion() const { return _movingObjectVersion; }
+    double getRa() const { return _ra; }
+    double getDec() const { return _dec; }
+    double getSemiMinorAxisLength() const { return _smia; }
+    double getSemiMajorAxisLength() const { return _smaa; }
+    double getPositionAngle() const { return _pa; }
+    double getMjd() const { return _mjd; }
+    double getMagnitude() const { return _mag; }
+    float getMagnitudeError() const { return _magErr; }
 
-    void setId                 (int64_t const id  ) { _movingObjectId = id;    }
-    void setVersion            (int64_t const v  )  { _movingObjectVersion = v;}
-    void setRa                 (double  const ra  ) { _ra      = ra;           }
-    void setDec                (double  const dec ) { _dec     = dec;          }
-    void setSemiMinorAxisLength(double  const smia) { _smia    = smia;         }
-    void setSemiMajorAxisLength(double  const smaa) { _smaa    = smaa;         }
-    void setPositionAngle      (double  const pa  ) { _pa      = pa;           }
-    void setMjd                (double  const mjd ) { _mjd     = mjd;          }
-    void setMagnitude          (double  const mag ) { _mag     = mag;          }
-    void setMagnitudeError     (float   const err ) { _magErr  = err;          }
+    void setId(boost::int64_t const id) { _movingObjectId = id; }
+    void setVersion(int const v) { _movingObjectVersion = v; }
+    void setRa(double const ra) { _ra = ra; }
+    void setDec(double const dec) { _dec = dec; }
+    void setSemiMinorAxisLength(double const smia) { _smia = smia; }
+    void setSemiMajorAxisLength(double const smaa) { _smaa = smaa; }
+    void setPositionAngle(double const pa) { _pa = pa; }
+    void setMjd(double const mjd) { _mjd = mjd; }
+    void setMagnitude(double const mag) { _mag = mag; }
+    void setMagnitudeError(float const err) { _magErr = err; }
 
     bool operator==(MovingObjectPrediction const & d) const;
 
 private :
 
-    int64_t _movingObjectId;      //!< ID of the orbit this is a prediction for
-    int64_t _movingObjectVersion; //!< version of the orbit this is a prediction for
-    double  _ra;                  //!< right ascension (deg)
-    double  _dec;                 //!< declination (deg)
-    double  _smaa;                //!< error ellipse semi major axis (deg)
-    double  _smia;                //!< error ellipse semi minor axis (deg)
-    double  _pa;                  //!< error ellipse position angle (deg)
-    double  _mjd;                 //!< input ephemerides date time (UTC MJD)
-    double  _mag;                 //!< apparent magnitude (mag)
-    float   _magErr;              //!< error in apparent magnitude
+    boost::int64_t _movingObjectId;      ///< ID of the orbit this is a prediction for
+    boost::int32_t _movingObjectVersion; ///< version of the orbit this is a prediction for
+    double _ra;     ///< right ascension (deg)
+    double _dec;    ///< declination (deg)
+    double _smaa;   ///< error ellipse semi major axis (deg)
+    double _smia;   ///< error ellipse semi minor axis (deg)
+    double _pa;     ///< error ellipse position angle (deg)
+    double _mjd;    ///< input ephemerides date time (UTC MJD)
+    double _mag;    ///< apparent magnitude (mag)
+    float  _magErr; ///< error in apparent magnitude
 
     template <typename Archive> void serialize(Archive & ar, unsigned int const version) {
         ar & _movingObjectId;
@@ -104,109 +95,44 @@ inline bool operator!=(MovingObjectPrediction const & d1, MovingObjectPrediction
 }
 
 
-// Classes that require special handling in the SWIG interface file
-#ifndef SWIG
+typedef std::vector<MovingObjectPrediction> MovingObjectPredictionVector;
 
-/*!
-    A persistable container of MovingObjectPrediction instances, implemented using std::vector.
+/**
+ * A persistable wrapper for a MovingObjectPredictionVector.
  */
-class MovingObjectPredictionVector :
+class PersistableMovingObjectPredictionVector :
     public lsst::daf::base::Persistable,
     public lsst::daf::base::Citizen
 {
 public :
 
-    typedef boost::shared_ptr<MovingObjectPredictionVector> Ptr;
-    typedef std::vector<MovingObjectPrediction>             Vector;
+    typedef boost::shared_ptr<PersistableMovingObjectPredictionVector> Ptr;
 
-    typedef Vector::allocator_type         allocator_type;
-    typedef Vector::iterator               iterator;
-    typedef Vector::const_iterator         const_iterator;
-    typedef Vector::reverse_iterator       reverse_iterator;
-    typedef Vector::const_reverse_iterator const_reverse_iterator;
-    typedef Vector::size_type              size_type;
-    typedef Vector::difference_type        difference_type;
-    typedef Vector::reference              reference;
-    typedef Vector::const_reference        const_reference;
-    typedef Vector::value_type             value_type;
+    PersistableMovingObjectPredictionVector();
+    PersistableMovingObjectPredictionVector(MovingObjectPredictionVector const & predictions);
+    ~PersistableMovingObjectPredictionVector();
+    
+    MovingObjectPredictionVector & getPredictions() {
+        return _predictions;
+    }
+    MovingObjectPredictionVector const & getPredictions() const {
+        return _predictions;
+    }
 
-    MovingObjectPredictionVector();
-    explicit MovingObjectPredictionVector(size_type sz);
-    MovingObjectPredictionVector(size_type sz, value_type const & val);
-
-    template <typename InputIterator>
-    MovingObjectPredictionVector(InputIterator beg, InputIterator end) :
-        lsst::daf::base::Citizen(typeid(*this)),
-        _vec(beg, end)
-    {}
-
-    virtual ~MovingObjectPredictionVector();
-
-    MovingObjectPredictionVector(MovingObjectPredictionVector const & vec);
-    explicit MovingObjectPredictionVector(Vector const & vec);
-    MovingObjectPredictionVector & operator=(MovingObjectPredictionVector const & vec);
-    MovingObjectPredictionVector & operator=(Vector const & vec);
-
-    void swap(MovingObjectPredictionVector & v) { using std::swap; swap(_vec, v._vec); }
-    void swap(Vector & v)          { using std::swap; swap(_vec, v);      }
-
-    size_type size()     const { return _vec.size();     }
-    size_type max_size() const { return _vec.max_size(); }
-    bool      empty()    const { return _vec.empty();    }
-    size_type capacity() const { return _vec.capacity(); }
-
-    void reserve(size_type const n) { _vec.reserve(n); }
-
-    template <typename InputIterator>
-    void assign(InputIterator beg, InputIterator end)      { _vec.assign(beg, end); }
-    void assign(size_type const n, value_type const & val) { _vec.assign(n, val);   }
-
-    reference       at        (size_type const i)       { return _vec.at(i); }
-    const_reference at        (size_type const i) const { return _vec.at(i); }
-    reference       operator[](size_type const i)       { return _vec[i];    }
-    const_reference operator[](size_type const i) const { return _vec[i];    }
-
-    reference       front()       { return _vec.front(); }
-    const_reference front() const { return _vec.front(); }
-    reference       back ()       { return _vec.back();  }
-    const_reference back () const { return _vec.back();  }
-
-    iterator               begin ()       { return _vec.begin();  }
-    const_iterator         begin () const { return _vec.begin();  }
-    reverse_iterator       rbegin()       { return _vec.rbegin(); }
-    const_reverse_iterator rbegin() const { return _vec.rbegin(); }
-    iterator               end   ()       { return _vec.end();    }
-    const_iterator         end   () const { return _vec.end();    }
-    reverse_iterator       rend  ()       { return _vec.rend();   }
-    const_reverse_iterator rend  () const { return _vec.rend();   }
-
-    void push_back (value_type const & value) { _vec.push_back(value);  }
-
-    void pop_back () { _vec.pop_back();  }
-    void clear()     { _vec.clear();     }
-
-    template <typename InputIterator>
-    void     insert(iterator pos, InputIterator beg, InputIterator end) { _vec.insert(pos, beg, end);      }
-    iterator insert(iterator pos, value_type const & val)               { return _vec.insert(pos, val);    }
-    void     insert(iterator pos, size_type n, value_type const & val)  { return _vec.insert(pos, n, val); }
-
-    iterator erase(iterator pos)               { return _vec.erase(pos);      }
-    iterator erase(iterator beg, iterator end) { return _vec.erase(beg, end); }
-
-    void resize(size_type n)                   { _vec.resize(n);        }
-    void resize(size_type n, value_type value) { _vec.resize(n, value); }
-
-    bool operator==(MovingObjectPredictionVector const & v) { return _vec == v._vec; }
-    bool operator!=(MovingObjectPredictionVector const & v) { return _vec != v._vec; }
-
-private :
-
-    LSST_PERSIST_FORMATTER(MovingObjectPredictionVectorFormatter);
-
-    Vector _vec;
+    void setPredictions(MovingObjectPredictionVector const & predictions) {
+        _predictions = predictions;
+    }
+       
+    bool operator==(MovingObjectPredictionVector const & other) const;
+    
+    bool operator==(PersistableMovingObjectPredictionVector const & other) const {
+        return other == _predictions;
+    }
+    
+private:
+    LSST_PERSIST_FORMATTER(lsst::mops::MovingObjectPredictionVectorFormatter);
+    MovingObjectPredictionVector _predictions;
 };
-
-#endif // SWIG
 
 
 }}  // end of namespace lsst::mops

@@ -7,7 +7,7 @@ from lsst.pex.logging import Log
 from lsst.pex.logging import LogRec
 from lsst.daf.base import DataProperty
 
-import lsst.mops.mopsLib
+import lsst.mops.mopsLib as mopsLib
 import lsst.mops.nightmops.ephemeris as eph
 import lsst.mops.nightmops.ephemDB as ephDB
 
@@ -102,7 +102,7 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
         mopsPreds = mopsLib.MopsPredVec()
 
         for e in ephems:
-            mopsPred = afwCat.MopsPred()
+            mopsPred = mopsLib.MopsPred()
             mopsPred.setId(e.orbitId)
             mopsPred.setMjd(e.MJD)
             mopsPred.setRa(e.RA)
@@ -114,7 +114,7 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
             mopsPreds.push_back(mopsPred)
         
         # put output on the clipboard
-        self.activeClipboard.put('MopsPreds', mopsPreds)
+        self.activeClipboard.put('MopsPreds', mopsLib.PersistableMopsPredVec(mopsPreds))
         self.outputQueue.addDataset(self.activeClipboard)
         self.mopsLog.log(Log.INFO, 'Mops stage processing ended')
         return

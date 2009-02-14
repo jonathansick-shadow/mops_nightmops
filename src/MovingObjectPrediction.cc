@@ -1,21 +1,18 @@
 // -*- lsst-c++ -*-
-//
-//##====----------------                                ----------------====##/
-//!
-//! \file   MovingObjectPrediction.cc
-//!
-//##====----------------                                ----------------====##/
+/**
+ * @file
+ * @brief   Implementation of MovingObjectPrediction
+ */
 
 #include "lsst/mops/MovingObjectPrediction.h"
 
-namespace lsst {
-namespace mops {
+namespace lsst { namespace mops {
 
 
 // -- MovingObjectPrediction ----------------
 
 MovingObjectPrediction::MovingObjectPrediction() :
-    _movingObjectId( -1),
+    _movingObjectId(-1),
     _movingObjectVersion(-1),
     _ra     (0.0),
     _dec    (0.0),
@@ -45,53 +42,26 @@ bool MovingObjectPrediction::operator==(MovingObjectPrediction const & d) const 
 }
 
 
-// -- MovingObjectPredictionVector ----------------
+// -- PersistableMovingObjectPredictionVector ----------------
 
-MovingObjectPredictionVector::MovingObjectPredictionVector() :
+PersistableMovingObjectPredictionVector::PersistableMovingObjectPredictionVector() :
     lsst::daf::base::Citizen(typeid(*this)),
-    _vec()
+    _predictions()
 {}
 
+PersistableMovingObjectPredictionVector::PersistableMovingObjectPredictionVector(
+    MovingObjectPredictionVector const & predictions
+) : lsst::daf::base::Citizen(typeid(*this)), _predictions(predictions) {}
 
-MovingObjectPredictionVector::MovingObjectPredictionVector(size_type n) :
-    lsst::daf::base::Citizen(typeid(*this)),
-    _vec(n)
-{}
+PersistableMovingObjectPredictionVector::~PersistableMovingObjectPredictionVector() {}
 
-
-MovingObjectPredictionVector::MovingObjectPredictionVector(size_type n, value_type const & val) :
-    lsst::daf::base::Citizen(typeid(*this)),
-    _vec(n, val)
-{}
-
-
-MovingObjectPredictionVector::~MovingObjectPredictionVector() {}
-
-
-MovingObjectPredictionVector::MovingObjectPredictionVector(MovingObjectPredictionVector const & v) :
-    lsst::daf::base::Citizen(typeid(*this)),
-    _vec(v._vec)
-{}
-
-
-MovingObjectPredictionVector::MovingObjectPredictionVector(Vector const & v) :
-    lsst::daf::base::Citizen(typeid(*this)),
-    _vec(v)
-{}
-
-
-MovingObjectPredictionVector & MovingObjectPredictionVector::operator=(
-    MovingObjectPredictionVector const & v
-) {
-    if (this != &v) {
-        _vec = v._vec;
+bool PersistableMovingObjectPredictionVector::operator==(
+    MovingObjectPredictionVector const & other
+) const {
+    if (_predictions.size() != other.size()) {
+        return false;
     }
-    return *this;
-}
-
-MovingObjectPredictionVector & MovingObjectPredictionVector::operator=(Vector const & v) {
-    _vec = v;
-    return *this;
+    return std::equal(_predictions.begin(), _predictions.end(), other.begin());
 }
 
 

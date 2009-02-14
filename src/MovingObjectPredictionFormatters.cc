@@ -1,66 +1,71 @@
 // -*- lsst-c++ -*-
-//
-//##====----------------                                ----------------====##/
-//
-//! \file   MovingObjectPredictionFormatters.cc
-//! \brief  Implementation of persistence for MovingObjectPrediction instances
-//
-//##====----------------                                ----------------====##/
+/**
+ * @file
+ * @brief   Implementation of persistence for MovingObjectPrediction instances
+ */
 
 #include <memory>
 
-#include <lsst/pex/exceptions.h>
-#include <lsst/daf/persistence/BoostStorage.h>
-#include <lsst/daf/persistence/DbStorage.h>
-#include <lsst/daf/persistence/DbTsvStorage.h>
-#include <lsst/daf/persistence/FormatterImpl.h>
+#include "lsst/daf/base.h"
+#include "lsst/pex/exceptions.h"
+#include "lsst/daf/persistence.h"
 
-#include <boost/any.hpp>
-#include <boost/format.hpp>
+#include "boost/any.hpp"
+#include "boost/format.hpp"
+
+#include "lsst/afw/formatters/Utils.h"
 
 #include "lsst/mops/MovingObjectPrediction.h"
 #include "lsst/mops/MovingObjectPredictionFormatters.h"
-#include "lsst/afw/formatters/Utils.h"
 
 
-namespace lsst {
-namespace mops {
-
+namespace mops = lsst::mops;
 namespace ex = lsst::pex::exceptions;
-namespace afwUtils = lsst::afw::formatters;
+namespace fmt = lsst::afw::formatters;
+
+using lsst::daf::base::Persistable;
+using lsst::daf::base::PropertySet;
+using lsst::daf::persistence::BoostStorage;
+using lsst::daf::persistence::DbStorage;
+using lsst::daf::persistence::DbTsvStorage;
+using lsst::daf::persistence::Formatter;
+using lsst::daf::persistence::FormatterRegistration;
+using lsst::daf::persistence::Storage;
+using lsst::pex::policy::Policy;
 
 
 // -- MovingObjectPredictionVectorFormatter ----------------
 
-MovingObjectPredictionVectorFormatter::MovingObjectPredictionVectorFormatter(Policy::Ptr const & policy) :
+mops::MovingObjectPredictionVectorFormatter::MovingObjectPredictionVectorFormatter(
+    Policy::Ptr const & policy
+) :
     Formatter(typeid(*this)),
     _policy(policy)
 {}
 
+mops::MovingObjectPredictionVectorFormatter::~MovingObjectPredictionVectorFormatter() {}
 
-MovingObjectPredictionVectorFormatter::~MovingObjectPredictionVectorFormatter() {}
 
-
-FormatterRegistration MovingObjectPredictionVectorFormatter::registration(
-    "MovingObjectPredictionVector",
-    typeid(MovingObjectPredictionVector),
+FormatterRegistration mops::MovingObjectPredictionVectorFormatter::registration(
+    "PersistableMovingObjectPredictionVector",
+    typeid(mops::PersistableMovingObjectPredictionVector),
     createInstance
 );
 
 
-Formatter::Ptr MovingObjectPredictionVectorFormatter::createInstance(Policy::Ptr policy) {
+Formatter::Ptr mops::MovingObjectPredictionVectorFormatter::createInstance(Policy::Ptr policy) {
     return Formatter::Ptr(new MovingObjectPredictionVectorFormatter(policy));
 }
 
 
-/*!
-    Inserts a single MovingObjectPrediction into a database table using \a db
-    (an instance of lsst::daf::persistence::DbStorage or subclass thereof).
+/**
+ * Inserts a single MovingObjectPrediction into a database table using @a db
+ * (an instance of lsst::daf::persistence::DbStorage or subclass thereof).
  */
 template <typename T>
-void MovingObjectPredictionVectorFormatter::insertRow(T & db, MovingObjectPrediction const & p) {
+void mops::MovingObjectPredictionVectorFormatter::insertRow(T & db, MovingObjectPrediction const & p) {
     db.template setColumn<int64_t>("movingObjectId",      p._movingObjectId);
-    db.template setColumn<int64_t>("movingObjectVersion", p._movingObjectVersion);
+    db.template setColumn<int32_t>("movingObjectVersion", p._movingObjectVersion);
     db.template setColumn<double> ("ra",                  p._ra);
     db.template setColumn<double> ("decl",                p._dec);
     db.template setColumn<double> ("mjd",                 p._mjd);
@@ -72,18 +77,18 @@ void MovingObjectPredictionVectorFormatter::insertRow(T & db, MovingObjectPredic
     db.insertRow();
 }
 
-//! \cond
-template void MovingObjectPredictionVectorFormatter::insertRow<DbStorage>   (DbStorage &,    MovingObjectPrediction const &);
-template void MovingObjectPredictionVectorFormatter::insertRow<DbTsvStorage>(DbTsvStorage &, MovingObjectPrediction const &);
-//! \endcond
+/// @cond
+template void mops::MovingObjectPredictionVectorFormatter::insertRow<DbStorage>   (DbStorage &,    MovingObjectPrediction const &);
+template void mops::MovingObjectPredictionVectorFormatter::insertRow<DbTsvStorage>(DbTsvStorage &, MovingObjectPrediction const &);
+/// @endcond
 
 
-/*! Prepares for reading MovingObjectPrediction instances from a database table. */
-void MovingObjectPredictionVectorFormatter::setupFetch(DbStorage & db, MovingObjectPrediction & p) {
+/** Prepares for reading MovingObjectPrediction instances from a database table. */
+void mops::MovingObjectPredictionVectorFormatter::setupFetch(DbStorage & db, MovingObjectPrediction & p) {
     db.outParam("movingObjectId",      &(p._movingObjectId));
     db.outParam("movingObjectVersion", &(p._movingObjectVersion));
-    db.outParam("ra_deg",              &(p._ra));
-    db.outParam("dec_deg",             &(p._dec));
+    db.outParam("ra",                  &(p._ra));
+    db.outParam("decl",                &(p._dec));
     db.outParam("mjd",                 &(p._mjd));
     db.outParam("smia",                &(p._smia));
     db.outParam("smaa",                &(p._smaa));
@@ -94,128 +99,134 @@ void MovingObjectPredictionVectorFormatter::setupFetch(DbStorage & db, MovingObj
 
 
 template <class Archive>
-void MovingObjectPredictionVectorFormatter::delegateSerialize(
+void mops::MovingObjectPredictionVectorFormatter::delegateSerialize(
     Archive &          archive,
     unsigned int const version,
-    lsst::daf::base::Persistable *      persistable
+    Persistable *      persistable
 ) {
-    MovingObjectPredictionVector * p = dynamic_cast<MovingObjectPredictionVector *>(persistable);
-    archive & boost::serialization::base_object<lsst::daf::base::Persistable>(*p);
+    PersistableMovingObjectPredictionVector * p =
+        dynamic_cast<PersistableMovingObjectPredictionVector *>(persistable);
+    archive & boost::serialization::base_object<Persistable>(*p);
     MovingObjectPredictionVector::size_type sz;
 
     if (Archive::is_loading::value) {
         MovingObjectPrediction data;
         archive & sz;
-        p->reserve(sz);
+        p->_predictions.clear();
+        p->_predictions.reserve(sz);
         for (; sz > 0; --sz) {
             archive & data;
-            p->push_back(data);
+            p->_predictions.push_back(data);
         }
     } else {
-        sz = p->size();
+        sz = p->_predictions.size();
         archive & sz;
-        MovingObjectPredictionVector::iterator const end(p->end());
-        for (MovingObjectPredictionVector::iterator i = p->begin(); i != end; ++i) {
+        MovingObjectPredictionVector::iterator const end(p->_predictions.end());
+        for (MovingObjectPredictionVector::iterator i = p->_predictions.begin(); i != end; ++i) {
             archive & *i;
         }
     }
 }
 
-template void MovingObjectPredictionVectorFormatter::delegateSerialize<boost::archive::text_oarchive>(
-    boost::archive::text_oarchive &, unsigned int const, lsst::daf::base::Persistable *
+template void mops::MovingObjectPredictionVectorFormatter::delegateSerialize<boost::archive::text_oarchive>(
+    boost::archive::text_oarchive &, unsigned int const, Persistable *
 );
-template void MovingObjectPredictionVectorFormatter::delegateSerialize<boost::archive::text_iarchive>(
-    boost::archive::text_iarchive &, unsigned int const, lsst::daf::base::Persistable *
+template void mops::MovingObjectPredictionVectorFormatter::delegateSerialize<boost::archive::text_iarchive>(
+    boost::archive::text_iarchive &, unsigned int const, Persistable *
 );
-//template void MovingObjectPredictionVectorFormatter::delegateSerialize<boost::archive::binary_oarchive>(
-//    boost::archive::binary_oarchive &, unsigned int const, lsst::daf::base::Persistable *
+//template void mops::MovingObjectPredictionVectorFormatter::delegateSerialize<boost::archive::binary_oarchive>(
+//    boost::archive::binary_oarchive &, unsigned int const, Persistable *
 //);
-//template void MovingObjectPredictionVectorFormatter::delegateSerialize<boost::archive::binary_iarchive>(
-//    boost::archive::binary_iarchive &, unsigned int const, lsst::daf::base::Persistable *
+//template void mops::MovingObjectPredictionVectorFormatter::delegateSerialize<boost::archive::binary_iarchive>(
+//    boost::archive::binary_iarchive &, unsigned int const, Persistable *
 //);
 
 
-void MovingObjectPredictionVectorFormatter::write(
-    lsst::daf::base::Persistable const *   persistable,
-    Storage::Ptr          storage,
-    DataProperty::PtrType additionalData
+void mops::MovingObjectPredictionVectorFormatter::write(
+    Persistable const *persistable,
+    Storage::Ptr       storage,
+    PropertySet::Ptr   additionalData
 ) {
     if (persistable == 0) {
-        throw ex::InvalidParameter("No Persistable provided");
+        throw LSST_EXCEPT(ex::InvalidParameterException, "No Persistable provided");
     }
     if (!storage) {
-        throw ex::InvalidParameter("No Storage provided");
+        throw LSST_EXCEPT(ex::InvalidParameterException, "No Storage provided");
     }
 
-    MovingObjectPredictionVector const * p = dynamic_cast<MovingObjectPredictionVector const *>(persistable);
+    PersistableMovingObjectPredictionVector const * p =
+        dynamic_cast<PersistableMovingObjectPredictionVector const *>(persistable);
     if (p == 0) {
-        throw ex::Runtime("Persistable was not of concrete type MovingObjectPredictionVector");
+        throw LSST_EXCEPT(ex::RuntimeErrorException, "Persistable was not of concrete type MovingObjectPredictionVector");
     }
+    MovingObjectPredictionVector const & predictions = p->getPredictions();
 
     if (typeid(*storage) == typeid(BoostStorage)) {
         BoostStorage * bs = dynamic_cast<BoostStorage *>(storage.get());
         if (bs == 0) {
-            throw ex::Runtime("Didn't get BoostStorage");
+            throw LSST_EXCEPT(ex::RuntimeErrorException, "Didn't get BoostStorage");
         }
         bs->getOArchive() & *p;
     } else if (typeid(*storage) == typeid(DbStorage) || typeid(*storage) == typeid(DbTsvStorage)) {
-        std::string itemName(afwUtils::getItemName(additionalData));
-        std::string name(afwUtils::getVisitSliceTableName(_policy, additionalData));
-        std::string model = afwUtils::extractPolicyString(
+        std::string itemName(fmt::getItemName(additionalData));
+        std::string name(fmt::getVisitSliceTableName(_policy, additionalData));
+        std::string model = fmt::extractPolicyString(
             _policy,
             itemName + ".templateTableName",
             itemName + "Template"
         );
-        bool mayExist = !afwUtils::extractOptionalFlag(additionalData, itemName + ".isPerSliceTable");
+        bool mayExist = !fmt::extractOptionalFlag(additionalData, itemName + ".isPerSliceTable");
         if (typeid(*storage) == typeid(DbStorage)) {
             DbStorage * db = dynamic_cast<DbStorage *>(storage.get());
             if (db == 0) {
-                throw ex::Runtime("Didn't get DbStorage");
+                throw LSST_EXCEPT(ex::RuntimeErrorException, "Didn't get DbStorage");
             }
             db->createTableFromTemplate(name, model, mayExist);
             db->setTableForInsert(name);
-            MovingObjectPredictionVector::const_iterator const end(p->end());
-            for (MovingObjectPredictionVector::const_iterator i = p->begin(); i != end; ++i) {
+            MovingObjectPredictionVector::const_iterator const end(predictions.end());
+            for (MovingObjectPredictionVector::const_iterator i = predictions.begin(); i != end; ++i) {
                 insertRow<DbStorage>(*db, *i);
             }
         } else {
             DbTsvStorage * db = dynamic_cast<DbTsvStorage *>(storage.get());
             if (db == 0) {
-                throw ex::Runtime("Didn't get DbTsvStorage");
+                throw LSST_EXCEPT(ex::RuntimeErrorException, "Didn't get DbTsvStorage");
             }
             db->createTableFromTemplate(name, model, mayExist);
             db->setTableForInsert(name);
-            MovingObjectPredictionVector::const_iterator const end(p->end());
-            for (MovingObjectPredictionVector::const_iterator i = p->begin(); i != end; ++i) {
+            MovingObjectPredictionVector::const_iterator const end(predictions.end());
+            for (MovingObjectPredictionVector::const_iterator i = predictions.begin(); i != end; ++i) {
                 insertRow<DbTsvStorage>(*db, *i);
             }
         }
     } else {
-        throw ex::InvalidParameter("Storage type is not supported"); 
+        throw LSST_EXCEPT(ex::InvalidParameterException, "Storage type is not supported");
     }
 }
 
 
-lsst::daf::base::Persistable* MovingObjectPredictionVectorFormatter::read(
-    Storage::Ptr          storage,
-    DataProperty::PtrType additionalData
+Persistable* mops::MovingObjectPredictionVectorFormatter::read(
+    Storage::Ptr     storage,
+    PropertySet::Ptr additionalData
 ) {
-    std::auto_ptr<MovingObjectPredictionVector> p(new MovingObjectPredictionVector);
+    std::auto_ptr<PersistableMovingObjectPredictionVector> p(new PersistableMovingObjectPredictionVector);
 
     if (typeid(*storage) == typeid(BoostStorage)) {
         BoostStorage* bs = dynamic_cast<BoostStorage *>(storage.get());
         if (bs == 0) {
-            throw ex::Runtime("Didn't get BoostStorage");
+            throw LSST_EXCEPT(ex::RuntimeErrorException, "Didn't get BoostStorage");
         }
         bs->getIArchive() & *p;
     } else if (typeid(*storage) == typeid(DbStorage) || typeid(*storage) == typeid(DbTsvStorage)) {
         DbStorage * db = dynamic_cast<DbStorage *>(storage.get());
         if (db == 0) {
-            throw ex::Runtime("Didn't get DbStorage");
+            throw LSST_EXCEPT(ex::RuntimeErrorException, "Didn't get DbStorage");
         }
         std::vector<std::string> tables;
-        afwUtils::getAllVisitSliceTableNames(tables, _policy, additionalData);
+        fmt::getAllVisitSliceTableNames(tables, _policy, additionalData);
 
+        MovingObjectPredictionVector predictions;
+ 
         // loop over all retrieve tables, reading in everything
         std::vector<std::string>::const_iterator const end = tables.end();
         for (std::vector<std::string>::const_iterator i = tables.begin(); i != end; ++i) {
@@ -224,30 +235,46 @@ lsst::daf::base::Persistable* MovingObjectPredictionVectorFormatter::read(
             setupFetch(*db, data);
             db->query();
             while (db->next()) {
-                if (db->columnIsNull(0)) { throw ex::Runtime("null column \"orbit_id\""); }
-                if (db->columnIsNull(1)) { throw ex::Runtime("null column \"ra_deg\"");   }
-                if (db->columnIsNull(2)) { throw ex::Runtime("null column \"dec_deg\"");  }
-                if (db->columnIsNull(3)) { throw ex::Runtime("null column \"mjd\"");      }
-                if (db->columnIsNull(4)) { throw ex::Runtime("null column \"smia\"");     }
-                if (db->columnIsNull(5)) { throw ex::Runtime("null column \"smaa\"");     }
-                if (db->columnIsNull(6)) { throw ex::Runtime("null column \"pa\"");       }
-                if (db->columnIsNull(7)) { throw ex::Runtime("null column \"mag\"");      }
-                if (db->columnIsNull(8)) { throw ex::Runtime("null column \"magErr\"");   }
-                p->push_back(data);
+                if (db->columnIsNull(0)) {
+                    throw LSST_EXCEPT(ex::RuntimeErrorException, "null column \"orbit_id\"");
+                }
+                if (db->columnIsNull(1)) {
+                    throw LSST_EXCEPT(ex::RuntimeErrorException, "null column \"ra_deg\"");
+                }
+                if (db->columnIsNull(2)) {
+                    throw LSST_EXCEPT(ex::RuntimeErrorException, "null column \"dec_deg\"");
+                }
+                if (db->columnIsNull(3)) {
+                    throw LSST_EXCEPT(ex::RuntimeErrorException, "null column \"mjd\"");
+                }
+                if (db->columnIsNull(4)) {
+                    throw LSST_EXCEPT(ex::RuntimeErrorException, "null column \"smia\"");
+                }
+                if (db->columnIsNull(5)) {
+                    throw LSST_EXCEPT(ex::RuntimeErrorException, "null column \"smaa\"");
+                }
+                if (db->columnIsNull(6)) {
+                    throw LSST_EXCEPT(ex::RuntimeErrorException, "null column \"pa\"");
+                }
+                if (db->columnIsNull(7)) {
+                    throw LSST_EXCEPT(ex::RuntimeErrorException, "null column \"mag\"");
+                }
+                if (db->columnIsNull(8)) {
+                    throw LSST_EXCEPT(ex::RuntimeErrorException, "null column \"magErr\"");
+                }
+                predictions.push_back(data);
             }
             db->finishQuery();
         }
+        std::swap(predictions, p->_predictions);
     } else {
-        throw ex::InvalidParameter("Storage type is not supported");
+        throw LSST_EXCEPT(ex::InvalidParameterException, "Storage type is not supported");
     }
     return p.release();
 }
 
 
-void MovingObjectPredictionVectorFormatter::update(lsst::daf::base::Persistable*, Storage::Ptr, DataProperty::PtrType) {
-    throw ex::Runtime("MovingObjectPredictionVectorFormatter: updates not supported");
+void mops::MovingObjectPredictionVectorFormatter::update(Persistable*, Storage::Ptr, PropertySet::Ptr) {
+    throw LSST_EXCEPT(ex::RuntimeErrorException, "MovingObjectPredictionVectorFormatter: updates not supported");
 }
-
-
-}} // end of namespace lsst::mops:
 
