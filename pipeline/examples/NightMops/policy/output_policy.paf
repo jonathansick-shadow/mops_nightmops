@@ -11,9 +11,9 @@ OutputItems: {
 }
 Persistence: {
    Formatter: {
-       MovingObjectPredictionVector: {
+       PersistableMovingObjectPredictionVector: {
            MopsPreds: {
-               templateTableName: "mops_pred"
+               templateTableName: "_tmpl_mops_Prediction"
            }
        }
    }

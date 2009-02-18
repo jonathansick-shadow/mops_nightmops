@@ -1,11 +1,9 @@
 import lsst.pex.harness.Stage
 import lsst.daf.base as datap
 import lsst.pex.policy as policy
-from lsst.pex.logging import Trace
-from lsst.pex.logging import Trace_setVerbosity
-from lsst.pex.logging import Log
-from lsst.pex.logging import LogRec
-from lsst.daf.base import DataProperty
+import lsst.pex.logging as log
+from lsst.pex.logging import Trace, Trace_setVerbosity
+from lsst.pex.logging import endr, Log, Rec
 
 import lsst.mops.mopsLib as mopsLib
 import lsst.mops.nightmops.ephemeris as eph
@@ -21,6 +19,8 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
         """
         lsst.pex.harness.Stage.Stage.__init__(self, stageId, policy)
         self.mopsLog = Log(Log.getDefaultLog(), 'mops.stage')
+        if isinstance(self.mopsLog, log.ScreenLog):
+            self.mopsLog.setScreenVerbose(True)
         return
 
 
@@ -65,11 +65,8 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
         mjd = triggerEvent.findUnique('visitTime').getValueDouble()
 
         # Log the beginning of Mops stage for this slice
-        LogRec(self.mopsLog, Log.INFO) \
-                                  <<  'Began mops stage' \
-                                  << DataProperty('visitId', visitId) \
-                                  << DataProperty('MJD', mjd) \
-                                  << LogRec.endr
+        Rec(self.mopsLog, Log.INFO) \
+            << 'Began mops stage' << { 'visitId': visitId, 'MJD': mjd } << endr
 
         # get this Slice's set of potential objects in the FOV
         candidateOrbits = ephDB.selectOrbitsForFOV(ephemDbFromPolicy, 
@@ -92,11 +89,10 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
               'Number of orbits in fov: %d' % len(candidateOrbits))
 
         # Log the number of predicted ephems
-        LogRec(self.mopsLog, Log.INFO) \
-              <<  'Candidate orbits' \
-              << DataProperty('predicted objects in the FOV', len(candidateOrbits)) \
-              << DataProperty('predicted ephems in the FOV', len(ephems)) \
-              << LogRec.endr
+        Rec(self.mopsLog, Log.INFO) \
+            <<  'Candidate orbits' << \
+            << { 'nPredObjects': len(candidateOrbits), 'nPredEphems': len(ephems) } \
+            << endr
 
          # build a MopsPredVec for our Stage output
         mopsPreds = mopsLib.MopsPredVec()

@@ -1,12 +1,13 @@
 # -*- python -*-
 Import("env")
+import glob
 import os
-import sys
 
-import lsst.tests
+for src in glob.glob("*.cc"):
+    env.Program(src, LIBS=env.getlibs(env["eups_product"]))
+
+# Check for database credentials
 import lsst.daf.persistence
-
-env.Program(["MovingObjectPredictionIO_1.cc"], LIBS=env.getlibs("mops"))
 
 if lsst.daf.persistence.DbAuth.available():
     if os.environ.has_key("LSST_DB_AUTH"):
@@ -15,10 +16,13 @@ else:
     print "WARNING: No fallback database authenticator seen"
     print "Database tests may be skipped or may fail"
 
+
+# Tests
+import lsst.tests
+
 tests = lsst.tests.Control(env, verbose = True)
 tests.run("*.cc")
     
-# set up python tests
 for target in tests.run("MovingObjectPrediction_1.py"):
     env.Depends(target, "../python/lsst/mops/_mopsLib%s" % (env["LDMODULESUFFIX"]))
 
