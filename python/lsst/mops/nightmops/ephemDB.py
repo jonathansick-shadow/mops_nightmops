@@ -53,7 +53,8 @@ def selectOrbitsForFOV(dbLogicalLocation,
     return([fetchOrbit(dbLogicalLocation, oid) for oid in mapping['0']])
 
 
-def fetchOrbitIdsAndEphems(dbLogicalLocation, sliceId, numSlices, mjd, deltaMJD=1.):
+def fetchOrbitIdsAndEphems(dbLogicalLocation, sliceId, numSlices, mjd, 
+                           deltaMJD=1.):
     """
     Fetch the orbit Id of all known moving objects from day-MOPS together with
     their precomputed ephemerides at int(mjd)-deltaMJD, int(mjd) and
@@ -80,10 +81,11 @@ def fetchOrbitIdsAndEphems(dbLogicalLocation, sliceId, numSlices, mjd, deltaMJD=
     mjdMin = mjd - deltaMJD
     mjdMax = mjd + deltaMJD
     
-    # FIXME: What if the orbit_ids are not contiguous?
+    # TODO: handle different MovingObject versions. Meaning choose the highest
+    # version. Not needed for DC3a.
     where = 'mjd >= %f and mjd <= %f and ' %(mjdMin, mjdMax)
-    where += 'movingObjectVersion = max(movingObjectVersion) and '
-    where += 'orbit_id % %d = %d' %(numSlices, sliceId)   # poor man parallelism
+    # Poor man parallelism ;-)
+    where += 'movingObjectId % %d = %d' %(numSlices, sliceId)
     
     db.startTransaction()
     db.setTableForQuery('_tmpl_mops_Ephemeris')
@@ -97,8 +99,7 @@ def fetchOrbitIdsAndEphems(dbLogicalLocation, sliceId, numSlices, mjd, deltaMJD=
     db.outColumn('smaa')
     db.outColumn('smia')
     db.outColumn('pa')
-    db.groupBy('movingObjectId')
-    db.orderBy('orbit_id')
+    db.orderBy('movingObjectId')
     db.orderBy('mjd')
     
     # Execute the query.
@@ -119,8 +120,8 @@ def fetchOrbitIdsAndEphems(dbLogicalLocation, sliceId, numSlices, mjd, deltaMJD=
         # We now create a new temp id made by concatenating the movingobject id 
         # and its version. It will only be used internally.
         # res= [(new_orbit_id, Ephemeris obj), ...]
-        res.append(('%d-%d', %(db.getColumnByPosInt64(0), 
-                               db.getColumnByPosInt64(0)),
+        res.append(('%d-%d' %(db.getColumnByPosInt64(0), 
+                              db.getColumnByPosInt64(0)),
                     ephem))
     # We are done with the query.
     db.finishQuery()
@@ -156,16 +157,16 @@ def fetchOrbit(dbLogicalLocation, orbitId):
     db.startTransaction()
     db.setTableForQuery('MovingObject')
     db.setQueryWhere(where)
-    columns = ['q', 'e', 'i', 'node', 'argPer', 'timePe', 'epoch', 'h_v', 'g']
-    columns += ['src%02d' %(i) for i in range(1, 22, 1)]
-    errs = map(lambda c: db.outColumn(c), columns)
+    cols = ['q', 'e', 'i', 'node', 'argPeri', 'timePeri', 'epoch', 'h_v', 'g']
+    cols += ['src%02d' %(i) for i in range(1, 22, 1)]
+    errs = map(lambda c: db.outColumn(c), cols)
     
     # Execute the query.
     db.query()
     
     # Create the Orbit object and just spit it out.
-    elements = [db.getColumnByPosDouble(i) for i in range(0, 9, 1)]
-    src = [db.getColumnByPosDouble(i) for i in range(9, 30, 1)]
+    elements = [db.getColumnByPosDouble(i) for i in range(0, 9)]
+    src = [db.getColumnByPosDouble(i) for i in range(9, 30)]
     
     # We are done with the query.
     db.finishQuery()
@@ -205,24 +206,23 @@ def propagateOrbit(orbit, mjd, obscode):
                                  orbit.node,
                                  orbit.argPeri,
                                  orbit.timePeri])
+    if(None in list(orbit.src)):
+        orbit.src = None
 
     # positions = [[RA, Dec, mag, mjd, raerr, decerr, smaa, smia, pa], ]
-    (ra, 
-     dec, 
-     mag, 
-     predMjd, 
-     raErr, 
-     decErr, 
-     smaa, 
-     smia, 
-     pa) = ssd.ephemerides(orbitalParams, epoch, numpy.array([mjd, ]), obscode,
-                           orbit.hv, orbit.g, covariance=orbit.src)
+    ephems = ssd.ephemerides(orbitalParams, 
+                             float(orbit.epoch), 
+                             numpy.array([mjd, ]), 
+                             str(obscode),
+                             float(orbit.hv), 
+                             float(orbit.g), 
+                             orbit.src)
+    (ra, dec, mag, predMjd, raErr, decErr, smaa, smia, pa) = ephems[0]
     
     # Return the Ephemeris object.
-    (movingObjectId, movingObjectVersion) = orbitId.split('-')
     return(Ephemeris(orbit.movingObjectId, 
                      orbit.movingObjectVersion, 
-                     mjd, 
+                     predMjd, 
                      ra, 
                      dec, 
                      mag, 
