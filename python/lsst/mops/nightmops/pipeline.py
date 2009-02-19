@@ -74,7 +74,7 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
                                                    numSlices, 
                                                    fovRA,
                                                    fovDec,
-                                                   fovDiamFromPolicy,
+                                                   fovDiamFromPolicy / 2.,
                                                    mjd)
 
         # Propagate each orbit to mjd.
