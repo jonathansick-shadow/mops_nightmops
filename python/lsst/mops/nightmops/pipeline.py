@@ -80,10 +80,12 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
         # Propagate each orbit to mjd.
         ephems = [ephDB.propagateOrbit(o, mjd, obscodeFromPolicy) 
                   for o in candidateOrbits]
-                  
+              
         # Try and reduce the list even further by discarding positions that are
         # entirely outside of the Fov.
-        ephems = [e for e in ephems if ephDB._isinside(e, fovRA, fovDec, fovR)]
+        # TODO: Implement something sensible here. Do we need it for DC3a?
+        # ephems = [e for e in ephems if ephDB._isinside(e, fovRA, fovDec, 
+        #                                                fovDiamFromPolicy)]
 
         Trace('lsst.mops.MopsStage', 3, 
               'Number of orbits in fov: %d' % len(candidateOrbits))
@@ -99,18 +101,19 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
 
         for e in ephems:
             mopsPred = mopsLib.MopsPred()
-            mopsPred.setId(e.orbitId)
-            mopsPred.setMjd(e.MJD)
-            mopsPred.setRa(e.RA)
-            mopsPred.setDec(e.Dec)
-            mopsPred.setSemiMinorAxisLength(e.SMIA)
-            mopsPred.setSemiMajorAxisLength(e.SMAA)
-            mopsPred.setPositionAngle(e.PA)
-            mopsPred.setMagnitude(e.Mag)
+            mopsPred.setId('%d-%d' %(e.movingObjectId, e.movingObjectVersion)
+            mopsPred.setMjd(e.mjd)
+            mopsPred.setRa(e.ra)
+            mopsPred.setDec(e.dec)
+            mopsPred.setSemiMinorAxisLength(e.smia)
+            mopsPred.setSemiMajorAxisLength(e.smaa)
+            mopsPred.setPositionAngle(e.pa)
+            mopsPred.setMagnitude(e.mag)
             mopsPreds.push_back(mopsPred)
         
         # put output on the clipboard
-        self.activeClipboard.put('MopsPreds', mopsLib.PersistableMopsPredVec(mopsPreds))
+        self.activeClipboard.put('MopsPreds', 
+                                 mopsLib.PersistableMopsPredVec(mopsPreds))
         self.outputQueue.addDataset(self.activeClipboard)
         self.mopsLog.log(Log.INFO, 'Mops stage processing ended')
         return
