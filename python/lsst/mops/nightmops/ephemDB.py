@@ -1,6 +1,17 @@
-from Ephemeris import Ephemeris
 from Orbit import Orbit
+'''
+Important note
 
+I am not happy about this from an aestetical stand point. However we are 
+fetching a lot of pre-computed ephemeris from the database. This means that 
+instantiating one Ephemeris class per fetched DB ephem is very expensive. Given
+the fact that the Ephemeris class was not doing anything other than being a 
+container, it makes sense to replace the class with a tuple (performance-wise).
+
+Each ephemeris is therefore a tuple of the form
+    (movingObjectId, movingObjectVersion, mjd, ra, dec, mag, smaa, smia, pa)
+and not an Ephemeris instance.
+'''
 import numpy
 
 import auton
@@ -39,7 +50,10 @@ def selectOrbitsForFOV(dbLogicalLocation,
                                                   deltaMJD=1.)
     
     # Extract orbit_id, mjd, ra, dec.
-    ephemData = [(oId, e.mjd, e.ra, e.dec) for (oId, e) in orbitIdsAndPositions]
+    # Remember: each ephemeris is a tuple of the form
+    # (movingObjectId, movingObjectVersion, mjd, ra, dec, mag, smaa, smia, pa)
+    # and not an Ephemeris instance.
+    ephemData = [(oId, e[2], e[3], e[4]) for (oId, e) in orbitIdsAndPositions]
     
     # Create a field structure. We simply need a number for field id.
     fields = [(0, mjd, fovRA, fovDec, fovR + MaxErrorEllipseRadius),] 
@@ -108,15 +122,15 @@ def fetchOrbitIdsAndEphems(dbLogicalLocation, sliceId, numSlices, mjd,
     # Fetch the results.
     res = []
     while db.next():
-        ephem = Ephemeris(db.getColumnByPosInt64(0),     # movingObjectId
-                          db.getColumnByPosInt64(1),     # movingObjectVersion
-                          db.getColumnByPosDouble(2),    # mjd
-                          db.getColumnByPosDouble(3),    # ra_deg
-                          db.getColumnByPosDouble(4),    # dec_deg
-                          db.getColumnByPosDouble(5),    # mag
-                          db.getColumnByPosDouble(6),    # smaa
-                          db.getColumnByPosDouble(7),    # smia
-                          db.getColumnByPosDouble(8))    # pa
+        ephem = (db.getColumnByPosInt64(0),     # movingObjectId
+                 db.getColumnByPosInt64(1),     # movingObjectVersion
+                 db.getColumnByPosDouble(2),    # mjd_utc
+                 db.getColumnByPosDouble(3),    # ra_deg
+                 db.getColumnByPosDouble(4),    # dec_deg
+                 db.getColumnByPosDouble(5),    # mag
+                 db.getColumnByPosDouble(6),    # smaa
+                 db.getColumnByPosDouble(7),    # smia
+                 db.getColumnByPosDouble(8))    # pa
         # We now create a new temp id made by concatenating the movingobject id 
         # and its version. It will only be used internally.
         # res= [(new_orbit_id, Ephemeris obj), ...]
@@ -220,15 +234,15 @@ def propagateOrbit(orbit, mjd, obscode):
     (ra, dec, mag, predMjd, raErr, decErr, smaa, smia, pa) = ephems[0]
     
     # Return the Ephemeris object.
-    return(Ephemeris(orbit.movingObjectId, 
-                     orbit.movingObjectVersion, 
-                     predMjd, 
-                     ra, 
-                     dec, 
-                     mag, 
-                     smaa, 
-                     smia, 
-                     pa))
+    return((orbit.movingObjectId, 
+            orbit.movingObjectVersion, 
+            predMjd, 
+            ra, 
+            dec, 
+            mag, 
+            smaa, 
+            smia, 
+            pa))
     
 
 

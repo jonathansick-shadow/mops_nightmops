@@ -8,6 +8,15 @@ from lsst.pex.logging import endr, Log, Rec
 import lsst.mops.mopsLib as mopsLib
 import lsst.mops.nightmops.ephemeris as eph
 import lsst.mops.nightmops.ephemDB as ephDB
+'''
+A note on time and time scales. Internally we always use times and dates as MJD
+in UTC. However all times getting in and out of our code are MJDs in TAI.
+
+There are stored procedures to convert between the two:
+  MJD UTC -> MJD TAI: 
+  MJD TAI -> MJD UTC: utcToMJD(taiToUTC((epoch- 40587.0) * 8.64e13))
+'''
+
 
 
 
@@ -62,7 +71,8 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
         fovRA = triggerEvent.findUnique('FOVRA').getValueDouble()
         fovDec = triggerEvent.findUnique('FOVDec').getValueDouble()
         visitId = triggerEvent.findUnique('visitId').getValueInt()
-        mjd = triggerEvent.findUnique('visitTime').getValueDouble()
+        # Convert the TAI to UTC.
+        mjdTAI = taiToUTC(triggerEvent.findUnique('visitTime').getValueDouble())
 
         # Log the beginning of Mops stage for this slice
         Rec(self.mopsLog, Log.INFO) \
@@ -99,16 +109,20 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
          # build a MopsPredVec for our Stage output
         mopsPreds = mopsLib.MopsPredVec()
 
+        # Remember: each ephemeris is a tuple of the form
+        # (movingObjectId, movingObjectVersion, mjd, ra, dec, mag, 
+        #  smaa, smia, pa)
+        # and not an Ephemeris instance.
         for e in ephems:
             mopsPred = mopsLib.MopsPred()
-            mopsPred.setId('%d-%d' %(e.movingObjectId, e.movingObjectVersion)
-            mopsPred.setMjd(e.mjd)
-            mopsPred.setRa(e.ra)
-            mopsPred.setDec(e.dec)
-            mopsPred.setSemiMinorAxisLength(e.smia)
-            mopsPred.setSemiMajorAxisLength(e.smaa)
-            mopsPred.setPositionAngle(e.pa)
-            mopsPred.setMagnitude(e.mag)
+            mopsPred.setId('%d-%d' %(e[0], e[1])
+            mopsPred.setMjd(e[2])
+            mopsPred.setRa(e[3])
+            mopsPred.setDec(e[4])
+            mopsPred.setSemiMinorAxisLength(e[7])
+            mopsPred.setSemiMajorAxisLength(e[6])
+            mopsPred.setPositionAngle(e[8])
+            mopsPred.setMagnitude(e[5])
             mopsPreds.push_back(mopsPred)
         
         # put output on the clipboard
