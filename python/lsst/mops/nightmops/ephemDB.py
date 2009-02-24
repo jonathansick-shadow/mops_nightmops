@@ -17,6 +17,7 @@ import numpy
 import auton
 import ssd
 
+from lsst.daf.base import DateTime
 import lsst.daf.persistence as dafPer
 
 
@@ -213,30 +214,32 @@ def propagateOrbit(orbit, mjd, obscode):
         smia: error ellipse semi minor axis (deg).
         pa: error ellipse position angle (deg).
     """
-    # Extract the orbital params and cast them into a numpy array.
+    # Extract the orbital params and cast them into a numpy array. Convert the 
+    # time of perihelion passage to UTC from TAI.
     orbitalParams = numpy.array([orbit.q,
                                  orbit.e,
                                  orbit.i,
                                  orbit.node,
                                  orbit.argPeri,
-                                 orbit.timePeri])
+                                 DateTime(orbit.timePeri).tai2mjd()])
     if(None in list(orbit.src)):
         orbit.src = None
 
+    # Convert the orbit epoch and the prediction requested mjd from TAI to UTC.
     # positions = [[RA, Dec, mag, mjd, raerr, decerr, smaa, smia, pa], ]
     ephems = ssd.ephemerides(orbitalParams, 
-                             float(orbit.epoch), 
-                             numpy.array([mjd, ]), 
+                             DateTime(float(orbit.epoch)).tai2mjd(),
+                             numpy.array([DateTime(mjd).tai2mjd(), ]), 
                              str(obscode),
                              float(orbit.hv), 
                              float(orbit.g), 
                              orbit.src)
     (ra, dec, mag, predMjd, raErr, decErr, smaa, smia, pa) = ephems[0]
     
-    # Return the Ephemeris object.
+    # Return the Ephemeris object. Return the TAI mjd instead of the one in UTC.
     return((orbit.movingObjectId, 
             orbit.movingObjectVersion, 
-            predMjd, 
+            mjd, 
             ra, 
             dec, 
             mag, 
