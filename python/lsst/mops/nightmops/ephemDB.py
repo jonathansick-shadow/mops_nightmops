@@ -65,7 +65,7 @@ def selectOrbitsForFOV(dbLogicalLocation,
     
     # Simply return the orbits corresponding to the IDs we got from 
     # fieldProximity.
-    return([fetchOrbit(dbLogicalLocation, oid) for oid in mapping['0']])
+    return([fetchOrbit(dbLogicalLocation, oid) for oid in mapping.get('0', [])])
 
 
 def fetchOrbitIdsAndEphems(dbLogicalLocation, sliceId, numSlices, mjd, 
