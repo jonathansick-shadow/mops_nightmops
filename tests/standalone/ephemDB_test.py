@@ -62,9 +62,7 @@ def selectOrbitsForFOV(fovRA,
     
     # Simply return the orbits corresponding to the IDs we got from 
     # fieldProximity.
-    if(not mapping):
-        return([])
-    return([fetchOrbit(oid) for oid in mapping['0']])
+    return([fetchOrbit(oid) for oid in mapping.get('0', [])])
 
 
 def fetchOrbitIdsAndEphems(mjd, deltaMJD=1., num_cores=1, slice_id=0):
