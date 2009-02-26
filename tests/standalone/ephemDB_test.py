@@ -62,6 +62,8 @@ def selectOrbitsForFOV(fovRA,
     
     # Simply return the orbits corresponding to the IDs we got from 
     # fieldProximity.
+    if(not mapping):
+        return([])
     return([fetchOrbit(oid) for oid in mapping['0']])
 
 
@@ -83,7 +85,7 @@ def fetchOrbitIdsAndEphems(mjd, deltaMJD=1., num_cores=1, slice_id=0):
                       passwd=DB_PASSWD,
                       db=DB_DB)
     cur = dbh.cursor()
-    print('     %.02fs: connect to DB' %(time.time() - t3))
+    print('     %.02fs: connect to DB %s' %(time.time() - t3, DB_DB))
     
     # Prepare the query.
     t3 = time.time()
@@ -137,6 +139,8 @@ def fetchOrbitIdsAndEphems(mjd, deltaMJD=1., num_cores=1, slice_id=0):
         # res= [(new_orbit_id, Ephemeris obj), ...]
         tt1 = time.time()
         results.append(('%s-%s' %(res[0], res[1]), ephem))
+        if(res[0] == '6353'):
+            print('%s-%s' %(res[0], res[1]))
         t1 += time.time() - tt1
         
         # Get the next row

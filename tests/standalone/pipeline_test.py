@@ -99,21 +99,24 @@ if(__name__ == '__main__'):
     import sys
     
     t0 = time.time()
-    if(len(sys.argv) not in (5, 6, 7)):
-        sys.stderr.write('usage: pipeline_test.py visitId, RA, Dec, mjd\n')
+    if(len(sys.argv) not in (6, 7, 8)):
+        sys.stderr.write('usage: pipeline_test.py DB visitId, RA, Dec, mjd\n')
         sys.stderr.write('  optionally: specify number of cores last\n')
         sys.stderr.write('  optionally: specify slice ID last\n')
         sys.stderr.write('All times in TAI, not UTC!\n')
         sys.exit(1)
-    [visitId, fovRA, fovDec, mjd] = sys.argv[1:5]
+    [db, visitId, fovRA, fovDec, mjd] = sys.argv[1:6]
     try:
-        num_cores = int(sys.argv[5])
+        num_cores = int(sys.argv[6])
     except:
         num_cores = 1
     try:
-        slice_id = int(sys.argv[6])
+        slice_id = int(sys.argv[7])
     except:
         slice_id = 0
+    
+    # Update the database name.
+    ephDB.DB_DB = db
     candidateOrbits, mopsPreds = process(int(visitId), 
                                          float(fovRA),
                                          float(fovDec),
