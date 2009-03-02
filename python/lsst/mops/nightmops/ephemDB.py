@@ -221,15 +221,16 @@ def propagateOrbit(orbit, mjd, obscode):
                                  orbit.i,
                                  orbit.node,
                                  orbit.argPeri,
-                                 DateTime(orbit.timePeri).tai2mjd()])
+                                 DateTime(orbit.timePeri).mjd(DateTime.UTC)])
     if(None in list(orbit.src)):
         orbit.src = None
 
     # Convert the orbit epoch and the prediction requested mjd from TAI to UTC.
     # positions = [[RA, Dec, mag, mjd, raerr, decerr, smaa, smia, pa], ]
+    # Convert orbit epoch and ephemerides MJD to UTC from TAI.
     ephems = ssd.ephemerides(orbitalParams, 
-                             DateTime(float(orbit.epoch)).tai2mjd(),
-                             numpy.array([DateTime(mjd).tai2mjd(), ]), 
+                             DateTime(float(orbit.epoch)).mjd(DateTime.UTC),
+                             numpy.array([DateTime(mjd).mjd(DateTime.UTC), ]), 
                              str(obscode),
                              float(orbit.hv), 
                              float(orbit.g), 
