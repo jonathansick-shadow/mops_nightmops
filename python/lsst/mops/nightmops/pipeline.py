@@ -75,8 +75,7 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
         mjdTAI = taiToUTC(triggerEvent.findUnique('visitTime').getValueDouble())
 
         # Log the beginning of Mops stage for this slice
-        Rec(self.mopsLog, Log.INFO) \
-            << 'Began mops stage' << { 'visitId': visitId, 'MJD': mjd } << endr
+        Rec(self.mopsLog, Log.INFO) << 'Began mops stage' << { 'visitId': visitId, 'MJD': mjd } << endr
 
         # get this Slice's set of potential objects in the FOV
         candidateOrbits = ephDB.selectOrbitsForFOV(ephemDbFromPolicy, 
@@ -101,10 +100,7 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
               'Number of orbits in fov: %d' % len(candidateOrbits))
 
         # Log the number of predicted ephems
-        Rec(self.mopsLog, Log.INFO) \
-            <<  'Candidate orbits' << \
-            << { 'nPredObjects': len(candidateOrbits), 'nPredEphems': len(ephems) } \
-            << endr
+        Rec(self.mopsLog, Log.INFO) <<  'Candidate orbits' << { 'nPredObjects': len(candidateOrbits), 'nPredEphems': len(ephems) } << endr
 
          # build a MopsPredVec for our Stage output
         mopsPreds = mopsLib.MopsPredVec()
@@ -115,7 +111,7 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
         # and not an Ephemeris instance.
         for e in ephems:
             mopsPred = mopsLib.MopsPred()
-            mopsPred.setId('%d-%d' %(e[0], e[1])
+            mopsPred.setId('%d-%d' %(e[0], e[1]))
             mopsPred.setMjd(e[2])
             mopsPred.setRa(e[3])
             mopsPred.setDec(e[4])
