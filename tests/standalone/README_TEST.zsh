@@ -6,7 +6,7 @@ setup python
 setup mysqlclient
 setup numpy
 
-# Example invocations are
+# Example invocations are (for TALCS)
 # ./pipeline_test.py 1 19.594083 8.669111 53992.3861186
 # 
 # or, to execute the same thing on several CPUs use
@@ -15,4 +15,10 @@ setup numpy
 # ...
 # ./pipeline_test.py 1 19.594083 8.669111 53992.3861186 16 15
 # on the 16 CPUs you want to use.
+# 
+# 
+# Same thing but for CFHT-LS:
+# ./pipeline_test.py fpierfed_cfhtls 1 36.501250 -4.503611 52900.519295 1 0
+# 
+# and similar for the simulates SMP...
 
