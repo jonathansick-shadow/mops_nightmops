@@ -6,7 +6,6 @@ from lsst.pex.logging import Trace, Trace_setVerbosity
 from lsst.pex.logging import endr, Log, Rec
 
 import lsst.mops.mopsLib as mopsLib
-import lsst.mops.nightmops.ephemeris as eph
 import lsst.mops.nightmops.ephemDB as ephDB
 '''
 A note on time and time scales. Internally we always use times and dates as MJD
@@ -52,7 +51,7 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
         -use propogateOrbit to interpolate those orbits to a known location
         -write those orbits out to a known database table so AP can read them
         """
-        Trace_setVerbosity('lsst.mops', 5)
+        Trace_setVerbosity('lsst.mops', 0)
         
         # Get our slice ID  and tot number of slices(for simple parallelism 
         # purposes).        
