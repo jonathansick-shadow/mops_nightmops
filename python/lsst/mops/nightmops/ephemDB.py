@@ -1,4 +1,3 @@
-from Orbit import Orbit
 '''
 Important note
 
@@ -12,10 +11,26 @@ Each ephemeris is therefore a tuple of the form
     (movingObjectId, movingObjectVersion, mjd, ra, dec, mag, smaa, smia, pa)
 and not an Ephemeris instance.
 '''
+# We need to do this because lsstimport (part of base) changes the dlopen 
+# options to RTLD_GLOBAL|RTLD_NOW which SSD does not like (and segfaults).
+# We also need to move this import to the top otherwise it segfaults after a few
+# other imports... what a mess!!!!!!!!!!! This is definitely a HACK :-(
+from sys import getdlopenflags, setdlopenflags
+try:
+    from DLFCN import RTLD_NOW
+except:
+    from dl import RTLD_NOW
+
+dlflags = getdlopenflags()
+setdlopenflags(RTLD_NOW)
+import ssd
+setdlopenflags(dlflags)
+
+# Import the rest of the packages.
+from Orbit import Orbit
 import numpy
 
 import auton
-import ssd
 
 from lsst.daf.base import DateTime
 import lsst.daf.persistence as dafPer
