@@ -2,7 +2,7 @@
 # Default NightMops policy file
 
 # 
-ephemDB: "mysql://lsst10.ncsa.uiuc.edu:3306/DC2"
+ephemDB: "mysql://lsst10.ncsa.uiuc.edu:3306/fpierfed_cfhtls"
 fovDiam: 1.5
 #
 
