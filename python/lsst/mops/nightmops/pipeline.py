@@ -51,7 +51,7 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
         -use propogateOrbit to interpolate those orbits to a known location
         -write those orbits out to a known database table so AP can read them
         """
-        Trace_setVerbosity('lsst.mops', 0)
+        Trace_setVerbosity('lsst.mops', 5)
         
         # Get our slice ID  and tot number of slices(for simple parallelism 
         # purposes).        
