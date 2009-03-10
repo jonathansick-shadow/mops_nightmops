@@ -14,7 +14,10 @@ that we do the TAI->UTC conversion.
 All times coming in from the DB/clipboard and going to DB/clipboard are also in 
 TAI.
 '''
-
+# Constants/globals.
+RIDICOLOUSLY_VERBOSE = False
+if(RIDICOLOUSLY_VERBOSE):
+    import time
 
 
 
@@ -50,6 +53,8 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
         -use propogateOrbit to interpolate those orbits to a known location
         -write those orbits out to a known database table so AP can read them
         """
+        if(RIDICOLOUSLY_VERBOSE):
+            tt0 = time.time()
         Trace_setVerbosity('lsst.mops', 5)
         
         # Get our slice ID  and tot number of slices(for simple parallelism 
@@ -76,6 +81,8 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
         Rec(self.mopsLog, Log.INFO) << 'Began mops stage' << { 'visitId': visitId, 'MJD': mjd } << endr
         
         # get this Slice's set of potential objects in the FOV
+        if(RIDICOLOUSLY_VERBOSE):
+            t0 = time.time()
         candidateOrbits = ephDB.selectOrbitsForFOV(ephemDbFromPolicy, 
                                                    sliceId, 
                                                    numSlices, 
@@ -83,10 +90,16 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
                                                    fovDec,
                                                    fovDiamFromPolicy / 2.,
                                                    mjd)
+        if(RIDICOLOUSLY_VERBOSE):
+            Rec(self.mopsLog, Log.INFO) <<  '%.02fs: ephDB.selectOrbitsForFOV()' %(time.time() - t0) << endr
         
         # Propagate each orbit to mjd.
+        if(RIDICOLOUSLY_VERBOSE):
+            t0 = time.time()
         ephems = [ephDB.propagateOrbit(o, mjd, obscodeFromPolicy) 
                   for o in candidateOrbits]
+        if(RIDICOLOUSLY_VERBOSE):
+            Rec(self.mopsLog, Log.INFO) <<  '%.02fs: ephDB.propagateOrbit()' %(time.time() - t0) << endr
         
         # Try and reduce the list even further by discarding positions that are
         # entirely outside of the Fov.
@@ -100,7 +113,9 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
         # Log the number of predicted ephems
         Rec(self.mopsLog, Log.INFO) <<  'Candidate orbits' << { 'nPredObjects': len(candidateOrbits), 'nPredEphems': len(ephems) } << endr
 
-         # build a MopsPredVec for our Stage output
+        # build a MopsPredVec for our Stage output
+        if(RIDICOLOUSLY_VERBOSE):
+            t0 = time.time()
         mopsPreds = mopsLib.MopsPredVec()
 
         # Remember: each ephemeris is a tuple of the form
@@ -109,7 +124,8 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
         # and not an Ephemeris instance.
         for e in ephems:
             mopsPred = mopsLib.MopsPred()
-            mopsPred.setId('%d-%d' %(e[0], e[1]))
+            mopsPred.setId(e[0])
+            mopsPred.setVersion(e[1])
             mopsPred.setMjd(e[2])
             mopsPred.setRa(e[3])
             mopsPred.setDec(e[4])
@@ -118,12 +134,19 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
             mopsPred.setPositionAngle(e[8])
             mopsPred.setMagnitude(e[5])
             mopsPreds.push_back(mopsPred)
+        if(RIDICOLOUSLY_VERBOSE):
+            Rec(self.mopsLog, Log.INFO) << '%.02fs: assemble mopsPreds' %(time.time() - t0) << endr
         
         # put output on the clipboard
+        if(RIDICOLOUSLY_VERBOSE):
+            t0 = time.time()
         self.activeClipboard.put('MopsPreds', 
                                  mopsLib.PersistableMopsPredVec(mopsPreds))
         self.outputQueue.addDataset(self.activeClipboard)
         self.mopsLog.log(Log.INFO, 'Mops stage processing ended')
+        if(RIDICOLOUSLY_VERBOSE):
+            Rec(self.mopsLog, Log.INFO) <<  '%.02fs: post clipboard' %(time.time() - t0) << endr
+            Rec(self.mopsLog, Log.INFO) <<  'self.process() took %.02fs' %(time.time() - tt0) << endr
         return
 
 
