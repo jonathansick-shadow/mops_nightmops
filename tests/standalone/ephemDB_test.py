@@ -137,8 +137,6 @@ def fetchOrbitIdsAndEphems(mjd, deltaMJD=1., num_cores=1, slice_id=0):
         # res= [(new_orbit_id, Ephemeris obj), ...]
         tt1 = time.time()
         results.append(('%s-%s' %(res[0], res[1]), ephem))
-        if(res[0] == '6353'):
-            print('%s-%s' %(res[0], res[1]))
         t1 += time.time() - tt1
         
         # Get the next row
