@@ -1,5 +1,4 @@
 import lsst.pex.harness.Stage
-import lsst.daf.base as datap
 import lsst.pex.policy as policy
 import lsst.pex.logging as log
 from lsst.pex.logging import Trace, Trace_setVerbosity
@@ -9,11 +8,11 @@ import lsst.mops.mopsLib as mopsLib
 import lsst.mops.nightmops.ephemDB as ephDB
 '''
 A note on time and time scales. Internally we always use times and dates as MJD
-in UTC. However all times getting in and out of our code are MJDs in TAI.
+in TAI. The only exception is the ephemerides routine inside the SSD module. For
+that we do the TAI->UTC conversion.
 
-There are stored procedures to convert between the two:
-  MJD UTC -> MJD TAI: 
-  MJD TAI -> MJD UTC: utcToMJD(taiToUTC((epoch- 40587.0) * 8.64e13))
+All times coming in from the DB/clipboard and going to DB/clipboard are also in 
+TAI.
 '''
 
 
@@ -67,15 +66,15 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
         self.activeClipboard = self.inputQueue.getNextDataset()
         triggerEvent = self.activeClipboard.get('mops1Event')
         
-        fovRA = triggerEvent.findUnique('FOVRA').getValueDouble()
-        fovDec = triggerEvent.findUnique('FOVDec').getValueDouble()
-        visitId = triggerEvent.findUnique('visitId').getValueInt()
+        fovRA = triggerEvent.getDouble('FOVRA')
+        fovDec = triggerEvent.getDouble('FOVDec')
+        visitId = triggerEvent.getInt('visitId')
         # Convert the TAI to UTC.
-        mjdTAI = taiToUTC(triggerEvent.findUnique('visitTime').getValueDouble())
+        mjd = triggerEvent.getDouble('visitTime')
 
         # Log the beginning of Mops stage for this slice
         Rec(self.mopsLog, Log.INFO) << 'Began mops stage' << { 'visitId': visitId, 'MJD': mjd } << endr
-
+        
         # get this Slice's set of potential objects in the FOV
         candidateOrbits = ephDB.selectOrbitsForFOV(ephemDbFromPolicy, 
                                                    sliceId, 
@@ -84,11 +83,11 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
                                                    fovDec,
                                                    fovDiamFromPolicy / 2.,
                                                    mjd)
-
+        
         # Propagate each orbit to mjd.
         ephems = [ephDB.propagateOrbit(o, mjd, obscodeFromPolicy) 
                   for o in candidateOrbits]
-              
+        
         # Try and reduce the list even further by discarding positions that are
         # entirely outside of the Fov.
         # TODO: Implement something sensible here. Do we need it for DC3a?
