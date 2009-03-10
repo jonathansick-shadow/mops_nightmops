@@ -120,7 +120,6 @@ if(__name__ == '__main__'):
     candidateOrbits, mopsPreds = process(int(visitId), 
                                          float(fovRA),
                                          float(fovDec),
-                                         # DateTime(float(mjd)).utc2tai(),
                                          float(mjd),
                                          num_cores,
                                          slice_id)
