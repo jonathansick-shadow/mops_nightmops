@@ -151,9 +151,12 @@ static void testDb(std::string const & storageType) {
     // Create the required Policy and DataProperty
     Policy::Ptr policy(new Policy);
     // use custom table name patterns for this test
-    policy->set("Formatter.PersistableMovingObjectPredictionVector.TestPreds.templateTableName",
-        "_tmpl_mops_Prediction");
-    
+    std::string policyRoot("Formatter.PersistableMovingObjectPredictionVector");
+    policy->set(policyRoot + ".TestPreds.templateTableName", "_tmpl_mops_Prediction");
+    policy->set(policyRoot + ".TestPreds.perVisitTableNamePattern", "_tmp_test_Preds_v%1%");
+    policy->set(policyRoot + ".TestPreds.perSliceAndVisitTableNamePattern", "_tmp_test_Preds_v%1%_s%2%");
+    Policy::Ptr nested(policy->getPolicy(policyRoot));
+
     PropertySet::Ptr props(createDbTestProps(0, 1, "TestPreds"));
 
     Persistence::Ptr pers = Persistence::getPersistence(policy);
@@ -191,7 +194,7 @@ static void testDb(std::string const & storageType) {
         BOOST_CHECK_MESSAGE(d->getPredictions().at(0) == mop,
             "persist()/retrieve() resulted in PersistableMovingObjectPredictionVector corruption");
     }
-    fmt::dropAllVisitSliceTables(loc, policy, props);
+    fmt::dropAllVisitSliceTables(loc, nested, props);
 
     // 2. Test on multiple MovingObjectPredictions
     mopv.clear();
@@ -219,7 +222,7 @@ static void testDb(std::string const & storageType) {
         BOOST_CHECK_MESSAGE(&v != &mopv && v == mopv,
             "persist()/retrieve() resulted in PersistableMovingObjectPredictionVector corruption");
     }
-    fmt::dropAllVisitSliceTables(loc, policy, props);
+    fmt::dropAllVisitSliceTables(loc, nested, props);
 }
 
 

@@ -14,16 +14,17 @@ Python interface to lsst::mops classes.
 
 %{
 #include "lsst/daf/base.h"
+#include "lsst/pex/policy.h"
 #include "lsst/daf/persistence.h"
 #include "lsst/mops/MovingObjectPrediction.h"
 #include <sstream>
 %}
 
+%include "stdint.i"
 %include "lsst/p_lsstSwig.i"
 %include "lsst/daf/base/persistenceMacros.i"
 
 %import "lsst/daf/base/baseLib.i"
-%import "lsst/daf/persistence/persistenceLib.i"
 
 %lsst_exceptions()
 

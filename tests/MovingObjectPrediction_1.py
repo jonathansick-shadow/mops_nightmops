@@ -107,6 +107,9 @@ class MopsPredTestCase(unittest.TestCase):
             pol = pexPolicy.Policy()
             pol.set("Formatter.PersistableMovingObjectPredictionVector.TestPreds.templateTableName",
                     "_tmpl_mops_Prediction")
+            pol.set("Formatter.PersistableMovingObjectPredictionVector.TestPreds.perVisitTableNamePattern",
+                    "_tmp_v%1%_Preds")
+
             pers = dafPers.Persistence.getPersistence(pol)
             loc = dafPers.LogicalLocation("mysql://lsst10.ncsa.uiuc.edu:3306/test")
             props = dafBase.PropertySet()
@@ -121,7 +124,7 @@ class MopsPredTestCase(unittest.TestCase):
             stl.push_back(pers.getRetrieveStorage("DbStorage", loc))
             persistable = pers.unsafeRetrieve("PersistableMovingObjectPredictionVector", stl, props)
             res = mops.PersistableMopsPredVec.swigConvert(persistable)
-            afwDet.dropAllVisitSliceTables(loc, pol, props)
+            afwDet.dropAllVisitSliceTables(loc, pol.getPolicy("Formatter.PersistableMovingObjectPredictionVector"), props)
             checkMopsPredEqual(res.getPredictions(), self.mpv1)
         else:
             print "skipping database tests"

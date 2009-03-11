@@ -37,7 +37,7 @@ public :
 
     // Getters required by association pipeline
     boost::int64_t getId() const { return _movingObjectId; }
-    boost::int32_t getVersion() const { return _movingObjectVersion; }
+    int getVersion() const { return _movingObjectVersion; }
     double getRa() const { return _ra; }
     double getDec() const { return _dec; }
     double getSemiMinorAxisLength() const { return _smia; }
@@ -63,7 +63,7 @@ public :
 private :
 
     boost::int64_t _movingObjectId;      ///< ID of the orbit this is a prediction for
-    boost::int32_t _movingObjectVersion; ///< version of the orbit this is a prediction for
+    int _movingObjectVersion; ///< version of the orbit this is a prediction for
     double _ra;     ///< right ascension (deg)
     double _dec;    ///< declination (deg)
     double _smaa;   ///< error ellipse semi major axis (deg)

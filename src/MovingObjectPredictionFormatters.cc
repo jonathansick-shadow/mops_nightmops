@@ -64,37 +64,37 @@ Formatter::Ptr mops::MovingObjectPredictionVectorFormatter::createInstance(Polic
  */
 template <typename T>
 void mops::MovingObjectPredictionVectorFormatter::insertRow(T & db, MovingObjectPrediction const & p) {
-    db.template setColumn<int64_t>("movingObjectId",      p._movingObjectId);
-    db.template setColumn<int32_t>("movingObjectVersion", p._movingObjectVersion);
-    db.template setColumn<double> ("ra",                  p._ra);
-    db.template setColumn<double> ("decl",                p._dec);
-    db.template setColumn<double> ("mjd",                 p._mjd);
-    db.template setColumn<double> ("smia",                p._smia);
-    db.template setColumn<double> ("smaa",                p._smaa);
-    db.template setColumn<double> ("pa",                  p._pa);
-    db.template setColumn<double> ("mag",                 p._mag);
-    db.template setColumn<float>  ("magErr",              p._magErr);
+    db.template setColumn<boost::int64_t>("movingObjectId", p._movingObjectId);
+    db.template setColumn<int>("movingObjectVersion", p._movingObjectVersion);
+    db.template setColumn<double> ("ra",     p._ra);
+    db.template setColumn<double> ("decl",   p._dec);
+    db.template setColumn<double> ("mjd",    p._mjd);
+    db.template setColumn<double> ("smia",   p._smia);
+    db.template setColumn<double> ("smaa",   p._smaa);
+    db.template setColumn<double> ("pa",     p._pa);
+    db.template setColumn<double> ("mag",    p._mag);
+    db.template setColumn<float>  ("magErr", p._magErr);
     db.insertRow();
 }
 
 /// @cond
-template void mops::MovingObjectPredictionVectorFormatter::insertRow<DbStorage>   (DbStorage &,    MovingObjectPrediction const &);
+template void mops::MovingObjectPredictionVectorFormatter::insertRow<DbStorage>(DbStorage &, MovingObjectPrediction const &);
 template void mops::MovingObjectPredictionVectorFormatter::insertRow<DbTsvStorage>(DbTsvStorage &, MovingObjectPrediction const &);
 /// @endcond
 
 
 /** Prepares for reading MovingObjectPrediction instances from a database table. */
 void mops::MovingObjectPredictionVectorFormatter::setupFetch(DbStorage & db, MovingObjectPrediction & p) {
-    db.outParam("movingObjectId",      &(p._movingObjectId));
+    db.outParam("movingObjectId", &(p._movingObjectId));
     db.outParam("movingObjectVersion", &(p._movingObjectVersion));
-    db.outParam("ra",                  &(p._ra));
-    db.outParam("decl",                &(p._dec));
-    db.outParam("mjd",                 &(p._mjd));
-    db.outParam("smia",                &(p._smia));
-    db.outParam("smaa",                &(p._smaa));
-    db.outParam("pa",                  &(p._pa));
-    db.outParam("mag",                 &(p._mag));
-    db.outParam("magErr",              &(p._magErr));
+    db.outParam("ra",     &(p._ra));
+    db.outParam("decl",   &(p._dec));
+    db.outParam("mjd",    &(p._mjd));
+    db.outParam("smia",   &(p._smia));
+    db.outParam("smaa",   &(p._smaa));
+    db.outParam("pa",     &(p._pa));
+    db.outParam("mag",    &(p._mag));
+    db.outParam("magErr", &(p._magErr));
 }
 
 
@@ -157,7 +157,8 @@ void mops::MovingObjectPredictionVectorFormatter::write(
     PersistableMovingObjectPredictionVector const * p =
         dynamic_cast<PersistableMovingObjectPredictionVector const *>(persistable);
     if (p == 0) {
-        throw LSST_EXCEPT(ex::RuntimeErrorException, "Persistable was not of concrete type MovingObjectPredictionVector");
+        throw LSST_EXCEPT(ex::RuntimeErrorException,
+                          "Persistable was not of concrete type MovingObjectPredictionVector");
     }
     MovingObjectPredictionVector const & predictions = p->getPredictions();
 
@@ -170,11 +171,7 @@ void mops::MovingObjectPredictionVectorFormatter::write(
     } else if (typeid(*storage) == typeid(DbStorage) || typeid(*storage) == typeid(DbTsvStorage)) {
         std::string itemName(fmt::getItemName(additionalData));
         std::string name(fmt::getVisitSliceTableName(_policy, additionalData));
-        std::string model = fmt::extractPolicyString(
-            _policy,
-            itemName + ".templateTableName",
-            itemName + "Template"
-        );
+        std::string model = _policy->getString(itemName + ".templateTableName");
         bool mayExist = !fmt::extractOptionalFlag(additionalData, itemName + ".isPerSliceTable");
         if (typeid(*storage) == typeid(DbStorage)) {
             DbStorage * db = dynamic_cast<DbStorage *>(storage.get());
