@@ -14,23 +14,31 @@ import unittest
 import time
 import random
 import lsst.daf.base as dafBase
-import lsst.pex.policy as policy
-import lsst.daf.persistence as persistence
-import lsst.utils.tests as tests
-import lsst.mops as cat
+import lsst.pex.policy as pexPolicy
+import lsst.daf.persistence as dafPers
+import lsst.utils.tests as utilsTests
+import lsst.afw.detection as afwDet
+
+import lsst.mops as mops
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+def checkMopsPredEqual(v1, v2):
+    """Checks that two MopsPredVec objects are equal"""
+    assert v1.size() == v2.size()
+    for i in xrange(v1.size()):
+        assert v1[i] == v2[i]
 
 class MopsPredTestCase(unittest.TestCase):
     """A test case for MopsPred and MopsPredVec"""
 
     def setUp(self):
-        self.mpv1 = cat.MopsPredVec(16)
-        self.mpv2 = cat.MopsPredVec()
+        self.mpv1 = mops.MopsPredVec(16)
+        self.mpv2 = mops.MopsPredVec()
 
         for m in xrange(16):
             self.mpv1[m].setId(m)
-            ds = cat.MopsPred()
+            ds = mops.MopsPred()
             ds.setId(m)
             ds.setRa(m*20)
             self.mpv2.push_back(ds)
@@ -45,61 +53,79 @@ class MopsPredTestCase(unittest.TestCase):
         for i in self.mpv1:
             assert i.getId() == j
             j += 1
+        j = 0
+        v = self.mpv1[:]
+        for i in xrange(v.size()):
+            assert v[i].getId() == j
+            j += 1
 
     def testCopyAndCompare(self):
-        mpv1Copy = cat.MopsPredVec(self.mpv1)
-        mpv2Copy = cat.MopsPredVec(self.mpv2)
-        assert mpv1Copy == self.mpv1
-        assert mpv2Copy == self.mpv2
+        mpv1Copy = mops.MopsPredVec(self.mpv1)
+        mpv2Copy = mops.MopsPredVec(self.mpv2)
+        checkMopsPredEqual(mpv1Copy, self.mpv1)
+        checkMopsPredEqual(mpv2Copy, self.mpv2)
+
         mpv1Copy.swap(mpv2Copy)
-        assert mpv1Copy == self.mpv2
-        assert mpv2Copy == self.mpv1
+        checkMopsPredEqual(mpv1Copy, self.mpv2)
+        checkMopsPredEqual(mpv2Copy, self.mpv1)
+
         mpv1Copy.swap(mpv2Copy)
         if mpv1Copy.size() == 0:
-            mpv1Copy.push_back(cat.MopsPred())
+            mpv1Copy.push_back(mops.MopsPred())
         else:
             mpv1Copy.pop_back()
-        ds = cat.MopsPred()
+        ds = mops.MopsPred()
         ds.setId(123476519374511136)
         mpv2Copy.push_back(ds)
-        assert mpv1Copy != self.mpv1
-        assert mpv2Copy != self.mpv2
+        assert mpv1Copy.size() != self.mpv1.size()
+        assert mpv2Copy.size() != self.mpv2.size()
 
     def testInsertErase(self):
-        mpv1Copy = cat.MopsPredVec(self.mpv1)
-        mpv1Copy.insert(mpv1Copy.begin() + 8, cat.MopsPred())
-        mpv1Copy.insert(mpv1Copy.begin() + 9, 3, cat.MopsPred())
-        mpv1Copy.erase(mpv1Copy.begin() + 8)
-        mpv1Copy.erase(mpv1Copy.begin() + 8, mpv1Copy.begin() + 11)
-        assert mpv1Copy == self.mpv1
+        copy = mops.MopsPredVec()
+        split = 8
+        inserts = 4
+        for i in xrange(split):
+            copy.append(self.mpv1[i])
+        mop = mops.MopsPred()
+        for i in xrange(inserts):
+            copy.append(mop)
+        for i in xrange(self.mpv1.size() - split):
+            copy.append(self.mpv1[split + i])
+        del copy[split]
+        del copy[split : split + inserts - 1]
+        checkMopsPredEqual(self.mpv1, copy)
 
     def testSlice(self):
-        slice = self.mpv1[0:3]
+        vecSlice = self.mpv1[0:3]
         j = 0
-        for i in slice:
-            print i
+        for i in vecSlice:
             assert i.getId() == j
             j += 1
 
     def testPersistence(self):
-        if persistence.DbAuth.available():
-            pol  = policy.PolicyPtr()
-            pers = persistence.Persistence.getPersistence(pol)
-            loc  =  persistence.LogicalLocation("mysql://lsst10.ncsa.uiuc.edu:3306/test")
-            dp = dafBase.DataProperty.createPropertyNode("root")
-            dp.addProperty(dafBase.DataProperty("visitId", int(time.clock())*16384 + random.randint(0,16383)))
-            dp.addProperty(dafBase.DataProperty("sliceId", 0))
-            dp.addProperty(dafBase.DataProperty("numSlices", 1))
-            dp.addProperty(dafBase.DataProperty("itemName", "MovingObjectPrediction"))
-            stl = persistence.StorageList()
+        if dafPers.DbAuth.available():
+            pol = pexPolicy.Policy()
+            pol.set("Formatter.PersistableMovingObjectPredictionVector.TestPreds.templateTableName",
+                    "_tmpl_mops_Prediction")
+            pol.set("Formatter.PersistableMovingObjectPredictionVector.TestPreds.perVisitTableNamePattern",
+                    "_tmp_v%1%_Preds")
+
+            pers = dafPers.Persistence.getPersistence(pol)
+            loc = dafPers.LogicalLocation("mysql://lsst10.ncsa.uiuc.edu:3306/test")
+            props = dafBase.PropertySet()
+            props.addInt("visitId", int(time.clock())*16384 + random.randint(0,16383))
+            props.addInt("sliceId", 0)
+            props.addInt("numSlices", 1)
+            props.addString("itemName", "TestPreds")
+            stl = dafPers.StorageList()
             stl.push_back(pers.getPersistStorage("DbStorage", loc))
-            pers.persist(self.mpv1, stl, dp)
-            stl = persistence.StorageList()
+            pers.persist(mops.PersistableMopsPredVec(self.mpv1), stl, props)
+            stl = dafPers.StorageList()
             stl.push_back(pers.getRetrieveStorage("DbStorage", loc))
-            persistable = pers.unsafeRetrieve("MovingObjectPredictionVector", stl, dp)
-            res = cat.MopsPredVec.swigConvert(persistable)
-            cat.dropAllVisitSliceTables(loc, pol, dp)
-            assert(res == self.mpv1)
+            persistable = pers.unsafeRetrieve("PersistableMovingObjectPredictionVector", stl, props)
+            res = mops.PersistableMopsPredVec.swigConvert(persistable)
+            afwDet.dropAllVisitSliceTables(loc, pol.getPolicy("Formatter.PersistableMovingObjectPredictionVector"), props)
+            checkMopsPredEqual(res.getPredictions(), self.mpv1)
         else:
             print "skipping database tests"
 
@@ -108,13 +134,13 @@ class MopsPredTestCase(unittest.TestCase):
 def suite():
     """Returns a suite containing all the test cases in this module."""
 
-    tests.init()
+    utilsTests.init()
 
     suites = []
     suites += unittest.makeSuite(MopsPredTestCase)
-    suites += unittest.makeSuite(tests.MemoryTestCase)
+    suites += unittest.makeSuite(utilsTests.MemoryTestCase)
     return unittest.TestSuite(suites)
 
 if __name__ == "__main__":
-    tests.run(suite())
+    utilsTests.run(suite())
 
