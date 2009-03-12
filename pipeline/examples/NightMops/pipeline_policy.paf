@@ -8,14 +8,8 @@ localLogMode: true
 
 
 appStage: { 
-     stageName: "lsst.pex.harness.IOStage.InputStage" 
-     eventTopic: "mops1Event" 
-     stagePolicy: "policy/input_policy.paf"
-}
-
-appStage: { 
      stageName: "lsst.mops.nightmops.pipeline.MopsStage" 
-     eventTopic: "None" 
+     eventTopic: "triggerImageprocEvent0" 
      stagePolicy: "policy/NightMopsStagePolicy.paf"
 }
 
