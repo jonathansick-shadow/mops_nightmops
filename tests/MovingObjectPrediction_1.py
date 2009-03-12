@@ -103,7 +103,7 @@ class MopsPredTestCase(unittest.TestCase):
             j += 1
 
     def testPersistence(self):
-        if dafPers.DbAuth.available():
+        if dafPers.DbAuth.available("lsst10.ncsa.uiuc.edu", "3306"):
             pol = pexPolicy.Policy()
             pol.set("Formatter.PersistableMovingObjectPredictionVector.TestPreds.templateTableName",
                     "_tmpl_mops_Prediction")

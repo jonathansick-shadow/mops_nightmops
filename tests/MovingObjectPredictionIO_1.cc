@@ -279,12 +279,13 @@ static void testDb2(std::string const & storageType) {
 BOOST_AUTO_TEST_CASE(MovingObjectPredictionIO) {
     try {
         testBoost();
-        if (lsst::daf::persistence::DbAuth::available()) {
+        if (lsst::daf::persistence::DbAuth::available("lsst10.ncsa.uiuc.edu", "3306")) {
             testDb("DbStorage");
             testDb("DbTsvStorage");
             testDb2("DbStorage");
             testDb2("DbTsvStorage");
         }
+        lsst::daf::base::Citizen::census(std::cout, 0);
         BOOST_CHECK_MESSAGE(lsst::daf::base::Citizen::census(0) == 0, "Detected memory leaks");
     } catch(std::exception const & ex) {
         BOOST_FAIL(ex.what());

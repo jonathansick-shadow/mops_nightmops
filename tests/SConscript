@@ -9,10 +9,7 @@ for src in glob.glob("*.cc"):
 # Check for database credentials
 import lsst.daf.persistence
 
-if lsst.daf.persistence.DbAuth.available():
-    if os.environ.has_key("LSST_DB_AUTH"):
-        env["ENV"]["LSST_DB_AUTH"] = os.environ["LSST_DB_AUTH"]
-else:
+if not lsst.daf.persistence.DbAuth.available("lsst10.ncsa.uiuc.edu", "3306"):
     print "WARNING: No fallback database authenticator seen"
     print "Database tests may be skipped or may fail"
 
