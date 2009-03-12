@@ -67,15 +67,22 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
         fovDiamFromPolicy = self._policy.get('fovDiam')
         obscodeFromPolicy = self._policy.get('obscode')
 
-        # Get objects from clipboard
+        # Get objects from clipboard. In our case, since we are the first stage
+        # and nobody else is touching the clipboard, we can rely on the
+        # dangerous assumption that the only key on the Clipboard is the name of
+        # the triggering event.
+        # FIXME: This is not safe!!!!!!
         self.activeClipboard = self.inputQueue.getNextDataset()
-        triggerEvent = self.activeClipboard.get('mops1Event')
-        
-        fovRA = triggerEvent.getDouble('FOVRA')
-        fovDec = triggerEvent.getDouble('FOVDec')
+        clipboardKeys = self.activeClipboard.getKeys()
+        if(len(clipboardKeys) == 1):
+            eventName = clipboardKeys[0]
+        else:
+            eventName = 'triggerImageprocEvent0'
+        triggerEvent = self.activeClipboard.get(eventName)
+        fovRA = triggerEvent.getDouble('ra')
+        fovDec = triggerEvent.getDouble('decl')
         visitId = triggerEvent.getInt('visitId')
-        # Convert the TAI to UTC.
-        mjd = triggerEvent.getDouble('visitTime')
+        mjd = triggerEvent.getDouble('dateobs')
 
         # Log the beginning of Mops stage for this slice
         Rec(self.mopsLog, Log.INFO) << 'Began mops stage' << { 'visitId': visitId, 'MJD': mjd } << endr
