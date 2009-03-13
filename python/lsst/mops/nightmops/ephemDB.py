@@ -35,16 +35,19 @@ import auton
 from lsst.daf.base import DateTime
 import lsst.daf.persistence as dafPer
 from lsst.pex.logging import endr, Log, Rec
+import time
 
 
 
 # Constants/globals.
 RIDICOLOUSLY_VERBOSE = False
 EXTRA_RIDICOLOUSLY_VERBOSE = False
-if(RIDICOLOUSLY_VERBOSE):
-    import time
-    MOPS_LOG = Log(Log.getDefaultLog(), 'mops.stage')
-    def logit(msg): return(Rec(MOPS_LOG, Log.INFO) << msg << endr)
+MOPS_LOG = Log(Log.getDefaultLog(), 'mops.stage')
+
+
+
+def logit(msg): 
+    return(Rec(MOPS_LOG, Log.INFO) << msg << endr)
 
 
 def selectOrbitsForFOV(dbLogicalLocation, 

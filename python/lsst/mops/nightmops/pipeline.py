@@ -14,10 +14,7 @@ that we do the TAI->UTC conversion.
 All times coming in from the DB/clipboard and going to DB/clipboard are also in 
 TAI.
 '''
-# Constants/globals.
-RIDICOLOUSLY_VERBOSE = False
-if(RIDICOLOUSLY_VERBOSE):
-    import time
+import time
 
 
 
@@ -31,6 +28,14 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
         self.mopsLog = Log(Log.getDefaultLog(), 'mops.stage')
         if isinstance(self.mopsLog, log.ScreenLog):
             self.mopsLog.setScreenVerbose(True)
+        return
+    
+    
+    def logit(self, msg, level=Log.INFO):
+        """
+        Write msg to self.mopsLog using the input level.
+        """
+        Rec(self.mopsLog, level) << msg << endr
         return
 
 
@@ -53,8 +58,7 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
         -use propogateOrbit to interpolate those orbits to a known location
         -write those orbits out to a known database table so AP can read them
         """
-        if(RIDICOLOUSLY_VERBOSE):
-            tt0 = time.time()
+        tt0 = time.time()
         Trace_setVerbosity('lsst.mops', 5)
         
         # Get our slice ID  and tot number of slices(for simple parallelism 
@@ -66,6 +70,13 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
         ephemDbFromPolicy = self._policy.get('ephemDB')
         fovDiamFromPolicy = self._policy.get('fovDiam')
         obscodeFromPolicy = self._policy.get('obscode')
+        
+        RIDICOLOUSLY_VERBOSE = self._policy.get('RIDICOLOUSLY_VERBOSE')
+        EXTRA_RIDICOLOUSLY_VERBOSE = self._policy.get('EXTRA_RIDICOLOUSLY_VERBOSE')
+        ephDB.RIDICOLOUSLY_VERBOSE = RIDICOLOUSLY_VERBOSE
+        ephDB.EXTRA_RIDICOLOUSLY_VERBOSE = EXTRA_RIDICOLOUSLY_VERBOSE
+
+        self.logit('Verbose flags: %d %d' %(RIDICOLOUSLY_VERBOSE, EXTRA_RIDICOLOUSLY_VERBOSE))
 
         # Get objects from clipboard. In our case, since we are the first stage
         # and nobody else is touching the clipboard, we can rely on the
@@ -85,7 +96,7 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
         mjd = triggerEvent.getDouble('dateobs')
 
         # Log the beginning of Mops stage for this slice
-        Rec(self.mopsLog, Log.INFO) << 'Began mops stage' << { 'visitId': visitId, 'MJD': mjd } << endr
+        self.logit('Began mops stage (MJD: %f visitId: %d)' %(mjd, visitId))
         
         # get this Slice's set of potential objects in the FOV
         if(RIDICOLOUSLY_VERBOSE):
@@ -98,7 +109,7 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
                                                    fovDiamFromPolicy / 2.,
                                                    mjd)
         if(RIDICOLOUSLY_VERBOSE):
-            Rec(self.mopsLog, Log.INFO) <<  '%.02fs: ephDB.selectOrbitsForFOV()' %(time.time() - t0) << endr
+            self.logit('%.02fs: ephDB.selectOrbitsForFOV()' %(time.time() - t0))
         
         # Propagate each orbit to mjd.
         if(RIDICOLOUSLY_VERBOSE):
@@ -106,7 +117,7 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
         ephems = [ephDB.propagateOrbit(o, mjd, obscodeFromPolicy) 
                   for o in candidateOrbits]
         if(RIDICOLOUSLY_VERBOSE):
-            Rec(self.mopsLog, Log.INFO) <<  '%.02fs: ephDB.propagateOrbit()' %(time.time() - t0) << endr
+            self.logit('%.02fs: ephDB.propagateOrbit()' %(time.time() - t0))
         
         # Try and reduce the list even further by discarding positions that are
         # entirely outside of the Fov.
@@ -118,7 +129,7 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
               'Number of orbits in fov: %d' % len(candidateOrbits))
 
         # Log the number of predicted ephems
-        Rec(self.mopsLog, Log.INFO) <<  'Candidate orbits' << { 'nPredObjects': len(candidateOrbits), 'nPredEphems': len(ephems) } << endr
+        self.logit('Number of predictions: %d' %(len(ephems)))
 
         # build a MopsPredVec for our Stage output
         if(RIDICOLOUSLY_VERBOSE):
@@ -142,7 +153,7 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
             mopsPred.setMagnitude(e[5])
             mopsPreds.push_back(mopsPred)
         if(RIDICOLOUSLY_VERBOSE):
-            Rec(self.mopsLog, Log.INFO) << '%.02fs: assemble mopsPreds' %(time.time() - t0) << endr
+            self.logit('%.02fs: assemble mopsPreds' %(time.time() - t0))
         
         # put output on the clipboard
         if(RIDICOLOUSLY_VERBOSE):
@@ -152,8 +163,8 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
         self.outputQueue.addDataset(self.activeClipboard)
         self.mopsLog.log(Log.INFO, 'Mops stage processing ended')
         if(RIDICOLOUSLY_VERBOSE):
-            Rec(self.mopsLog, Log.INFO) <<  '%.02fs: post clipboard' %(time.time() - t0) << endr
-            Rec(self.mopsLog, Log.INFO) <<  'self.process() took %.02fs' %(time.time() - tt0) << endr
+            self.logit('%.02fs: post clipboard' %(time.time() - t0))
+            self.logit('self.process() took %.02fs' %(time.time() - tt0))
         return
 
 
