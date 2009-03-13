@@ -170,7 +170,7 @@ void mops::MovingObjectPredictionVectorFormatter::write(
         bs->getOArchive() & *p;
     } else if (typeid(*storage) == typeid(DbStorage) || typeid(*storage) == typeid(DbTsvStorage)) {
         std::string itemName(fmt::getItemName(additionalData));
-        std::string name(fmt::getVisitSliceTableName(_policy, additionalData));
+        std::string name(fmt::getTableName(_policy, additionalData));
         std::string model = _policy->getString(itemName + ".templateTableName");
         bool mayExist = !fmt::extractOptionalFlag(additionalData, itemName + ".isPerSliceTable");
         if (typeid(*storage) == typeid(DbStorage)) {
