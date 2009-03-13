@@ -16,7 +16,7 @@
 #include "lsst/afw/formatters/Utils.h"
 
 #include "lsst/mops/MovingObjectPrediction.h"
-#include "lsst/mops/MovingObjectPredictionFormatters.h"
+#include "lsst/mops/MovingObjectPredictionFormatter.h"
 
 
 namespace mops = lsst::mops;
@@ -172,13 +172,12 @@ void mops::MovingObjectPredictionVectorFormatter::write(
         std::string itemName(fmt::getItemName(additionalData));
         std::string name(fmt::getTableName(_policy, additionalData));
         std::string model = _policy->getString(itemName + ".templateTableName");
-        bool mayExist = !fmt::extractOptionalFlag(additionalData, itemName + ".isPerSliceTable");
         if (typeid(*storage) == typeid(DbStorage)) {
             DbStorage * db = dynamic_cast<DbStorage *>(storage.get());
             if (db == 0) {
                 throw LSST_EXCEPT(ex::RuntimeErrorException, "Didn't get DbStorage");
             }
-            db->createTableFromTemplate(name, model, mayExist);
+            db->createTableFromTemplate(name, model, true);
             db->setTableForInsert(name);
             MovingObjectPredictionVector::const_iterator const end(predictions.end());
             for (MovingObjectPredictionVector::const_iterator i = predictions.begin(); i != end; ++i) {
@@ -189,7 +188,7 @@ void mops::MovingObjectPredictionVectorFormatter::write(
             if (db == 0) {
                 throw LSST_EXCEPT(ex::RuntimeErrorException, "Didn't get DbTsvStorage");
             }
-            db->createTableFromTemplate(name, model, mayExist);
+            db->createTableFromTemplate(name, model, true);
             db->setTableForInsert(name);
             MovingObjectPredictionVector::const_iterator const end(predictions.end());
             for (MovingObjectPredictionVector::const_iterator i = predictions.begin(); i != end; ++i) {
@@ -219,8 +218,7 @@ Persistable* mops::MovingObjectPredictionVectorFormatter::read(
         if (db == 0) {
             throw LSST_EXCEPT(ex::RuntimeErrorException, "Didn't get DbStorage");
         }
-        std::vector<std::string> tables;
-        fmt::getAllVisitSliceTableNames(tables, _policy, additionalData);
+        std::vector<std::string> tables = fmt::getAllSliceTableNames(_policy, additionalData);
 
         MovingObjectPredictionVector predictions;
  

@@ -153,8 +153,7 @@ static void testDb(std::string const & storageType) {
     // use custom table name patterns for this test
     std::string policyRoot("Formatter.PersistableMovingObjectPredictionVector");
     policy->set(policyRoot + ".TestPreds.templateTableName", "_tmpl_mops_Prediction");
-    policy->set(policyRoot + ".TestPreds.perVisitTableNamePattern", "_tmp_test_Preds_v%1%");
-    policy->set(policyRoot + ".TestPreds.perSliceAndVisitTableNamePattern", "_tmp_test_Preds_v%1%_s%2%");
+    policy->set(policyRoot + ".TestPreds.tableNamePattern", "_tmp_test_Preds_v%(visitId)");
     Policy::Ptr nested(policy->getPolicy(policyRoot));
 
     PropertySet::Ptr props(createDbTestProps(0, 1, "TestPreds"));
@@ -194,7 +193,7 @@ static void testDb(std::string const & storageType) {
         BOOST_CHECK_MESSAGE(d->getPredictions().at(0) == mop,
             "persist()/retrieve() resulted in PersistableMovingObjectPredictionVector corruption");
     }
-    fmt::dropAllVisitSliceTables(loc, nested, props);
+    fmt::dropAllSliceTables(loc, nested, props);
 
     // 2. Test on multiple MovingObjectPredictions
     mopv.clear();
@@ -222,7 +221,7 @@ static void testDb(std::string const & storageType) {
         BOOST_CHECK_MESSAGE(&v != &mopv && v == mopv,
             "persist()/retrieve() resulted in PersistableMovingObjectPredictionVector corruption");
     }
-    fmt::dropAllVisitSliceTables(loc, nested, props);
+    fmt::dropAllSliceTables(loc, nested, props);
 }
 
 
@@ -232,8 +231,7 @@ static void testDb2(std::string const & storageType) {
     std::string policyRoot("Formatter.PersistableMovingObjectPredictionVector");
     // use custom table name patterns for this test
     policy->set(policyRoot + ".TestPreds.templateTableName", "_tmpl_mops_Prediction");
-    policy->set(policyRoot + ".TestPreds.perVisitTableNamePattern", "_tmp_test_v%1%");
-    policy->set(policyRoot + ".TestPreds.perSliceAndVisitTableNamePattern", "_tmp_test_v%1%_s%2%");
+    policy->set(policyRoot + ".TestPreds.tableNamePattern", "_tmp_test_v%(visitId)");
 
     Policy::Ptr nested(policy->getPolicy(policyRoot));
 
@@ -272,7 +270,7 @@ static void testDb2(std::string const & storageType) {
     std::sort(v.begin(), v.end(), MovingObjectPredictionLessThan());
     BOOST_CHECK_MESSAGE(&v != &all && v == all,
         "persist()/retrieve() resulted in PersistableMovingObjectPredictionVector corruption");
-    fmt::dropAllVisitSliceTables(loc, nested, props);
+    fmt::dropAllSliceTables(loc, nested, props);
 }
 
 
