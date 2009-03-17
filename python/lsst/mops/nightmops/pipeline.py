@@ -93,7 +93,7 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
         fovRA = triggerEvent.getDouble('ra')
         fovDec = triggerEvent.getDouble('decl')
         visitId = triggerEvent.getInt('visitId')
-        mjd = triggerEvent.getDouble('dateobs')
+        mjd = triggerEvent.getDouble('dateObs')
 
         # Log the beginning of Mops stage for this slice
         self.logit('Began mops stage (MJD: %f visitId: %d)' %(mjd, visitId))
