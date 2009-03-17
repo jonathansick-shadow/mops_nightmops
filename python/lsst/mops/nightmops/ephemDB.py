@@ -84,12 +84,16 @@ def selectOrbitsForFOV(dbLogicalLocation,
                                                   deltaMJD=1.)
     if(RIDICOLOUSLY_VERBOSE): 
         logit('  %.02fs: fetchOrbitIdsAndEphems()' %(time.time() - t0))
+    if(not orbitIdsAndPositions):
+        return([])
     
     # Extract orbit_id, mjd, ra, dec.
     # Remember: each ephemeris is a tuple of the form
     # (movingObjectId, movingObjectVersion, mjd, ra, dec, mag, smaa, smia, pa)
     # and not an Ephemeris instance.
     ephemData = [(oId, e[2], e[3], e[4]) for (oId, e) in orbitIdsAndPositions]
+    if(not ephemData):
+        return([])
     
     # Create a field structure. We simply need a number for field id.
     fields = [(0, mjd, fovRA, fovDec, fovR + MaxErrorEllipseRadius),] 
