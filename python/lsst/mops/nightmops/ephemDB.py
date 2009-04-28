@@ -289,8 +289,8 @@ def propagateOrbit(orbit, mjd, obscode):
         Dec: Declination (deg).
         mag: apparent magnitude (mag).
         mjd: input ephemerides date time (UTC MJD).
-        smaa: error ellipse semi major axis (deg).
-        smia: error ellipse semi minor axis (deg).
+        smaa: 1-sigma error ellipse semi major axis (").
+        smia: 1-sigma error ellipse semi minor axis (").
         pa: error ellipse position angle (deg).
     """
     # Extract the orbital params and cast them into a numpy array. Convert the 
