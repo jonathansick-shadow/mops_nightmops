@@ -1,0 +1,7 @@
+#<?cfg paf policy ?>
+# Default TelescopeSimulatorStage policy file
+# 
+database: "mysql://lsst10.ncsa.uiuc.edu:3306/mops_onelunation"
+utOfset: -4.0
+#
+

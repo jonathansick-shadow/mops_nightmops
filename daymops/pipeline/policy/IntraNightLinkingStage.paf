@@ -1,0 +1,13 @@
+#<?cfg paf policy ?>
+# Default TelescopeSimulatorStage policy file
+
+# 
+database: "mysql://lsst10.ncsa.uiuc.edu:3306/mops_onelunation"
+maxv_degperday: 2.0
+minobs: 2
+extended: 1
+maxt_days: 0.050 
+collapse_args: "0.002 0.002 5.0 0.05"
+#
+
+

@@ -1,0 +1,22 @@
+# 
+# Standard Policy file for DayMOPS
+# 
+# This is where we define the stages, stage policy files and stuff like that.
+# 
+eventBrokerHost: "lsst4.ncsa.uiuc.edu" 
+localLogMode: true
+RunMode: "loop"
+shutdownTopic: "quitDayMOPS"
+
+
+appStage: { 
+     stageName: "lsst.mops.daymops.TelescopeSimulatorStage" 
+     eventTopic: "None" 
+     stagePolicy: @policy/TelescopeSimulatorStage.paf
+}
+
+appStage: { 
+     stageName: "lsst.mops.daymops.IntraNightLinkingStage" 
+     eventTopic: "None" 
+     stagePolicy: @policy/IntraNightLinkingStage.paf
+}
