@@ -1,0 +1,18 @@
+setupRequired(mysqlclient >= 5.0.45+1)
+setupRequired(numpy >= 1.0.1)
+setupRequired(boost >= 1.37.0)
+setupRequired(pex_exceptions >= 3.2.2)
+setupRequired(utils >= 3.4.2)
+setupRequired(daf_base >= 3.2.5)
+setupRequired(pex_logging >= 3.3.2)
+setupRequired(pex_policy >= 3.3.1)
+setupRequired(daf_persistence >= 3.3.5)
+setupRequired(afw >= 3.3.7)
+setupRequired(pex_harness >= 3.2.2)
+setupOptional(auton)
+setupOptional(ssd)
+
+envPrepend(LD_LIBRARY_PATH, ${PRODUCT_DIR}/lib)
+envPrepend(DYLD_LIBRARY_PATH, ${PRODUCT_DIR}/lib)
+envAppend(PYTHONPATH, ${PRODUCT_DIR}/python)
+
