@@ -39,8 +39,6 @@ class TrackletList(DayMOPSObject):
             t.setDiaSourceList(sourceList)
             tracklets.append(t)
         trackletList.setTracklets(tracklets)
-        
-        print(len(trackletList))
         return(trackletList)
     
     def save(self, dbLocStr):
