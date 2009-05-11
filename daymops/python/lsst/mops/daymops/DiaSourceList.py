@@ -1,11 +1,33 @@
 from DayMOPSObject import DayMOPSObject
 from DiaSource import DiaSource
+import lib
+
 import lsst.daf.persistence as persistence
+
+
 
 class DiaSourceList(DayMOPSObject):
     def __init__(self, diaSources=[]):
-        self._diaSources = diaSources
+        self.setDiaSources(diaSources)
         return
+    
+    def setDiaSources(self, diaSources):
+        """
+        Set the list of DiaSources. Always keep that list sorted by MJD.
+        
+        @param diaSources: list of DiaSource instances.
+        """
+        self._diaSources = diaSources
+        
+        # Always keep self._diaSources sorted by MJD.
+        self._diaSources.sort()
+        return
+        
+    def getDiaSources(self):
+        """
+        Return list of DiaSource instances.
+        """
+        return(self._diaSources)
         
     def __len__(self):
         return(len(self._diaSources))
@@ -38,7 +60,7 @@ class DiaSourceList(DayMOPSObject):
         db.query()
         
         # Fetch the results.
-        sourceList._diaSources = []
+        diaSources = []
         # FIXME: Update these every time afw updates.
         while(db.next()):
             d = DiaSource()
@@ -51,10 +73,68 @@ class DiaSourceList(DayMOPSObject):
             d.setApFlux(db.getColumnByPosDouble(6))
             d.setApFluxErr(db.getColumnByPosDouble(7))
             d.setRefMag(db.getColumnByPosDouble(8))
-            sourceList._diaSources.append(d)
+            diaSources.append(d)
         db.finishQuery()
         del(db)
+        
+        # Add the diaSources to the DiaSourceList instance.
+        sourceList.setDiaSources(diaSources)
         return(sourceList)
+    
+    # Methods used to compute some statistics from our DiaSource objects.
+    def computeVelocityStats(self):
+        """
+        Compute basic velocity information based on the details of members of
+        self._diaSources.
+        
+        Return [velRa, velDec, velModulus] (deg/day)
+        """
+        # self._diaSources is always sorted by MJD. Compute stats on first and 
+        # last DiaSource. We assume lineaqr motion from the first DiaSource to
+        # the last only for now.
+        if(not self._diaSources or len(self._diaSources) < 2):
+            return((None, None, None))
+        
+        first = self._diaSources[0]
+        last = self._diaSources[-1]
+        
+        # Compute time distance in days.
+        timeDistance = last.getTaiMidPoint() - first.getTaiMidPoint()
+        if(not timeDistance):
+            print([(d.getRa(), d.getDec(), d.getTaiMidPoint()) for d in self._diaSources])
+            raise(Exception('No temporal spread in DiaSources!'))
+        
+        # Compute spherical distance.
+        distance = lib.sphericalDistance((first.getRa(), first.getDec()),
+                                         (last.getRa(), last.getDec()))
+        return([d / timeDistance for d in distance])
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
