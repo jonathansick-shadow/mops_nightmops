@@ -75,11 +75,6 @@ class IntraNightLinkingStage(DayMOPSStage):
         
         self.logIt('INFO', 'Starting processing.')
         
-        # Get our slice ID  and tot number of slices(for simple parallelism 
-        # purposes).        
-        sliceId = self.getRank()
-        numSlices = self.getUniverseSize() - 1  # want only real slices
-        
         # Retrieve the DIASources to process.
         sourceList = DiaSourceList.diaSourceListForTonight(self.dbLocStr)
         self.logIt('INFO', 'Fetched %d DiaSources.' %(len(sourceList)))
@@ -94,11 +89,13 @@ class IntraNightLinkingStage(DayMOPSStage):
         trackletList = linking.trackletListFromDiaSourceList(sourceList)
         
         # Put those Tracklets in the database.
-        self.logIt('INFO', 
-                   'Found %d Tracklets from %d DIASources.' %(len(trackletList),
-                                                              len(sourceList)))
-        if(trackletList):
+        if(trackletList and len(trackletList)):
+            self.logIt('INFO', 'Found %d Tracklets from %d DIASources.' \
+                       %(len(trackletList), len(sourceList)))
             trackletList.save(self.dbLocStr)
+        else:
+            self.logIt('INFO', 'Found 0 Tracklets from %d DIASources.' \
+                       %(len(sourceList)))
         return
 
 
