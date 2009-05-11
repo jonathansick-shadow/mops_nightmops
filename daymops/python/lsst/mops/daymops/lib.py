@@ -141,6 +141,29 @@ def magToFlux(mag, magErr, refMag=30.):
     return(flux, fluxErr)
 
 
+def sphericalDistance(point1, point2):
+    """
+    Compute the angular distance from point1 to point2 on the sky. All angles 
+    are in degrees.
+    
+    @param point1: (RA, Dec) of the first point (degrees).
+    @param point2: (RA, Dec) of the second point (degrees).
+    
+    Return (distanceRa, distanceDec, distanceModulus) (degrees)
+    """
+    # Convert everything to radians.
+    p1 = [x * DEG_TO_RAD for x in point1]
+    p2 = [x * DEG_TO_RAD for x in point2]
+    
+    # Compute the distances.
+    cosDec = math.cos((p1[1] + p2[1]) / 2.)
+    
+    raDist = RAD_TO_DEG * (p2[0] - p1[0]) * cosDec
+    decDist = RAD_TO_DEG * (p2[1] - p1[1])
+    totDist = RAD_TO_DEG * math.sqrt(((p1[0] - p2[0]) * cosDec)**2 + \
+              (p1[1] - p2[1])**2)
+    return((raDist, decDist, totDist))
+
 
 
 
