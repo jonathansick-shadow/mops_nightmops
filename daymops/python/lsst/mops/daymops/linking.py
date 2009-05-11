@@ -3,6 +3,8 @@ General linking routines and constants.
 """
 import lib
 from TrackletList import TrackletList
+from DiaSourceList import DiaSourceList
+from Tracklet import Tracklet
 
 import auton
 
@@ -34,15 +36,28 @@ def trackletsFromDiaSources(sources, maxV=DEFAULT_MAXV, minObs=DEFAULT_MINOBS,
              0.,
              0.) for d in sources]
     
-    # TODO: Create classes for Tracklets.
+    # Build a dictionary so that given a diaSourceId we can fetch the 
+    # corresponding DiaSource instance.
+    idDict = dict([(d.getDiaSourceId(), d) for d in sources])
+    
     # TODO: compute and use trail information!
-    # TODO: Support per DIASource exposure time.
+    # TODO: Support per-DIASource exposure time.
     # TODO: Use fluxes instead of mags.
-    return(auton.findtracklets(detections=dets, 
-                               maxv=maxV,
-                               minobs=int(minObs),
-                               maxt=maxT,
-                               etime=expTime))
+    trackletToDiaSourceId = auton.findtracklets(detections=dets, 
+                                                maxv=maxV,
+                                                minobs=int(minObs),
+                                                maxt=maxT,
+                                                etime=expTime)
+    
+    # Create Tracklet instances.
+    tracklets = [Tracklet(diaSourceList=DiaSourceList([idDict[_id] \
+                                                       for _id in ids])) \
+                 for ids in trackletToDiaSourceId]
+    
+    for t in tracklets:
+        if(not t._diaSourceList):
+            raise(Exception('Empty tracklet!'))
+    return(tracklets)
 
 
 def trackletListFromDiaSourceList(sourceList, maxV=DEFAULT_MAXV, 
@@ -52,9 +67,12 @@ def trackletListFromDiaSourceList(sourceList, maxV=DEFAULT_MAXV,
     """
     Form a TrackletList form a DIASourceList.
     """
-    rawIdList = trackletsFromDiaSources(sourceList.getDiaSources(), maxV, 
-                                        minObs, maxT, expTime, useTrailData)
-    return(TrackletList.trackletListFromRawIdList(rawIdList))
+    return(TrackletList(trackletsFromDiaSources(sourceList.getDiaSources(), 
+                                                maxV, 
+                                                minObs, 
+                                                maxT, 
+                                                expTime, 
+                                                useTrailData)))
     
     
     
