@@ -6,7 +6,7 @@ import lsst.daf.persistence as persistence
 
 class TrackletList(DayMOPSObject):
     def __init__(self, tracklets=[]):
-        self._tracklets = []
+        self._tracklets = tracklets
         return
     
     def __len__(self):
@@ -14,32 +14,6 @@ class TrackletList(DayMOPSObject):
     
     def __iter__(self):
         return(self._tracklets.__iter__())
-    
-    @classmethod
-    def trackletListFromRawIdList(cls, rawList):
-        """
-        Take the output of findTracklets and build a TrackletList instance.
-        
-        @param rawList: [[diaSourceId, diaSourceId, ...], ...]
-        """
-        trackletList = cls()
-        if(not rawList):
-            return(trackletList)
-        
-        tracklets = []
-        for idList in rawList:
-            t = Tracklet()
-            
-            sources = []
-            for _id in idList:
-                s = DiaSource()
-                s.setDiaSourceId(_id)
-                sources.append(s)
-            sourceList = DiaSourceList(sources)
-            t.setDiaSourceList(sourceList)
-            tracklets.append(t)
-        trackletList.setTracklets(tracklets)
-        return(trackletList)
     
     def save(self, dbLocStr):
         # Get the next available trackletId.
@@ -61,13 +35,27 @@ class TrackletList(DayMOPSObject):
             # If the tracklet has an id already, use that, otherwise use a new 
             # one.
             trackletId = tracklet.getTrackletId()
+            velRa = tracklet.getVelRa()
+            velDec = tracklet.getVelDec()
+            velTot = tracklet.getVelTot()
             if(trackletId == None):
                 trackletId = newTrackletId
                 tracklet.setTrackletId(newTrackletId)
                 newTrackletId += 1
             
+            # Insert values.
             dbTrk.setColumnLong('trackletId', trackletId)
+            if(velRa != None and velDec != None and velTot != None):
+                dbTrk.setColumnDouble('velRa', velRa)
+                dbTrk.setColumnDouble('velDecl', velDec)
+                dbTrk.setColumnDouble('velTot', velTot)
+            else:
+                dbTrk.setColumnToNull('velRa')
+                dbTrk.setColumnToNull('velDecl')
+                dbTrk.setColumnToNull('velTot')
             dbTrk.insertRow()
+            
+            # Insert the trackletId <-> diaSourceIds info.
             for diaSource in tracklet.getDiaSourceList():
                 dbSrc.setColumnLong('trackletId', trackletId)
                 dbSrc.setColumnLong('diaSourceId', diaSource.getDiaSourceId())
