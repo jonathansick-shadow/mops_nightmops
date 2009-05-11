@@ -8,6 +8,8 @@ import lsst.daf.persistence as persistence
 class DiaSource(detection.DiaSource):
     """
     Opaque layer above the DIASource and DIASOurceIDTonight tables.
+    
+    We compare DiaSources by their MJD alone, not their spatial location.
     """
     _refMag = None
     # FIXME: to be obsoleted by fix to bug #796
@@ -30,5 +32,29 @@ class DiaSource(detection.DiaSource):
             raise(SyntaxError('obsCode has to be a 3-letter string.'))
         self._obsCode = str(obsCode)
         return
+    
+    def __lt__(self, other):
+        return(self.getTaiMidPoint() < other.getTaiMidPoint())
+    
+    def __le__(self, other):
+        return(self.getTaiMidPoint() <= other.getTaiMidPoint())
+    
+    def __eq__(self, other):
+        return(self.getTaiMidPoint() == other.getTaiMidPoint())
+    
+    def __ne__(self, other):
+        return(self.getTaiMidPoint() != other.getTaiMidPoint())
 
-
+    def __gt__(self, other):
+        return(self.getTaiMidPoint() > other.getTaiMidPoint())
+    
+    def __ge__(self, other):
+        return(self.getTaiMidPoint() >= other.getTaiMidPoint())
+    
+    
+    
+    
+    
+    
+    
+    
