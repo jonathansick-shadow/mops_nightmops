@@ -33,17 +33,15 @@ echo "nslices ${nslices}"
 echo "usize ${usize}"
 
 # MPI commands will be in PATH if mpich2 is in build
-echo "Running mpdboot"
-
+echo "Running mpdboot --totalnum=${nodes} --file=$MPDHOSTSFILE --verbose"
 mpdboot --totalnum=${nodes} --file=$MPDHOSTSFILE --verbose
 
 sleep 3s
-echo "Running mpdtrace"
+echo "Running mpdtrace -l"
 mpdtrace -l
 sleep 2s
 
-echo "Running mpiexec"
-
+echo "Running mpiexec -usize ${usize}  -machinefile $MPDHOSTSFILE -np 1 runPipeline.py ${pipelinePolicyName} ${runId}"
 mpiexec -usize ${usize}  -machinefile $MPDHOSTSFILE -np 1 runPipeline.py ${pipelinePolicyName} ${runId}
 
 sleep 1s

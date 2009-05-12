@@ -10,7 +10,7 @@ if(len(sys.argv) != 2):
 database = sys.argv[1]
 
 db = persistence.DbStorage()
-db.setRetrieveLocation(persistence.LogicalLocation('mysql://lsst10.ncsa.uiuc.edu:3306/%s' %(database)))
+db.setRetrieveLocation(persistence.LogicalLocation('mysql://localhost:3306/%s' %(database)))
 db.startTransaction()
 db.executeSql('delete from DIASourceIDTonight')
 db.executeSql('delete from mops_Tracklet')

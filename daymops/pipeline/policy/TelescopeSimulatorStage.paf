@@ -1,7 +1,7 @@
 #<?cfg paf policy ?>
 # Default TelescopeSimulatorStage policy file
-# 
-database: "mysql://lsst10.ncsa.uiuc.edu:3306/mops_onelunation"
-utOfset: -4.0
+# All angles in degrees,times in days.
+databasePolicy: @policy/DataBase.paf
+utOfset: -0.16666666666666666     # -4.0 hours
 #
 

@@ -45,6 +45,7 @@ class TrackletList(DayMOPSObject):
             
             # Insert values.
             dbTrk.setColumnLong('trackletId', trackletId)
+            dbTrk.setColumnString('status', tracklet.getStatus())
             if(velRa != None and velDec != None and velTot != None):
                 dbTrk.setColumnDouble('velRa', velRa)
                 dbTrk.setColumnDouble('velDecl', velDec)

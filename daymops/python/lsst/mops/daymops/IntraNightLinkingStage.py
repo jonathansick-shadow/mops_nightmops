@@ -51,12 +51,14 @@ class IntraNightLinkingStage(DayMOPSStage):
         super(IntraNightLinkingStage, self).__init__(stageId, policy)
         
         # Read the configuration from policy.
-        self.maxV = self._policy.get('maxv_degperday')
-        self.minObs = self._policy.get('minobs')
-        self.extended = self._policy.get('extended')
-        self.maxT = self._policy.get('maxt_days')
-        self.collapseArgs = self._policy.get('collapse_args')
-        self.dbLocStr = self._policy.get('database')
+        self.maxV = self.getValueFromPolicy('maxV', linking.DEFAULT_MAXV)
+        self.minObs = self.getValueFromPolicy('minObs', linking.DEFAULT_MINOBS)
+        self.extended = self.getValueFromPolicy('extended', 
+                                                linking.DEFAULT_EXTENDED)
+        self.maxT = self.getValueFromPolicy('maxT', linking.DEFAULT_MAXT)
+        self.collapseArgs = self.getValueFromPolicy('collapseArgs', 
+                                                  linking.DEFAULT_COLLAPSE_ARGS)
+        self.dbLocStr = self.getValueFromPolicy('database')
         return
     
     def preprocess(self):

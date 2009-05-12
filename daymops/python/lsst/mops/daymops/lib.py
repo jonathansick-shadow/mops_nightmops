@@ -8,7 +8,7 @@ import math
 
 
 # Constants
-DEFAULT_UT_OFFSET = -4.
+DEFAULT_UT_OFFSET = -4. / 24.
 DEG_TO_RAD = math.pi / 180.
 RAD_TO_DEG = 1. / DEG_TO_RAD
 LOG10 = math.log(10)

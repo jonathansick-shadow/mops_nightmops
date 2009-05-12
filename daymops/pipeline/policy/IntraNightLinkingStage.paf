@@ -1,13 +1,12 @@
 #<?cfg paf policy ?>
 # Default TelescopeSimulatorStage policy file
-
-# 
-database: "mysql://lsst10.ncsa.uiuc.edu:3306/mops_onelunation"
-maxv_degperday: 2.0
-minobs: 2
-extended: 1
-maxt_days: 0.050 
-collapse_args: "0.002 0.002 5.0 0.05"
+# All angles in degrees,times in days.
+databasePolicy: @policy/DataBase.paf
+maxV: 2.0               # max DIASource velocity (deg/day)
+minObs: 2               # min DIASource per Tracklet
+extended: 1             # use trail info?
+maxT: 0.050             # max Tracklet time span within a night (days)
+collapseArgs: "0.002 0.002 5.0 0.05"
 #
 
 

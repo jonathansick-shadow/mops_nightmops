@@ -18,6 +18,17 @@ class DayMOPSStage(object, Stage.Stage):
         # First init the parent class.
         Stage.Stage.__init__(self, stageId, policy)
         
+        # Make sure that we load all the nested policy files in out Stage 
+        # policy.
+        self._policy.loadPolicyFiles()
+        
+        # If we have a 'databasePolicy', extract the database string from it and
+        # it to our policy.
+        if(self._policy.exists('databasePolicy') and 
+           self._policy.get('databasePolicy').exists('database')):
+            dbStr = self._policy.get('databasePolicy').get('database')
+            self._policy.set('database', dbStr)
+        
         # Then setup logging.
         self._log = logging.Log(logging.Log.getDefaultLog(), 
                                 self.__class__.__name__)
@@ -42,6 +53,25 @@ class DayMOPSStage(object, Stage.Stage):
         self._log.setThreshold(self.verbosityLevel)
         self.logIt('INFO', msg)
         return
+    
+    def getValueFromPolicy(self, paramName, defaultValue=None):
+        """
+        Fetch the given parameter from policy and assign it to the given default
+        value. If no default value is not provided and the parameter is not 
+        defined in the policy, then raise a KeyError exception.
+        """
+        val = self._policy.get(paramName)
+        if(val == None and defaultValue != None):
+            msg = '%s not found in the policy file. Using default value (%s).' \
+                  %(paramName, str(defaultValue))
+            self.logIt('INFO',  msg)
+            return(defaultValue)
+        elif(val == None):
+            raise(keyError('%s not found in policy and no defaut specified.' \
+                           %(paramName)))
+        
+        self.logIt('DEBUG', 'Policy: %s=%s' %(paramName, str(val)))
+        return(val)
     
     def logIt(self, level, logString):
         """

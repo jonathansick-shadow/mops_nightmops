@@ -20,10 +20,11 @@ class TelescopeSimulatorStage(DayMOPSStage):
         super(TelescopeSimulatorStage, self).__init__(stageId, policy)
         
         # Get database details from policy
-        self.dbLocStr = self._policy.get('database')
-        self.utOffset = self._policy.get('utOfset')
-        if(self.utOffset == None):
-            self.utOffset = lib.DEFAULT_UT_OFFSET
+        self.dbLocStr = self.getValueFromPolicy('database')
+        
+        # Times in .paf files are always in days, we need hours.
+        self.utOffset = self.getValueFromPolicy('utOfset', 
+                                                lib.DEFAULT_UT_OFFSET) * 24.
         
         
         
