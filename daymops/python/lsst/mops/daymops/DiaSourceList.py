@@ -36,7 +36,10 @@ class DiaSourceList(DayMOPSObject):
         return(self._diaSources.__iter__())
     
     @classmethod
-    def diaSourceListForTonight(cls, dbLocStr):
+    def diaSourceListForTonight(cls, dbLocStr, sliceId=None, numSlices=None):
+        """
+        Use  sliceId and numSlices to implement some form of parallelism.
+        """
         sourceList = cls()
         
         # Send the query.
@@ -56,7 +59,11 @@ class DiaSourceList(DayMOPSObject):
         db.outColumn('DIASource.apFlux')
         db.outColumn('DIASource.apFluxErr')
         db.outColumn('DIASource.refMag')
-        db.setQueryWhere('DIASource.diaSourceId=DIASourceIDTonight.DIASourceId')
+        where = 'DIASource.diaSourceId=DIASourceIDTonight.DIASourceId'
+        if(sliceId != None and numSlices > 1):
+            where += ' and DIASource.diaSourceId %% %d = %d' \
+                     %(numSlices, sliceId)
+        db.setQueryWhere(where)
         db.query()
         
         # Fetch the results.

@@ -21,9 +21,9 @@ appStage: {
      stagePolicy: @policy/IntraNightLinkingStage.paf
 }
 
-# appStage: { 
-#      stageName: "lsst.mops.daymops.AttributionStage" 
-#      eventTopic: "None" 
-#      stagePolicy: @policy/AttributionStage.paf
-# }
+appStage: { 
+     stageName: "lsst.mops.daymops.AttributionStage" 
+     eventTopic: "None" 
+     stagePolicy: @policy/AttributionStage.paf
+}
 

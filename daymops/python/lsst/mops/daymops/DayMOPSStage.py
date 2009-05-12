@@ -58,7 +58,7 @@ class DayMOPSStage(object, Stage.Stage):
         """
         Fetch the given parameter from policy and assign it to the given default
         value. If no default value is not provided and the parameter is not 
-        defined in the policy, then raise a KeyError exception.
+        defined in the policy, then raise an exception.
         """
         val = self._policy.get(paramName)
         if(val == None and defaultValue != None):
@@ -67,8 +67,8 @@ class DayMOPSStage(object, Stage.Stage):
             self.logIt('INFO',  msg)
             return(defaultValue)
         elif(val == None):
-            raise(keyError('%s not found in policy and no defaut specified.' \
-                           %(paramName)))
+            raise(Exception('%s not found in policy and no defaut specified.' \
+                            %(paramName)))
         
         self.logIt('DEBUG', 'Policy: %s=%s' %(paramName, str(val)))
         return(val)

@@ -57,7 +57,9 @@ Side Effects
 from DayMOPSStage import DayMOPSStage
 from DiaSource import DiaSource
 from DiaSourceList import DiaSourceList
-import linking
+from TrackletList import TrackletList
+import attribution
+import lib
 
 import time
 
@@ -79,6 +81,27 @@ class AttributionStage(DayMOPSStage):
         self.maxArclengthForIod = self.getValueFromPolicy('maxArclengthForIod')
         self.uncertaintySigma = self.getValueFromPolicy('uncertaintySigma')
         self.dbLocStr = self.getValueFromPolicy('database')
+        return
+    
+    def process(self):
+        # Fetch the clipboard.
+        self.activeClipboard = self.inputQueue.getNextDataset()
+        
+        # What is our rank?
+        sliceId = self.getRank()
+        numSlices = self.getUniverseSize() - 1  # want only real slices
+        
+        # Fetch all the  non attribbuted Tracklets with at least one DiaSource 
+        # from tonight.
+        tracklets = TrackletList.newTrackletsFromTonight(self.dbLocStr,
+                                                         )
+        
+        # Fetch the clipboard.
+        
+        
+        
+        # Put the clipboard back.
+        self.outputQueue.addDataset(self.activeClipboard)
         return
     
     

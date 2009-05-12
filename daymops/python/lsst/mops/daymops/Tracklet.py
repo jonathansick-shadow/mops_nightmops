@@ -10,7 +10,7 @@ STATUS = {'UNATTRIBUTED': 'U',
 
 
 class Tracklet(DayMOPSObject):
-    def __init__(self, trackletId=None, diaSourceList=None):
+    def __init__(self, trackletId=None, diaSourceList=[]):
         self._trackletId = trackletId
         self._status = STATUS['UNATTRIBUTED']
         self.setDiaSourceList(diaSourceList)
@@ -22,8 +22,8 @@ class Tracklet(DayMOPSObject):
         
         @param diaSourceList: DiaSourceList instance.
         """
-        if(not diaSourceList or not len(diaSourceList)):
-            print('Ops: no DiaSources!')
+        # if(not diaSourceList or not len(diaSourceList)):
+        #     print('Ops: no DiaSources!')
         
         self._diaSourceList = diaSourceList
         

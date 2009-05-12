@@ -1,7 +1,7 @@
 from DayMOPSObject import DayMOPSObject
 from DiaSource import DiaSource
 from DiaSourceList import DiaSourceList
-from Tracklet import Tracklet
+from Tracklet import Tracklet, STATUS
 import lsst.daf.persistence as persistence
 
 class TrackletList(DayMOPSObject):
@@ -14,6 +14,61 @@ class TrackletList(DayMOPSObject):
     
     def __iter__(self):
         return(self._tracklets.__iter__())
+    
+    @classmethod
+    def newTrackletsFromTonight(cls, dbLocStr, shallow=True, 
+                                sliceId=None, numSlices=None):
+        """
+        Use  sliceId and numSlices to implement some form of parallelism.
+        If shallow=False, then fetch the DIASources also.
+        """
+        trackletList = cls()
+        
+        if(not shallow):
+            # FIXME: Implement deep copy!
+            raise(NotImplementedError('Implement deep copy!'))
+        
+        # Send the query.
+        # sql: select distinct(t.trackletId), t.velRa, t.velDecl, t.velTot, 
+        #      t.status  from mops_Tracklet t, mops_TrackletsToDIASource td, 
+        #      DIASourceIDTonight dt where t.status='U' and 
+        #      t.trackletId=td.trackletId and td.diaSourceId=dt.DIASourceId
+        db = persistence.DbStorage()
+        db.setPersistLocation(persistence.LogicalLocation(dbLocStr))
+        db.setTableListForQuery(('mops_Tracklet', 
+                                 'mops_TrackletsToDIASource',
+                                 'DIASourceIDTonight'))
+        db.outColumn('distinct(mops_Tracklet.trackletId)', True)
+        db.outColumn('mops_Tracklet.velRa')
+        db.outColumn('mops_Tracklet.velDecl')
+        db.outColumn('mops_Tracklet.velTot')
+        db.outColumn('mops_Tracklet.status')
+        
+        where = '''mops_Tracklet.status="U" and 
+mops_Tracklet.trackletId=mops_TrackletsToDIASource.trackletId and 
+mops_TrackletsToDIASource.diaSourceId=DIASourceIDTonight.DIASourceId'''
+        if(sliceId != None and numSlices > 1):
+            where += ' and mops_Tracklet.trackletId %% %d = %d' \
+                     %(numSlices, sliceId)
+        db.setQueryWhere(where)
+        db.query()
+        
+        # Fetch the results.
+        tracklets = []
+        while(db.next()):
+            t = Tracklet()
+            t.setTrackletId(db.getColumnByPosLong(0))
+            t.setVelRa(db.getColumnByPosDouble(1))
+            t.setVelDec(db.getColumnByPosDouble(2))
+            t.setVelTot(db.getColumnByPosDouble(3))
+            t.setStatus(db.getColumnByPosString(4))
+            tracklets.append(d)
+        db.finishQuery()
+        del(db)
+        
+        # Add the diaSources to the DiaSourceList instance.
+        trackletList.setTracklets(tracklets)
+        return(trackletList)
     
     def save(self, dbLocStr):
         # Get the next available trackletId.
