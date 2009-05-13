@@ -4,15 +4,18 @@ import lsst.daf.persistence as persistence
 
 
 # Constants
-STATUS = {'UNATTRIBUTED': 'U',
-          'ATTRIBUTED': 'A',
-          'KILLED': 'K'}
+STATUS = {'UNATTRIBUTED':   'U',
+          'ATTRIBUTED':     'A',
+          'KILLED':         'K'}
 
 
 class Tracklet(DayMOPSObject):
-    def __init__(self, trackletId=None, diaSourceList=[]):
+    def __init__(self, 
+                 trackletId=None, 
+                 status=STATUS['UNATTRIBUTED'],
+                 diaSourceList=[]):
         self._trackletId = trackletId
-        self._status = STATUS['UNATTRIBUTED']
+        self._status = status
         self.setDiaSourceList(diaSourceList)
         return
     
