@@ -58,6 +58,7 @@ from DayMOPSStage import DayMOPSStage
 from DiaSource import DiaSource
 from DiaSourceList import DiaSourceList
 from TrackletList import TrackletList
+from MovingObjectList import MovingObjectList
 import attribution
 import lib
 
@@ -88,17 +89,23 @@ class AttributionStage(DayMOPSStage):
         self.activeClipboard = self.inputQueue.getNextDataset()
         
         # What is our rank?
-        sliceId = self.getRank()
-        numSlices = self.getUniverseSize() - 1  # want only real slices
+        i = self.getRank()
+        n = self.getUniverseSize() - 1  # want only real slices
+        self.logIt('INFO', 'Slice ID: %d/%d' %(i, n))
         
         # Fetch all the  non attribbuted Tracklets with at least one DiaSource 
-        # from tonight.
-        tracklets = TrackletList.newTrackletsFromTonight(self.dbLocStr,
-                                                         )
+        # from tonight. DO not bother fetching the DiaSources for each Tracklet.
+        tracklets = TrackletList.newTrackletsFromTonight(self.dbLocStr, 
+                                                         shallow=True)
+        self.logIt('INFO', 'Found %d new Tracklets' %(len(tracklets)))
         
-        # Fetch the clipboard.
-        
-        
+        # Now, fetch 1/n of the known MovingObjects. We can do this because the 
+        # search if on a per MovingObject basis.
+        movingObjects = MovingObjectList.getAllMovingObjects(self.dbLocStr,
+                                                             shallow=True,
+                                                             sliceId=i,
+                                                             numSlices=n)
+        self.logIt('INFO', 'Found %d MovingObjects' %(len(movingObjects)))
         
         # Put the clipboard back.
         self.outputQueue.addDataset(self.activeClipboard)

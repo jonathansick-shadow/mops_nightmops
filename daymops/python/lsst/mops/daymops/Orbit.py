@@ -5,18 +5,18 @@ import numpy
 
 # Constants
 STABLE_STATUS = {'STABLE':      'Y',
-                 'UNSTABLE':    'N''}
+                 'UNSTABLE':    'N'}
 
 
 class Orbit(DayMOPSObject):
     def __init__(self, 
-                 q, 
-                 e, 
-                 i, 
-                 node, 
-                 argPeri, 
-                 timePeri, 
-                 epoch, 
+                 q=None, 
+                 e=None, 
+                 i=None, 
+                 node=None, 
+                 argPeri=None, 
+                 timePeri=None, 
+                 epoch=None, 
                  src=[],
                  orbFitResidual=None,
                  orbFitChi2=None,
@@ -55,6 +55,10 @@ class Orbit(DayMOPSObject):
         self._moidLong2 = moidLong2
         return
 
+    def __str__(self):
+        return('Orbit(%.05f, %.05f, %.05f, %.05f, %.05f, %.05f, %.05f)' \
+               %(self._q, self._e, self._i, self._node, self._timePeri, 
+                 self._argPeri, self._epoch, ))
 
     def setSrc(self, src):
         """

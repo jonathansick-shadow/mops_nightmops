@@ -62,7 +62,7 @@ mops_TrackletsToDIASource.diaSourceId=DIASourceIDTonight.DIASourceId'''
             t.setVelDec(db.getColumnByPosDouble(2))
             t.setVelTot(db.getColumnByPosDouble(3))
             t.setStatus(db.getColumnByPosString(4))
-            tracklets.append(d)
+            tracklets.append(t)
         db.finishQuery()
         del(db)
         
