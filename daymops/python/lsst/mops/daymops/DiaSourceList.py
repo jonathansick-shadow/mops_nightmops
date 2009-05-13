@@ -115,7 +115,16 @@ class DiaSourceList(DayMOPSObject):
         distance = lib.sphericalDistance((first.getRa(), first.getDec()),
                                          (last.getRa(), last.getDec()))
         return([d / timeDistance for d in distance])
-
+    
+    def getTimeSpan(self):
+        """
+        Return the time span in day of self._diaSources. The time span is 
+        defined as
+        max(d.getTaiMidPoint())-min(d.getTaiMidPoint) for d in self._diaSources
+        """
+        times = [d.getTaiMidPoint() for d in self._diaSources]
+        times.sort()
+        return(times[-1] - times[0])
     
 
 
