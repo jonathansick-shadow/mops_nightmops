@@ -16,6 +16,9 @@ def simpleObjectFetch(dbLocStr, table, className, columns, where=None):
     Fetch relevant rows from a given table and instantiate one object per row.
     It is assumed that the objects to be created have a method called
         setCol_i where col_i is columns[i][0]
+    Also, it is essential that one can instantiate the class without passing any
+    argument to the constructor. For instance:
+        obj = className()
     
     The SQL used is
         select <col1>, <col2>, <col3>[, ...] from table where <where>
@@ -82,7 +85,10 @@ def simpleTwoObjectFetch(dbLocStr, table, className1, columns1,
     
     It is assumed that the objects to be created have a method called
         setCol_i where col_i is columns_j[i][0] j=1, 2
-    
+    Also, it is essential that one can instantiate the class without passing any
+    argument to the constructor. For instance:
+        obj = className()
+        
     The SQL used is
         select <col1>, <col2>, <col3>[, ...] from table where <where>
     
@@ -155,7 +161,7 @@ if(__name__ == '__main__'):
                                    'MovingObject',
                                    'MovingObject',
                                    [('movingObjectId', 'Long'), 
-                                    ('mopsStatus', 'String'), 
+                                    ('mopsStatus', 'Char'), # bug #807
                                     ('h_v', 'Double'), 
                                     ('g', 'Double'), 
                                     ('arcLengthDays', 'Double')],
