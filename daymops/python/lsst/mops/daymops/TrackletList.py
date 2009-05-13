@@ -70,6 +70,17 @@ mops_TrackletsToDIASource.diaSourceId=DIASourceIDTonight.DIASourceId'''
         trackletList.setTracklets(tracklets)
         return(trackletList)
     
+    def getArcLength(self):
+        """
+        Compute the arc length in days from the DiaSources that are part of this
+        list of Tracklets.
+        """
+        # TODO: is this the most efficient way of computing the arc length?
+        # Probably not, but at least is pretty elegant.
+        diaSources = DiaSourceList(reduce(lambda a, b: a+b, 
+                                 [t.getDiaSourceList for t in self._tracklets]))
+        return(diaSources.getTimeSpan())
+    
     def save(self, dbLocStr):
         # Get the next available trackletId.
         newTrackletId = self._getNextTrackletId(dbLocStr)
