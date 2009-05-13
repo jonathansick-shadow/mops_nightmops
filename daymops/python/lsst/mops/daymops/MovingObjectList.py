@@ -26,8 +26,6 @@ class MovingObjectList(DayMOPSObject):
         Use  sliceId and numSlices to implement some form of parallelism.
         If shallow=False, then fetch the Tracklets also.
         """
-        MovingObjectList = cls()
-        
         if(not shallow):
             # FIXME: Implement deep copy!
             raise(NotImplementedError('Implement deep copy!'))
@@ -92,8 +90,7 @@ class MovingObjectList(DayMOPSObject):
             movingObjects.append(mo)
         
         # Add the diaSources to the DiaSourceList instance.
-        MovingObjectList.setMovingObjects(movingObjects)
-        return(MovingObjectList)
+        return(cls(movingObjects))
     
     def _getNextMovingObjectId(self, dbLocStr):
         # Since movingObjectId is autoincrement, it cannot be 0. It will get
