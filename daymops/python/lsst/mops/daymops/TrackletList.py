@@ -121,6 +121,10 @@ mops_TrackletsToDIASource.diaSourceId=DIASourceIDTonight.DIASourceId'''
         return
     
     def _getNextTrackletId(self, dbLocStr):
+        # Since trackletId is autoincrement, it cannot be 0. It will get
+        # incremented by 1 at the end of the function call...
+        trackletId = 0
+            
         # Connect to the database.
         db = persistence.DbStorage()
         db.setRetrieveLocation(persistence.LogicalLocation(dbLocStr))
@@ -129,17 +133,9 @@ mops_TrackletsToDIASource.diaSourceId=DIASourceIDTonight.DIASourceId'''
         db.outColumn('max(trackletId)', True)      # isExpr=True
         
         db.query()
-        if(db.next()):
-            if(db.columnIsNull(0)):
-                # Since trackletId is autoincrement, it cannot be 0
-                trackletId = 0
-            else:
-                trackletId = db.getColumnByPosLong(0)
-        else:
-            # Since trackletId is autoincrement, it cannot be 0
-            trackletId = 0
+        if(db.next() and not db.columnIsNull(0)):
+            trackletId = db.getColumnByPosLong(0)
         db.finishQuery()
-        del(db)
         return(trackletId + 1)
 
 
