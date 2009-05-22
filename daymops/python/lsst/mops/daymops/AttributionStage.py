@@ -98,15 +98,31 @@ class AttributionStage(DayMOPSStage):
         tracklets = TrackletList.newTrackletsFromTonight(self.dbLocStr, 
                                                          shallow=True)
         self.logIt('INFO', 'Found %d new Tracklets' %(len(tracklets)))
+        if(not tracklets):
+            self.logIt('INFO', 'Nothing to do for tonight.' %(len(tracklets)))
+            self.outputQueue.addDataset(self.activeClipboard)
+            return
         
+        # We are going to come back to this Stage later since we need to create
+        # orbits first.
+        if(True):
+            self.logIt('INFO', 'We\'ll come back to this Stage later.')
+            self.outputQueue.addDataset(self.activeClipboard)
+            return
+            
         # Now, fetch 1/n of the known MovingObjects. We can do this because the 
         # search if on a per MovingObject basis.
         numObj = 0
-        for movingObj in MovingObjectList.getAllMovingObjects(self.dbLocStr,
-                                                              shallow=True,
-                                                              sliceId=i,
-                                                              numSlices=n):
+        fetcher = MovingObjectList.getAllUnstableMovingObjects
+        for obj in fetcher(self.dbLocStr, shallow=True, sliceId=i, numSlices=n):
             numObj += 1
+            
+            # Look for a tracklet that could be associated to obj.
+            candidates = attribution.findCandidateTracklets(obj, tracklets)
+            
+            # 
+            
+            
         self.logIt('INFO', 'Found %d MovingObjects' %(numObj))
         
         # Put the clipboard back.
