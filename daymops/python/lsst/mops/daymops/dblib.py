@@ -137,7 +137,7 @@ def simpleTwoObjectFetch(dbLocStr, table, className1, columns1,
     # print('%.02fs compose and send query' %(time.time() - t0))
     
     # Fetch the results and instantiate the objects.
-    tt0 = time.time()
+    # tt0 = time.time()
     class1 = globals()[className1]
     class2 = globals()[className2]
     setterNames1 = ['set%s%s' %(c[0][0].upper(), c[0][1:]) for c in columns1]
@@ -155,7 +155,7 @@ def simpleTwoObjectFetch(dbLocStr, table, className1, columns1,
         _setAttrs(setters2, fetchers2, columns2)
         # print('%.02fs fetch one row' %(time.time() - t0))
         yield((o1, o2))
-    print('%.02fs fetch all rows' %(time.time() - tt0))
+    # print('%.02fs fetch all rows' %(time.time() - tt0))
     db.finishQuery()
     # return
 
