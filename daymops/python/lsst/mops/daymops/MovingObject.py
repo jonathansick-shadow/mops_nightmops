@@ -31,7 +31,7 @@ class MovingObject(DayMOPSObject):
         self.setTrackletList(trackletList)
         return
     
-    def setG(self, g):
+    def setG(self, g=.150):
         """
         Set self._g to the desired value. If g=None, then use the default value
         of .150
