@@ -1,5 +1,4 @@
 from DayMOPSObject import DayMOPSObject
-import numpy
 
 
 
@@ -68,7 +67,7 @@ class Orbit(DayMOPSObject):
         """
         self._src = []
         if(not None in src):
-            self._src = numpy.array([float(e) for e in src])
+            self._src = [float(e) for e in src]
         return
 
 
