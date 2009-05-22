@@ -1,5 +1,5 @@
 from DayMOPSObject import DayMOPSObject
-from DiaSource import DiaSource
+import DiaSourceList
 import lsst.daf.persistence as persistence
 
 
@@ -13,31 +13,28 @@ class Tracklet(DayMOPSObject):
     def __init__(self, 
                  trackletId=None, 
                  status=STATUS['UNATTRIBUTED'],
-                 diaSourceList=[]):
+                 diaSources=[]):
         self._trackletId = trackletId
         self._status = status
-        self.setDiaSourceList(diaSourceList)
+        self.setDiaSources(diaSources)
         return
     
     def __str__(self):
         return('Tracklet(trackletId=%d)' %(self._trackletId))
     
-    def setDiaSourceList(self, diaSourceList):
+    def setDiaSources(self, diaSources):
         """
-        Set the internal diaSourceList.
+        Set the internal diaSources.
         
-        @param diaSourceList: DiaSourceList instance.
+        @param diaSources: list of DiaSource instances.
         """
-        # if(not diaSourceList or not len(diaSourceList)):
-        #     print('Ops: no DiaSources!')
-        
-        self._diaSourceList = diaSourceList
+        self._diaSources = diaSources
         
         # Update velocity data.
-        if(self._diaSourceList):
+        if(self._diaSources):
             (self._velRa, 
              self._velDec, 
-             self._velTot) = self._diaSourceList.computeVelocityStats()
+             self._velTot) = DiaSourceList.computeVelocityStats(self._diaSources)
         return
     
     # Aliases

@@ -35,7 +35,8 @@ Side Effects
 """
 from DayMOPSStage import DayMOPSStage
 from DiaSource import DiaSource
-from DiaSourceList import DiaSourceList
+import DiaSourceList
+import TrackletList
 import linking
 
 import time
@@ -78,26 +79,28 @@ class IntraNightLinkingStage(DayMOPSStage):
         self.logIt('INFO', 'Starting processing.')
         
         # Retrieve the DIASources to process.
-        sourceList = DiaSourceList.diaSourceListForTonight(self.dbLocStr)
-        self.logIt('INFO', 'Fetched %d DiaSources.' %(len(sourceList)))
+        sources = []
+        for s in DiaSourceList.diaSourceListForTonight(self.dbLocStr):
+            sources.append(s)
+        self.logIt('INFO', 'Fetched %d DiaSources.' %(len(sources)))
         
         # Build tracklets out of the DiaSources we just selected. What we get 
         # out is a list of Tracklets each one of which lists the diaSourceIds
         # used to make that Tracklet.
-        if(not sourceList):
+        if(not sources):
             return
         
         # Build the tracklets.
-        trackletList = linking.trackletListFromDiaSourceList(sourceList)
+        tracklets = linking.trackletsFromDiaSources(sources)
         
         # Put those Tracklets in the database.
-        if(trackletList and len(trackletList)):
+        if(tracklets and len(tracklets)):
             self.logIt('INFO', 'Found %d Tracklets from %d DIASources.' \
-                       %(len(trackletList), len(sourceList)))
-            trackletList.save(self.dbLocStr)
+                       %(len(tracklets), len(sources)))
+            TrackletList.save(self.dbLocStr, tracklets)
         else:
             self.logIt('INFO', 'Found 0 Tracklets from %d DIASources.' \
-                       %(len(sourceList)))
+                       %(len(sources)))
         return
 
 

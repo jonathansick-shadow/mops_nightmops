@@ -2,8 +2,7 @@
 General linking routines and constants.
 """
 import lib
-from TrackletList import TrackletList
-from DiaSourceList import DiaSourceList
+import DiaSourceList
 from Tracklet import Tracklet
 
 import auton
@@ -50,29 +49,14 @@ def trackletsFromDiaSources(sources, maxV=DEFAULT_MAXV, minObs=DEFAULT_MINOBS,
                                                 etime=expTime)
     
     # Create Tracklet instances.
-    tracklets = [Tracklet(diaSourceList=DiaSourceList([idDict[_id] \
-                                                       for _id in ids])) \
+    tracklets = [Tracklet(diaSources=[idDict[_id] for _id in ids]) \
                  for ids in trackletToDiaSourceId]
     
     for t in tracklets:
-        if(not t._diaSourceList):
+        if(not t._diaSources):
             raise(Exception('Empty tracklet!'))
     return(tracklets)
 
-
-def trackletListFromDiaSourceList(sourceList, maxV=DEFAULT_MAXV, 
-                                  minObs=DEFAULT_MINOBS, maxT=DEFAULT_MAXT, 
-                                  expTime=DEFAULT_EXPTIME, 
-                                  useTrailData=DEFAULT_EXTENDED):
-    """
-    Form a TrackletList form a DIASourceList.
-    """
-    return(TrackletList(trackletsFromDiaSources(sourceList.getDiaSources(), 
-                                                maxV, 
-                                                minObs, 
-                                                maxT, 
-                                                expTime, 
-                                                useTrailData)))
     
     
     

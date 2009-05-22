@@ -2,8 +2,6 @@
 Generic functions for attribution and precovery.
 """
 import lib
-from TrackletList import TrackletList
-from DiaSourceList import DiaSourceList
 from Tracklet import Tracklet
 
 import lsst.daf.persistence as persistence

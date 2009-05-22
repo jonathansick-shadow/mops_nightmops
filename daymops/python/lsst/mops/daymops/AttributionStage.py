@@ -56,8 +56,7 @@ Side Effects
 """
 from DayMOPSStage import DayMOPSStage
 from DiaSource import DiaSource
-from DiaSourceList import DiaSourceList
-from TrackletList import TrackletList
+import TrackletList
 import MovingObjectList
 import attribution
 import lib
@@ -95,11 +94,13 @@ class AttributionStage(DayMOPSStage):
         
         # Fetch all the  non attribbuted Tracklets with at least one DiaSource 
         # from tonight. DO not bother fetching the DiaSources for each Tracklet.
-        tracklets = TrackletList.newTrackletsFromTonight(self.dbLocStr, 
-                                                         shallow=True)
+        tracklets = []
+        for t in TrackletList.newTrackletsFromTonight(self.dbLocStr, 
+                                                      shallow=True):
+            tracklets.append(t)
         self.logIt('INFO', 'Found %d new Tracklets' %(len(tracklets)))
         if(not tracklets):
-            self.logIt('INFO', 'Nothing to do for tonight.' %(len(tracklets)))
+            self.logIt('INFO', 'Nothing to do for tonight.')
             self.outputQueue.addDataset(self.activeClipboard)
             return
         

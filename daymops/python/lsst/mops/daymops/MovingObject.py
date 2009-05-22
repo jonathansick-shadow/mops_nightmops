@@ -1,5 +1,5 @@
 from DayMOPSObject import DayMOPSObject
-from TrackletList import TrackletList
+import TrackletList
 import lsst.daf.persistence as persistence
 
 
@@ -18,7 +18,7 @@ class MovingObject(DayMOPSObject):
                  orbit=None,
                  h_v=None,
                  g=.150,
-                 trackletList=[],
+                 tracklets=[],
                  arcLength=None):
         self._movingObjectId = movingObjectId
         self._status = status
@@ -28,7 +28,7 @@ class MovingObject(DayMOPSObject):
         self._archLength = arcLength
         
         # This updates the arcLength...
-        self.setTrackletList(trackletList)
+        self.setTracklets(tracklets)
         return
     
     def setG(self, g=.150):
@@ -42,13 +42,13 @@ class MovingObject(DayMOPSObject):
             self._g = g
         return
     
-    def setTrackletList(self, trackletList):
+    def setTracklets(self, tracklets):
         """
         Autmatically compute the arc length, updating it.
         """
-        self._tracketList = trackletList
-        if(trackletList):
-            self._archLength = trackletList.getArcLength()
+        self._tracklets = tracklets
+        if(tracklets):
+            self._archLength = TrackletList.getArcLength(tracklets)
         return
     
     def __str__(self):
