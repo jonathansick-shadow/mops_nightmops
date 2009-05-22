@@ -1,15 +1,43 @@
 from DayMOPSObject import DayMOPSObject
 from MovingObject import MovingObject, STATUS
+from Orbit import STABLE_STATUS
 import dblib
 
 import lsst.daf.persistence as persistence
 
 
 
-def getAllMovingObjects(dbLocStr, shallow=True, 
-                        sliceId=None, numSlices=None):
+def getAllMovingObjects(dbLocStr, shallow=True, sliceId=None, numSlices=None):
     """
     Fetch all active and non merged MovingObjects we know anything about.
+    
+    Use  sliceId and numSlices to implement some form of parallelism.
+    If shallow=False, then fetch the Tracklets also.
+    
+    Return an iterator.
+    """
+    return(_getMovingObjects(dbLocStr, 'mopsStatus != "%s"' %(STATUS['MERGED']),
+                             shallow, sliceId, numSlices))
+
+def getAllUnstableMovingObjects(dbLocStr, shallow=True, sliceId=None, 
+                                numSlices=None):
+    """
+    Fetch all active and non merged MovingObjects we know anything about.
+    
+    Use  sliceId and numSlices to implement some form of parallelism.
+    If shallow=False, then fetch the Tracklets also.
+    
+    Return an iterator.
+    """
+    where = 'mopsStatus != "%s" and stablePass != "%s"' \
+            %(STATUS['MERGED'], STABLE_STATUS['STABLE'])
+    return(_getMovingObjects(dbLocStr, where, shallow, sliceId, numSlices))
+
+
+def _getMovingObjects(dbLocStr, where, shallow=True, 
+                      sliceId=None, numSlices=None):
+    """
+    Fetch all MovingObjects specifying the SQL where clause we want to use.
     
     Use  sliceId and numSlices to implement some form of parallelism.
     If shallow=False, then fetch the Tracklets also.
@@ -60,7 +88,6 @@ def getAllMovingObjects(dbLocStr, shallow=True,
             ('src19', 'Double'), 
             ('src20', 'Double'), 
             ('src21', 'Double')]
-    where = 'mopsStatus != "%s"' %(STATUS['MERGED'])
     if(sliceId != None and numSlices > 1):
         where += ' and movingObjectId %% %d = %d' %(numSlices, sliceId)
     
@@ -77,6 +104,7 @@ def getAllMovingObjects(dbLocStr, shallow=True,
         mo.setOrbit(o)
         yield(mo)
     # return
+
 
 
 def _getNextMovingObjectId(dbLocStr):
