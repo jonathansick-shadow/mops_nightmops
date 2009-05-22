@@ -9,6 +9,8 @@ from Orbit import Orbit
 from Tracklet import Tracklet
 from DiaSource import DiaSource
 
+import time
+
 
 
 def simpleObjectFetch(dbLocStr, table, className, columns, where=None):
@@ -34,7 +36,7 @@ def simpleObjectFetch(dbLocStr, table, className, columns, where=None):
     @param where: the where SQL statement.
     
     Return
-        [obj1, obj2, ...]
+        Iterator: [obj1, obj2, ...]
     """
     # Simple sanity check.
     if([c for c in columns if len(c) != 2]):
@@ -45,7 +47,6 @@ def simpleObjectFetch(dbLocStr, table, className, columns, where=None):
         raise(NotImplementedError(msg))
     
     # Send the query.
-    res = []
     db = persistence.DbStorage()
     db.setPersistLocation(persistence.LogicalLocation(dbLocStr))
     db.setTableForQuery(table)
@@ -56,9 +57,9 @@ def simpleObjectFetch(dbLocStr, table, className, columns, where=None):
     
     # Fetch the results and instantiate the objects.
     while(db.next()):
-        res.append(_simpleObjectCreation(db, className, columns))
+        yield(_simpleObjectCreation(db, className, columns))
     db.finishQuery()
-    return(res)
+    # return
 
 
 def _simpleObjectCreation(db, name, cols):
@@ -66,13 +67,19 @@ def _simpleObjectCreation(db, name, cols):
     This is a bit of black magic, sorry.
     """
     obj = globals()[name]()
+    # This would be significantly faster: approximately 12% faster but we canot
+    # do it since we need custom setters (especialy for classes coming from C++
+    # setters = [lambda x: setattr(obj, '_%s' %(c[0]), x) for c in cols]
     setters = [getattr(obj, 'set%s%s' %(c[0][0].upper(), c[0][1:])) \
                for c in cols]
     fetchers = [getattr(db, 'getColumnByPos%s' %(c[1])) for c in cols]
-    
-    [setters[cols.index(c)](fetchers[cols.index(c)](cols.index(c))) \
-     for c in cols]
+    _setAttrs(setters, fetchers, cols)
     return(obj)
+
+
+def _setAttrs(setters, fetchers, cols):
+    [setters[i](fetchers[i](i)) for i in range(len(cols))]
+    return
 
 
 def simpleTwoObjectFetch(dbLocStr, table, className1, columns1, 
@@ -105,7 +112,7 @@ def simpleTwoObjectFetch(dbLocStr, table, className1, columns1,
     @param where: the where SQL statement.
     
     Return
-        [(obj11, obj21), (obj12, obj22), ...]
+        Iterator: [(obj11, obj21), (obj12, obj22), ...]
     """
     # Simple sanity check.
     if([c for c in columns1+columns2 if len(c) != 2]):
@@ -119,7 +126,7 @@ def simpleTwoObjectFetch(dbLocStr, table, className1, columns1,
         raise(NotImplementedError(msg))
     
     # Send the query.
-    res = []
+    # t0 = time.time()
     db = persistence.DbStorage()
     db.setPersistLocation(persistence.LogicalLocation(dbLocStr))
     db.setTableForQuery(table)
@@ -127,77 +134,91 @@ def simpleTwoObjectFetch(dbLocStr, table, className1, columns1,
     if(where):
         db.setQueryWhere(where)
     db.query()
+    # print('%.02fs compose and send query' %(time.time() - t0))
     
     # Fetch the results and instantiate the objects.
+    tt0 = time.time()
+    class1 = globals()[className1]
+    class2 = globals()[className2]
+    setterNames1 = ['set%s%s' %(c[0][0].upper(), c[0][1:]) for c in columns1]
+    setterNames2 = ['set%s%s' %(c[0][0].upper(), c[0][1:]) for c in columns2]
+    fetchers1 = [getattr(db, 'getColumnByPos%s' %(c[1])) for c in columns1]
+    fetchers2 = [getattr(db, 'getColumnByPos%s' %(c[1])) for c in columns2]
     while(db.next()):
-        o1 = _simpleObjectCreation(db, className1, columns1)
-        o2 = _simpleObjectCreation(db, className2, columns2)
-        res.append((o1, o2))
+        # t0 = time.time()
+        o1 = class1()
+        o2 = class2()
+        setters1 = [getattr(o1, name) for name in setterNames1]
+        setters2 = [getattr(o1, name) for name in setterNames2]
+        
+        _setAttrs(setters1, fetchers1, columns1)
+        _setAttrs(setters2, fetchers2, columns2)
+        # print('%.02fs fetch one row' %(time.time() - t0))
+        yield((o1, o2))
+    print('%.02fs fetch all rows' %(time.time() - tt0))
     db.finishQuery()
-    return(res)
-    
-    
-    
-    
-    
-    
+    # return
+
+
+
+def profileThis():
+    for moOrb in simpleTwoObjectFetch('mysql://localhost:3306/mops_onelunation',
+                                      'MovingObject',
+                                      'MovingObject',
+                                      [('movingObjectId', 'Long'), 
+                                       ('mopsStatus', 'Char'), # bug #807
+                                       ('h_v', 'Double'), 
+                                       ('g', 'Double'), 
+                                       ('arcLengthDays', 'Double')],
+                                      'Orbit',
+                                      [('q', 'Double'), 
+                                       ('e', 'Double'), 
+                                       ('i', 'Double'), 
+                                       ('node', 'Double'), 
+                                       ('argPeri', 'Double'), 
+                                       ('timePeri', 'Double'), 
+                                       ('epoch', 'Double'), 
+                                       ('src01', 'Double'), 
+                                       ('src02', 'Double'), 
+                                       ('src03', 'Double'), 
+                                       ('src04', 'Double'), 
+                                       ('src05', 'Double'), 
+                                       ('src06', 'Double'), 
+                                       ('src07', 'Double'), 
+                                       ('src08', 'Double'), 
+                                       ('src09', 'Double'), 
+                                       ('src10', 'Double'), 
+                                       ('src11', 'Double'), 
+                                       ('src12', 'Double'), 
+                                       ('src13', 'Double'), 
+                                       ('src14', 'Double'), 
+                                       ('src15', 'Double'), 
+                                       ('src16', 'Double'), 
+                                       ('src17', 'Double'), 
+                                       ('src18', 'Double'), 
+                                       ('src19', 'Double'), 
+                                       ('src20', 'Double'), 
+                                       ('src21', 'Double')],
+                                      where='mopsStatus != "M" and movingObjectId < 50000'):
+        # print(moOrb)
+        pass
+    return
+
+
 
 if(__name__ == '__main__'):
+    import cProfile
+    import pstats
     import sys
     
-    tracklets = simpleObjectFetch('mysql://localhost:3306/mops_onelunation',
-                                  'mops_Tracklet',
-                                  'Tracklet',
-                                  [('trackletId', 'Long'),
-                                   ('status', 'String'), 
-                                   ('velRa', 'Double'), 
-                                   ('velDecl', 'Double'),
-                                   ('velTot', 'Double')],
-                                  where='trackletId < 10')
-    for t in tracklets:
-        print(t)
+    
+    f = '/tmp/daymops_profile'
+    cProfile.run('profileThis()', f)
+    p = pstats.Stats(f)
+    p.strip_dirs()
+    p.sort_stats('cumulative')
+    p.print_stats()
 
-    mo_orbs = simpleTwoObjectFetch('mysql://localhost:3306/mops_onelunation',
-                                   'MovingObject',
-                                   'MovingObject',
-                                   [('movingObjectId', 'Long'), 
-                                    ('mopsStatus', 'Char'), # bug #807
-                                    ('h_v', 'Double'), 
-                                    ('g', 'Double'), 
-                                    ('arcLengthDays', 'Double')],
-                                   'Orbit',
-                                   [('q', 'Double'), 
-                                    ('e', 'Double'), 
-                                    ('i', 'Double'), 
-                                    ('node', 'Double'), 
-                                    ('argPeri', 'Double'), 
-                                    ('timePeri', 'Double'), 
-                                    ('epoch', 'Double'), 
-                                    ('src01', 'Double'), 
-                                    ('src02', 'Double'), 
-                                    ('src03', 'Double'), 
-                                    ('src04', 'Double'), 
-                                    ('src05', 'Double'), 
-                                    ('src06', 'Double'), 
-                                    ('src07', 'Double'), 
-                                    ('src08', 'Double'), 
-                                    ('src09', 'Double'), 
-                                    ('src10', 'Double'), 
-                                    ('src11', 'Double'), 
-                                    ('src12', 'Double'), 
-                                    ('src13', 'Double'), 
-                                    ('src14', 'Double'), 
-                                    ('src15', 'Double'), 
-                                    ('src16', 'Double'), 
-                                    ('src17', 'Double'), 
-                                    ('src18', 'Double'), 
-                                    ('src19', 'Double'), 
-                                    ('src20', 'Double'), 
-                                    ('src21', 'Double')],
-                                   where='movingObjectId < 10')
-    for (mo, orb) in mo_orbs:
-        print(mo, orb)
-    sys.exit(0)
 
 
 
