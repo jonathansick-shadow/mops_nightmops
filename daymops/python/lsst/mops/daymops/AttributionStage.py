@@ -58,7 +58,7 @@ from DayMOPSStage import DayMOPSStage
 from DiaSource import DiaSource
 from DiaSourceList import DiaSourceList
 from TrackletList import TrackletList
-from MovingObjectList import MovingObjectList
+import MovingObjectList
 import attribution
 import lib
 
@@ -101,11 +101,13 @@ class AttributionStage(DayMOPSStage):
         
         # Now, fetch 1/n of the known MovingObjects. We can do this because the 
         # search if on a per MovingObject basis.
-        movingObjects = MovingObjectList.getAllMovingObjects(self.dbLocStr,
-                                                             shallow=True,
-                                                             sliceId=i,
-                                                             numSlices=n)
-        self.logIt('INFO', 'Found %d MovingObjects' %(len(movingObjects)))
+        numObj = 0
+        for movingObj in MovingObjectList.getAllMovingObjects(self.dbLocStr,
+                                                              shallow=True,
+                                                              sliceId=i,
+                                                              numSlices=n):
+            numObj += 1
+        self.logIt('INFO', 'Found %d MovingObjects' %(numObj))
         
         # Put the clipboard back.
         self.outputQueue.addDataset(self.activeClipboard)
