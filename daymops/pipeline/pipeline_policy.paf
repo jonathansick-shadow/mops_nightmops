@@ -9,16 +9,17 @@ RunMode: "loop"
 shutdownTopic: "quitDayMOPS"
 
 
-appStage: { 
-     stageName: "lsst.mops.daymops.SetupStage" 
-     eventTopic: "None" 
-     stagePolicy: @policy/SetupStage.paf
-}
 
 appStage: { 
      stageName: "lsst.mops.daymops.TelescopeSimulatorStage" 
      eventTopic: "None" 
      stagePolicy: @policy/TelescopeSimulatorStage.paf
+}
+
+appStage: { 
+     stageName: "lsst.mops.daymops.SetupStage" 
+     eventTopic: "None" 
+     stagePolicy: @policy/SetupStage.paf
 }
 
 appStage: { 
