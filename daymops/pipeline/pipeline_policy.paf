@@ -10,6 +10,12 @@ shutdownTopic: "quitDayMOPS"
 
 
 appStage: { 
+     stageName: "lsst.mops.daymops.SetupStage" 
+     eventTopic: "None" 
+     stagePolicy: @policy/SetupStage.paf
+}
+
+appStage: { 
      stageName: "lsst.mops.daymops.TelescopeSimulatorStage" 
      eventTopic: "None" 
      stagePolicy: @policy/TelescopeSimulatorStage.paf
@@ -27,3 +33,20 @@ appStage: {
      stagePolicy: @policy/AttributionStage.paf
 }
 
+appStage: { 
+     stageName: "lsst.mops.daymops.InterNightLinkingStage" 
+     eventTopic: "None" 
+     stagePolicy: @policy/InterNightLinkingStage.paf
+}
+
+appStage: { 
+     stageName: "lsst.mops.daymops.OrbitManagementStage" 
+     eventTopic: "None" 
+     stagePolicy: @policy/OrbitManagementStage.paf
+}
+
+appStage: { 
+     stageName: "lsst.mops.daymops.PrecoveryStage" 
+     eventTopic: "None" 
+     stagePolicy: @policy/PrecoveryStage.paf
+}
