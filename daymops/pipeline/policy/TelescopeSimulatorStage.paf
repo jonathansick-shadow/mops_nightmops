@@ -2,6 +2,6 @@
 # Default TelescopeSimulatorStage policy file
 # All angles in degrees,times in days.
 databasePolicy: @policy/DataBase.paf
-utOfset: -0.16666666666666666     # -4.0 hours
+locationPolicy: @policy/Location.paf
 #
 
