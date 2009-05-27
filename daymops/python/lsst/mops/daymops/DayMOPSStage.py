@@ -22,12 +22,13 @@ class DayMOPSStage(object, Stage.Stage):
         # policy.
         self._policy.loadPolicyFiles()
         
-        # If we have a 'databasePolicy', extract the database string from it and
-        # it to our policy.
-        if(self._policy.exists('databasePolicy') and 
-           self._policy.get('databasePolicy').exists('database')):
-            dbStr = self._policy.get('databasePolicy').get('database')
-            self._policy.set('database', dbStr)
+        # If we have a parameter which is itself a policy file, merge it with 
+        # self._policy fr added convenience. We do not do this recursevly!!!!
+        for policyName in self._policy.policyNames():
+            p = self._policy.get(policyName)
+            for key in p.names():
+                self._policy.set(key, p.get(key))
+        
         
         # Then setup logging.
         self._log = logging.Log(logging.Log.getDefaultLog(), 
