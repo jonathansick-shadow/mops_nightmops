@@ -1,3 +1,4 @@
+from SetupStage import SetupStage
 from TelescopeSimulatorStage import TelescopeSimulatorStage
 from IntraNightLinkingStage import IntraNightLinkingStage
 from AttributionStage import AttributionStage
