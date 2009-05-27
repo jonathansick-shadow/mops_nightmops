@@ -9,38 +9,121 @@ import lsst.daf.persistence as persistence
 def newTrackletsFromTonight(dbLocStr, shallow=True, 
                             sliceId=None, numSlices=None):
     """
+    Fetch unattributed Tracklets with at least one DiaSource form tonight.
+    
     Use  sliceId and numSlices to implement some form of parallelism.
     If shallow=False, then fetch the DIASources also.
     
     Return interator.
     """
-    if(not shallow):
-        # FIXME: Implement deep copy!
-        raise(NotImplementedError('Implement deep copy!'))
+    where='mops_TrackletsToDIASource.diaSourceId=DIASourceIDTonight.DIASourceId'
+    return(_fetchTracklets(dbLocStr, 
+                           where,
+                           ('DIASourceIDTonight', ),
+                           shallow, 
+                           sliceId, 
+                           numSlices))
+
+
+def newTracklets(dbLocStr, shallow=True, 
+                 fromMjd=None, toMjd=None,
+                 sliceId=None, numSlices=None):
+    """
+    Fetch non attrinuted/linked/precovered (i.e. status='U') Tracklets.
+    If fromMjd != None, then only consider tracklets which have at least one 
+    DiaSource with taiMidPoint >= fromMjd.
     
+    If toMjd != None, then only consider tracklets which have at least one 
+    DiaSource with taiMidPoint <= toMjd.
+    
+    Use  sliceId and numSlices to implement some form of parallelism.
+    If shallow=False, then fetch the DIASources also.
+    
+    Return interator.
+    """
+    where = ''
+    if(fromMjd != None):
+        where += 'DiaSource.taiMidPoint >= %f' %(fromMjd)
+    if(toMjd != None):
+        if(where):
+            where += 'DiaSource.taiMidPoint <= %f' %(toMjd)
+        else:
+            where = 'DiaSource.taiMidPoint <= %f' %(toMjd)
+    return(_fetchTracklets(dbLocStr, 
+                           where,
+                           [],
+                           shallow, 
+                           sliceId, 
+                           numSlices))
+
+
+def _fetchTracklets(dbLocStr, where, extraTables=[], shallow=True, 
+                    sliceId=None, numSlices=None):
+    """
+    Fetch non attrinuted/linked/precovered (i.e. status=STATUS['UNATTRIBUTED']) 
+    Tracklets.
+    
+    The teables from which we select (in ddition to mops_Tracklet and 
+    mops_TrackletsToDIASource) have to be specified in the extraTables list.
+    
+    The SQL where clause has to be specified. In it, specify the full 
+    table names (e.g. mops_Tracklet.status instead of just status).
+    
+    Use  sliceId and numSlices to implement some form of parallelism.
+    If shallow=False, then fetch the DIASources also.
+    
+    Return interator.
+    """
+    if(shallow):
+        return(_fetchShallowTracklets(dbLocStr, where, extraTables, sliceId, 
+                                      numSlices))
+    # else:
+    return(_fetchDeepTracklets(dbLocStr, where, extraTables, sliceId, 
+                               numSlices))
+
+
+
+
+def _fetchShallowTracklets(dbLocStr, where, extraTables=[], sliceId=None, 
+                           numSlices=None):
+    """
+    Fetch non attrinuted/linked/precovered (i.e. status=STATUS['UNATTRIBUTED']) 
+    Tracklets.
+    
+    The teables from which we select (in ddition to mops_Tracklet and 
+    mops_TrackletsToDIASource) have to be specified in the extraTables list.
+    
+    The SQL where clause has to be specified. In it, specify the full 
+    table names (e.g. mops_Tracklet.status instead of just status).
+    
+    Use  sliceId and numSlices to implement some form of parallelism.
+    
+    Do not fetch DiaSources (shallow fetch).
+    
+    Return interator.
+    """
     # Send the query.
-    # sql: select distinct(t.trackletId), t.velRa, t.velDecl, t.velTot, 
-    #      t.status  from mops_Tracklet t, mops_TrackletsToDIASource td, 
-    #      DIASourceIDTonight dt where t.status='U' and 
-    #      t.trackletId=td.trackletId and td.diaSourceId=dt.DIASourceId
     db = persistence.DbStorage()
     db.setPersistLocation(persistence.LogicalLocation(dbLocStr))
-    db.setTableListForQuery(('mops_Tracklet', 
-                             'mops_TrackletsToDIASource',
-                             'DIASourceIDTonight'))
+    tables = ['mops_Tracklet', 'mops_TrackletsToDIASource'] + list(extraTables)
+    db.setTableListForQuery(tables)
     db.outColumn('distinct(mops_Tracklet.trackletId)', True)
     db.outColumn('mops_Tracklet.velRa')
     db.outColumn('mops_Tracklet.velDecl')
     db.outColumn('mops_Tracklet.velTot')
     db.outColumn('mops_Tracklet.status')
     
-    where = '''mops_Tracklet.status="U" and 
-mops_Tracklet.trackletId=mops_TrackletsToDIASource.trackletId and 
-mops_TrackletsToDIASource.diaSourceId=DIASourceIDTonight.DIASourceId'''
+    w2 = 'mops_Tracklet.status="%s"' %(STATUS['UNATTRIBUTED'])
+    w2 += ' and mops_Tracklet.trackletId=mops_TrackletsToDIASource.trackletId'
+    
+    w = ''
+    if(where):
+        w = '%s and %s' %(w2, where)
+    else:
+        w = w2
     if(sliceId != None and numSlices > 1):
-        where += ' and mops_Tracklet.trackletId %% %d = %d' \
-                 %(numSlices, sliceId)
-    db.setQueryWhere(where)
+        w += ' and mops_Tracklet.trackletId %% %d = %d' %(numSlices, sliceId)
+    db.setQueryWhere(w)
     db.query()
     
     # Fetch the results.
@@ -52,6 +135,116 @@ mops_TrackletsToDIASource.diaSourceId=DIASourceIDTonight.DIASourceId'''
         t.setVelTot(db.getColumnByPosDouble(3))
         t.setStatus(db.getColumnByPosString(4))
         yield(t)
+    db.finishQuery()
+    del(db)
+    # return
+
+
+def _fetchDeepTracklets(dbLocStr, where, extraTables=[], sliceId=None, 
+                        numSlices=None):
+    """
+    Fetch non attrinuted/linked/precovered (i.e. status=STATUS['UNATTRIBUTED']) 
+    Tracklets.
+    
+    The teables from which we select (in ddition to mops_Tracklet and 
+    mops_TrackletsToDIASource) have to be specified in the extraTables list.
+    
+    The SQL where clause has to be specified. In it, specify the full 
+    table names (e.g. mops_Tracklet.status instead of just status).
+    
+    Use  sliceId and numSlices to implement some form of parallelism.
+    
+    Fetch DiaSources (deep fetch).
+    
+    Return interator.
+    """
+    # Send the query.
+    db = persistence.DbStorage()
+    db.setPersistLocation(persistence.LogicalLocation(dbLocStr))
+    tables = ['mops_Tracklet', 'mops_TrackletsToDIASource', 'DiaSource'] + \
+             list(extraTables)
+    db.setTableListForQuery(tables)
+    db.outColumn('mops_Tracklet.trackletId', True)
+    db.outColumn('mops_Tracklet.velRa')
+    db.outColumn('mops_Tracklet.velDecl')
+    db.outColumn('mops_Tracklet.velTot')
+    db.outColumn('mops_Tracklet.status')
+    db.outColumn('DiaSource.diaSourceId')
+    db.outColumn('DiaSource.ra')
+    db.outColumn('DiaSource.decl')
+    db.outColumn('DiaSource.filterId')
+    db.outColumn('DiaSource.taiMidPoint')
+    db.outColumn('DiaSource.obsCode')
+    db.outColumn('DiaSource.apFlux')
+    db.outColumn('DiaSource.apFluxErr')
+    db.outColumn('DiaSource.refMag')
+    
+    w2 = 'mops_Tracklet.status="%s"' %(STATUS['UNATTRIBUTED'])
+    w2 += ' and mops_Tracklet.trackletId=mops_TrackletsToDIASource.trackletId'
+    w2 += ' and DiaSource.diaSourceId=mops_TrackletsToDIASource.diaSourceId'
+    
+    w = ''
+    if(where):
+        w = '%s and %s' %(w2, where)
+    else:
+        w = w2
+    if(sliceId != None and numSlices > 1):
+        w += ' and mops_Tracklet.trackletId %% %d = %d' %(numSlices, sliceId)
+    db.setQueryWhere(w)
+    db.query()
+    
+    # Fetch the results.
+    refId = None
+    t = Tracklet()
+    diaSources = []
+    while(db.next()):
+        # DiaSource
+        d = DiaSource()
+        d.setDiaSourceId(db.getColumnByPosLong(5))
+        d.setRa(db.getColumnByPosDouble(6))
+        d.setDec(db.getColumnByPosDouble(7))
+        d.setFilterId(db.getColumnByPosInt(8))
+        d.setTaiMidPoint(db.getColumnByPosDouble(9))
+        d.setObsCode(db.getColumnByPosString(10))
+        d.setApFlux(db.getColumnByPosDouble(11))
+        d.setApFluxErr(db.getColumnByPosDouble(12))
+        d.setRefMag(db.getColumnByPosDouble(13))
+        
+        trackletId = db.getColumnByPosLong(0)
+        if(refId == None):
+            # First pass.
+            t.setTrackletId(trackletId)
+            t.setVelRa(db.getColumnByPosDouble(1))
+            t.setVelDec(db.getColumnByPosDouble(2))
+            t.setVelTot(db.getColumnByPosDouble(3))
+            t.setStatus(db.getColumnByPosString(4))
+            
+            # Init refId.
+            refId = trackletId
+        elif(refId != trackletId):
+            # New Tracklet. Finish up theold tracklet.
+            t.setDiaSources(diaSources)
+            yield(t)
+            
+            # Now reset the diaSources list.
+            diaSources = []
+            
+            # And reset t.
+            t = Tracklet()
+            t.setTrackletId(trackletId)
+            t.setVelRa(db.getColumnByPosDouble(1))
+            t.setVelDec(db.getColumnByPosDouble(2))
+            t.setVelTot(db.getColumnByPosDouble(3))
+            t.setStatus(db.getColumnByPosString(4))
+            
+            # Update refId.
+            refId = trackletId
+        else:
+            # Same tracklet: do not modify it.
+            pass
+        
+        # Add d to diaSources.
+        diaSources.append(d)
     db.finishQuery()
     del(db)
     # return
