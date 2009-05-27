@@ -5,12 +5,17 @@ databasePolicy: @policy/DataBase.paf
 locationPolicy: @policy/Location.paf
 
 minNights: 3                # minimum number of nights to attempt OD
+timeSpan: 30                # max number of days worth of data to consider.
 
 slowMinV: 0.0               # minv for "slow movers"
 slowMaxV: 0.5               # maxv for "slow movers"
-slowLinkOpts: 'vtree_thresh 0.0003 pred_thresh 0.0005'
+slowVtreeThresh: 0.0003
+slowPredThresh: 0.0005
 
 fastMinV: 0.4               # minv for "fast movers"
 fastMaxV: 7.0               # maxv for "fast movers"
-fastLinkOpts: 'vtree_thresh 0.0025 pred_thresh 0.0025'
+fastVtreeThresh: 0.0025
+fastPredThresh: 0.0025
+
+plateWidth: .0001
 #
