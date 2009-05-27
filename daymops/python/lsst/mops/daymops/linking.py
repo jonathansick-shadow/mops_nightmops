@@ -57,8 +57,51 @@ def trackletsFromDiaSources(sources, maxV=DEFAULT_MAXV, minObs=DEFAULT_MINOBS,
             raise(Exception('Empty tracklet!'))
     return(tracklets)
 
+
+def linkTracklets(tracklets, slowMinV, slowMaxV, slowVtreeThresh,slowPredThresh,
+                  fastMinV, fastMaxV, fastVtreeThresh, fastPredThresh,minNights,
+                  plateWidth):
+    """
+    Given a list of tracklets, link them into tracks. Do two passes: one for 
+    slow movers (defined as having velocity between slowMinV and slowMaxV) and
+    one for fast movers (defined as having velocity between fastMinV and 
+    fastMaxV).
     
+    Return [[trackletId1, trackletID2, ...], ]
+    """
+    dets = []
+    for t in tracklets:
+        for d in t.getDiaSources():
+            mag, magErr = lib.fluxToMag(d.getApFlux(), 
+                                        d.getApFluxErr(), 
+                                        d.getRefMag())
+            dets.append((t.getTrackletId(),
+                         d.getTaiMidPoint(),
+                         d.getRa(),
+                         d.getDec(),
+                         mag,
+                         int(d.getObsCode()),
+                         'dummy'))
     
+    args = {'detections': dets,
+            'min_obs': minNights * 2,
+            'min_sup': minNights,
+            'plate_width': plateWidth}
+    
+    # Get the slow tracks.
+    args.update({'minv': slowMinV,
+                 'maxv': slowMaxV,
+                 'vtree_thresh': slowVtreeThresh,
+                 'pred_thresh': slowPredThresh})
+    tracks = auton.linktracklets(**args)
+    
+    # Get the fast tracks.
+    args.update({'minv': fastMinV,
+                 'maxv': fastMaxV,
+                 'vtree_thresh': fastVtreeThresh,
+                 'pred_thresh': fastPredThresh})
+    tracks += auton.linktracklets(**args)
+    return(tracks)
     
     
     
