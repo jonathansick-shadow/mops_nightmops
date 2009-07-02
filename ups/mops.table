@@ -8,7 +8,7 @@ setupRequired(pex_logging >= 3.3.2)
 setupRequired(pex_policy >= 3.3.1)
 setupRequired(daf_persistence >= 3.3.5)
 setupRequired(afw >= 3.3.7)
-setupRequired(pex_harness >= 3.2.2)
+setupRequired(pex_harness >= 3.3.4)
 setupOptional(auton)
 setupOptional(ssd)
 
