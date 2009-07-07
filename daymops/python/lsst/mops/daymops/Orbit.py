@@ -9,11 +9,13 @@ STABLE_STATUS = {'STABLE':      'Y',
 
 class Orbit(DayMOPSObject):
     def __init__(self, 
+                 a=None,
                  q=None, 
                  e=None, 
                  i=None, 
                  node=None, 
                  argPeri=None, 
+                 m=None,
                  timePeri=None, 
                  epoch=None, 
                  src=[],
@@ -26,20 +28,24 @@ class Orbit(DayMOPSObject):
                  moidLong1=None,
                  moidLong2=None):
         """
-        q (AU)
+        a (AU)                              (only for Keplerian elements)
+        q (AU)                              (only for cometary elements)
         e
         i (deg)
         node (deg)
         argPeri (deg)
-        timePeri (TAI MJD)
+        m (deg)                             (only for Keplerian elements)
+        timePeri (TAI MJD)                  (only for cometary elements)
         epoch: orbit epoch (TAI MJD)
         src: 21 element array (covariance matrix in diagonal form).
         """
+        self._a = a
         self._q = q
         self._e = e
         self._i = i
         self._node = node
         self._argPeri = argPeri
+        self._m = m
         self._timePeri = timePeri
         self._epoch = epoch
         self.setSrc(src)
@@ -55,9 +61,9 @@ class Orbit(DayMOPSObject):
         return
 
     def __str__(self):
-        return('Orbit(%.05f, %.05f, %.05f, %.05f, %.05f, %.05f, %.05f)' \
-               %(self._q, self._e, self._i, self._node, self._timePeri, 
-                 self._argPeri, self._epoch, ))
+        return('(%.05f, %.05f,%.05f, %.05f, %.05f, %.05f, %.05f, %.05f, %.05f)'\
+               %(self._a, self._q, self._e, self._i, self._node, self._m, 
+                 self._timePeri, self._argPeri, self._epoch, ))
 
     def setSrc(self, src):
         """
