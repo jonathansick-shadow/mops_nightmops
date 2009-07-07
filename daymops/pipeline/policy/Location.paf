@@ -1,8 +1,8 @@
 #<?cfg paf policy ?>
 # Default location policy file
 # All angles in degrees!
-utOffset: -0.16666666666666666     # -4.0 hours
-obsCode: 566
+utOffset: -0.41666666666666669      # -10.0 hours
+obsCode: "566"                      # Haleakala
 #
 
 
