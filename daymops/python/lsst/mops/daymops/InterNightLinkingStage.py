@@ -46,7 +46,7 @@ class InterNightLinkingStage(DayMOPSStage):
         super(InterNightLinkingStage, self).__init__(stageId, policy)
         
         # Read the configuration from policy.
-        self.obsCode = self.getValueFromPolicy('obsCode')
+        self.obsCode = str(self.getValueFromPolicy('obsCode'))
         self.dbLocStr = self.getValueFromPolicy('database')
         
         self.slowMinV = self.getValueFromPolicy('slowMinV')
@@ -64,6 +64,10 @@ class InterNightLinkingStage(DayMOPSStage):
         self.minNights = self.getValueFromPolicy('minNights')
         self.timeSpan = self.getValueFromPolicy('timeSpan')
         self.utOffset = self.getValueFromPolicy('utOffset')
+        
+        self.numRangingOrbits = self.getValueFromPolicy('numRangingOrbits')
+        self.elementType = self.getValueFromPolicy('elementType')
+        self.stdDev = self.getValueFromPolicy('stdDev')
         return
     
     def process(self):
@@ -94,6 +98,11 @@ class InterNightLinkingStage(DayMOPSStage):
         # Fetch the list of available Tracklets within the last 30 days (meaning
         # fetch all non linked/attributed etc. Tracklets with at least one
         # DiaSource whose taiMidPoint is within 30 days of tonight's MJD).
+        # FIXME: This is done here in a wrong way since it is not possible to
+        #        have the non parallel partt of the Stage communicate with the
+        #        parallel part. We are here only processing a subset of 
+        #        tracklets per Slice and that means that we will miss some 
+        #        tracks. This needs to be done better!
         tracklets = []
         for tracklet in TrackletList.newTracklets(self.dbLocStr, 
                                                   shallow=False,
@@ -107,27 +116,54 @@ class InterNightLinkingStage(DayMOPSStage):
             self.outputQueue.addDataset(self.activeClipboard)
             return
         
-        # Create Tracks from those Tracklets. We do this in two steps: a first
-        # step for slow movers (as defined in the policy file) and one for fast
-        # movers (again as defined in the policy file).
-        tracks = linking.linkTracklets(tracklets, 
-                                       self.slowMinV,
-                                       self.slowMaxV,
-                                       self.slowVtreeThresh,
-                                       self.slowPredThresh,
-                                       self.fastMinV,
-                                       self.fastMaxV,
-                                       self.fastVtreeThresh,
-                                       self.fastPredThresh,
-                                       self.minNights,
-                                       self.plateWidth)
-        self.logIt('INFO', 'Found %d tracks.' %(len(tracks)))
-        if(not tracks):
+        # Build an id->tracklet mapping.
+        # We do it here because doing it in linking.py crashes Python (?!)
+        idToTrackletDict = dict([(t.getTrackletId(), t) for t in tracklets])
+        
+        # Create Tracks from those Tracklets. We do this (internally) in two 
+        # steps: a first step for slow movers (as defined in the policy file) 
+        # and one for fast movers (again as defined in the policy file).
+        rawTracks = linking.linkTracklets(tracklets, 
+                                          self.slowMinV,
+                                          self.slowMaxV,
+                                          self.slowVtreeThresh,
+                                          self.slowPredThresh,
+                                          self.fastMinV,
+                                          self.fastMaxV,
+                                          self.fastVtreeThresh,
+                                          self.fastPredThresh,
+                                          self.minNights,
+                                          self.plateWidth)
+        self.logIt('INFO', 'Found %d tracks.' %(len(rawTracks)))
+        if(not rawTracks):
             self.outputQueue.addDataset(self.activeClipboard)
             return
         
+        # rawTracks are just lists of tracklet Ids...
+        tracks = []
+        for rawTrack in rawTracks:
+            tracks.append([idToTrackletDict[tId] for tId in rawTrack])
+            track = []
+            for tId in rawTrack:
+                t = idToTrackletDict[tId]
+                track.append(t)
+            tracks.append(track)
+        
         # Pass the Tracks to the OrbitDetermination code.
-        # orbitTrackMapping = linking.orbitDetermination(tracks)
+        orbits = linking.orbitDetermination(tracks, 
+                                            self.elementType,
+                                            self.numRangingOrbits,
+                                            self.stdDev,
+                                            self.obsCode)
+        # Count the number of not null orbits.
+        numOrbits = reduce(lambda x,y: x+y, [1 for o in orbits if o != None], 0)
+        self.logIt('INFO', 'Found %d possible orbits.' %(numOrbits))
+        if(not orbits):
+            self.outputQueue.addDataset(self.activeClipboard)
+            return
+        
+        
+        
         
         # Now we have a number of proposed linkages. We should pass them back to
         # either another stage or our post-processing method for consolidation.
