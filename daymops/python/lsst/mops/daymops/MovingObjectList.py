@@ -1,9 +1,13 @@
+"""
+Helper functions to create/retrieve a list of MovingObject instances.
+"""
 from DayMOPSObject import DayMOPSObject
 from MovingObject import MovingObject, STATUS
 from Orbit import STABLE_STATUS
 import dblib
 
 import lsst.daf.persistence as persistence
+
 
 
 
@@ -14,7 +18,13 @@ def getAllMovingObjects(dbLocStr, shallow=True, sliceId=None, numSlices=None):
     Use  sliceId and numSlices to implement some form of parallelism.
     If shallow=False, then fetch the Tracklets also.
     
-    Return an iterator.
+    @param dbLocStr: database connection string.
+    @param shallow: if True, do not bother retrieving Tracklets per MovingObject
+    @param sliceId: Id of the current Slice.
+    @param numSlices: number of available slices (i.e. MPI universe size - 1)
+    
+    Return 
+    Interator to the list of MovingObject instances.
     """
     return(_getMovingObjects(dbLocStr, 'mopsStatus != "%s"' %(STATUS['MERGED']),
                              shallow, sliceId, numSlices))
@@ -27,7 +37,13 @@ def getAllUnstableMovingObjects(dbLocStr, shallow=True, sliceId=None,
     Use  sliceId and numSlices to implement some form of parallelism.
     If shallow=False, then fetch the Tracklets also.
     
-    Return an iterator.
+    @param dbLocStr: database connection string.
+    @param shallow: if True, do not bother retrieving Tracklets per MovingObject
+    @param sliceId: Id of the current Slice.
+    @param numSlices: number of available slices (i.e. MPI universe size - 1)
+    
+    Return 
+    Interator to the list of MovingObject instances.
     """
     where = 'mopsStatus != "%s" and stablePass != "%s"' \
             %(STATUS['MERGED'], STABLE_STATUS['STABLE'])

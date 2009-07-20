@@ -1,3 +1,6 @@
+"""
+Class to represent a Tracklet object.
+"""
 from DayMOPSObject import DayMOPSObject
 import DiaSourceList
 import lsst.daf.persistence as persistence

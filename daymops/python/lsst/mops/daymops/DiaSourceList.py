@@ -1,3 +1,6 @@
+"""
+Helper functions to create/retrieve a list of DIASource instances.
+"""
 from DayMOPSObject import DayMOPSObject
 from DiaSource import DiaSource
 import lib
@@ -5,13 +8,18 @@ import lib
 import lsst.daf.persistence as persistence
 
 
-    
+
 
 def diaSourceListForTonight(dbLocStr, sliceId=None, numSlices=None):
     """
     Use  sliceId and numSlices to implement some form of parallelism.
     
-    Return iterator.
+    @param dbLocStr: database connection string.
+    @param sliceId: Id of the current Slice.
+    @param numSlices: number of available slices (i.e. MPI universe size - 1)
+    
+    Return 
+    Interator to the list of DIASource instances.
     """
     # Send the query.
     # sql: select d.diaSourceId, d.ra, d.decl, d.filterId, d.taiMidPoint, \
@@ -62,7 +70,12 @@ def computeVelocityStats(diaSources):
     Compute basic velocity information based on the details of members of
     diaSources.
     
-    Return [velRa, velDec, velModulus] (deg/day)
+    @param diaSources: list of DIASource instances.
+    
+    Return 
+    Velocity components and modulus, in deg/day computed from the input list of 
+    DIASource positions and MJDs.
+        [velRa, velDec, velModulus]
     """
     # Sort diaSources by MJD. Compute stats on first and last DiaSource. We 
     # assume linear motion from the first DiaSource to the last only for now.
@@ -88,7 +101,12 @@ def getTimeSpan(diaSources):
     """
     Return the time span in day of diaSources. The time span is 
     defined as
-    max(d.getTaiMidPoint())-min(d.getTaiMidPoint) for d in diaSources
+        max(d.getTaiMidPoint())-min(d.getTaiMidPoint) for d in diaSources
+    
+    @param diaSources: list of DIASource instances.
+    
+    Return
+    The time spanned (in days) by the input DIASource instances.
     """
     times = [d.getTaiMidPoint() for d in diaSources]
     times.sort()

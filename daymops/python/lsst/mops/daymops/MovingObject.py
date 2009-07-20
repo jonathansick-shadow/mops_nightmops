@@ -1,3 +1,6 @@
+"""
+Class to represent a MovingObject object.
+"""
 from DayMOPSObject import DayMOPSObject
 import TrackletList
 import lsst.daf.persistence as persistence

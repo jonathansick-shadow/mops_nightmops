@@ -1,3 +1,8 @@
+"""
+Class to represent a DIASource object.
+
+This is monkeypatching the corresponding C++ class.
+"""
 from DayMOPSObject import DayMOPSObject
 import lsst.afw.detection as detection
 import lsst.daf.persistence as persistence

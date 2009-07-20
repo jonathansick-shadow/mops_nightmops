@@ -1,3 +1,6 @@
+"""
+Helper functions to create/retrieve a list of Tracklet instances.
+"""
 from DayMOPSObject import DayMOPSObject
 from DiaSource import DiaSource
 import DiaSourceList
@@ -14,7 +17,13 @@ def newTrackletsFromTonight(dbLocStr, shallow=True,
     Use  sliceId and numSlices to implement some form of parallelism.
     If shallow=False, then fetch the DIASources also.
     
-    Return interator.
+    @param dbLocStr: database connection string.
+    @param shallow: if True, do not bother retrieving DIASources per Tracklet.
+    @param sliceId: Id of the current Slice.
+    @param numSlices: number of available slices (i.e. MPI universe size - 1)
+    
+    Return 
+    Interator to the list of Tracklet instances.
     """
     where='mops_TrackletsToDIASource.diaSourceId=DIASourceIDTonight.DIASourceId'
     return(_fetchTracklets(dbLocStr, 
@@ -39,7 +48,15 @@ def newTracklets(dbLocStr, shallow=True,
     Use  sliceId and numSlices to implement some form of parallelism.
     If shallow=False, then fetch the DIASources also.
     
-    Return interator.
+    @param dbLocStr: database connection string.
+    @param shallow: if True, do not bother retrieving DIASources per Tracklet.
+    @param fromMjd: min DIASource MJD to consider for Tracklet retrieval.
+    @param toMjd: max DIASource MJD to consider for Tracklet retrieval.
+    @param sliceId: Id of the current Slice.
+    @param numSlices: number of available slices (i.e. MPI universe size - 1)
+    
+    Return
+    Interator to the list of Tracklet instances.
     """
     where = ''
     if(fromMjd != None):
@@ -254,6 +271,12 @@ def getArcLength(tracklets):
     """
     Compute the arc length in days from the DiaSources that are part of this
     list of Tracklets.
+    
+    @param tracklets: a list of Tracklet instances.
+    
+    Return
+    Total arc length in days for all the DIASources part of the unition of input
+    Tracklet instances.
     """
     # TODO: is this the most efficient way of computing the arc length?
     # Probably not, but at least is pretty elegant.
@@ -262,6 +285,15 @@ def getArcLength(tracklets):
 
 
 def save(dbLocStr, tracklets):
+    """
+    Save the input list of Tracklet instances to the database.
+    
+    @param dbLocStr: database connection string.
+    @param tracklets: a list of Tracklet instances.
+    
+    Return
+    None
+    """
     # Get the next available trackletId.
     newTrackletId = _getNextTrackletId(dbLocStr)
 

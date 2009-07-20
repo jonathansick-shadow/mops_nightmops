@@ -1,3 +1,6 @@
+"""
+Class to represent an Orbit object (part of a MovingObject instance).
+"""
 from DayMOPSObject import DayMOPSObject
 
 
