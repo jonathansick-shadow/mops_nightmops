@@ -1,7 +1,13 @@
+"""
+Simulate the flow of data into DIASourceIDTonight
+
+Used for testing purposes only.
+"""
 from DayMOPSStage import DayMOPSStage
 import lib
 
 import lsst.daf.persistence as persistence
+
 
 
 

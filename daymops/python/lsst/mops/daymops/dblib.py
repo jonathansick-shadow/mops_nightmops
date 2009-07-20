@@ -1,5 +1,8 @@
 """
-Simple database-related functions and classes.
+Generic database-related functions and classes.
+
+Here you will find funtions that retrieve an object from the database and build
+an instance of a given class based on the data retrieved.
 """
 import lsst.daf.persistence as persistence
 

@@ -1,5 +1,7 @@
 """
 Utility functions for DayMOPS
+
+Here you will find generic funtions used throughout DayMOPS.
 """
 from lsst.daf.base import DateTime
 

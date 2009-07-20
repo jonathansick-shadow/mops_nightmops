@@ -91,7 +91,7 @@ class IntraNightLinkingStage(DayMOPSStage):
             return
         
         # Build the tracklets.
-        tracklets = linking.trackletsFromDiaSources(sources)
+        tracklets = [t for t in linking.trackletsFromDiaSources(sources)]
         
         # Put those Tracklets in the database.
         if(tracklets and len(tracklets)):

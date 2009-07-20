@@ -1,5 +1,7 @@
 """
 Generic functions for attribution and precovery.
+
+Not finished: just an initial skeleton.
 """
 import lib
 from Tracklet import Tracklet

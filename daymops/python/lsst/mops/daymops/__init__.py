@@ -1,3 +1,8 @@
+"""
+Standard module __init__.py
+
+Nothing to see here.
+"""
 from SetupStage import SetupStage
 from TelescopeSimulatorStage import TelescopeSimulatorStage
 from IntraNightLinkingStage import IntraNightLinkingStage

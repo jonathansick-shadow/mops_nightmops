@@ -1,3 +1,7 @@
+"""
+Convenience super-class that automatically adds getters and setters according to
+LSST desiderata.
+"""
 class DayMOPSObject(object):
     """
     Auto-create getters and setters.
