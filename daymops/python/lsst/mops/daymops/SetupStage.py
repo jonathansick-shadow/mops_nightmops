@@ -38,6 +38,11 @@ import time
 
 
 class SetupStage(DayMOPSStage):
+    """
+    This just computes the night number and puts it on the clipboard. Since 
+    there is no communication between the non-parallel and the parallel part of 
+    a Stage, we duplicate the computation in preprocess() and process().
+    """
     def __init__(self, stageId=-1, policy=None):
         """
         Standard Stage initializer.
@@ -49,7 +54,7 @@ class SetupStage(DayMOPSStage):
         self.utOffset = self.getValueFromPolicy('utOffset')
         return
     
-    def process(self):
+    def preprocess(self):
         """
         Execute the non-parallel processing for the Intra-night linking Stage.
         
@@ -58,10 +63,9 @@ class SetupStage(DayMOPSStage):
         2. Compute night number
         3. Update clipboard.
         """
-        self.logIt('INFO', 'Started processing.')
-        
-        # Fetch the clipboard.
-        self.activeClipboard = self.inputQueue.getNextDataset()
+        # Call the superclass preprocess.
+        super(SetupStage, self).preprocess()
+        self.logIt('INFO', 'Started preprocessing.')
         
         # Retrieve the DIASources to process.
         iter = DiaSourceList.diaSourceListForTonight(self.dbLocStr)
@@ -72,6 +76,42 @@ class SetupStage(DayMOPSStage):
         if(source):
             self.logIt('INFO', 'Found at least one DiaSource.')
         else:
+            self.activeClipboard.put('nightNumber', None)
+            self.logIt('INFO', 'Found 0 DiaSources.')
+            return
+        
+        # Compute the night number.
+        nightNumber = lib.mjdToNightNumber(source.getTaiMidPoint(),
+                                           utOffset=self.utOffset)
+        
+        # Update the clipboard.
+        self.activeClipboard.put('nightNumber', nightNumber)
+        self.logIt('INFO', 'Updated the clipboard.')
+        return
+    
+    def process(self):
+        """
+        Execute the non-parallel processing for the Intra-night linking Stage.
+        
+        Pseudo-code:
+        1. Fetch last night's DIASources (at most one).
+        2. Compute night number
+        3. Update clipboard.
+        """
+        # Fetch the clipboard.
+        self.activeClipboard = self.inputQueue.getNextDataset()
+        self.logIt('INFO', 'Started processing.')
+        
+        # Retrieve the DIASources to process.
+        iter = DiaSourceList.diaSourceListForTonight(self.dbLocStr)
+        try:
+            source = iter.next()
+        except StopIteration:
+            source = None
+        if(source):
+            self.logIt('INFO', 'Found at least one DiaSource.')
+        else:
+            self.activeClipboard.put('nightNumber', None)
             self.outputQueue.addDataset(self.activeClipboard)
             self.logIt('INFO', 'Found 0 DiaSources.')
             return
@@ -85,6 +125,7 @@ class SetupStage(DayMOPSStage):
         
         # Put the clipboard back.
         self.outputQueue.addDataset(self.activeClipboard)
+        self.logIt('INFO', 'Updated the clipboard.')
         return
 
 

@@ -173,7 +173,7 @@ def orbitDetermination(tracks,
         [orbit|None, ]
     where for each track, we either have an orbit or None.
     
-    @param tracks: a list of lists of Tracklet instances.
+    @param tracks: a list of Track instances.
     @param elementType: name of the orbital element type to use.
     @param numRangingOrbits: number of ranging orbits to produce.
     @param stdDev: observational RA/Dec uncertainty in degrees.
@@ -190,11 +190,8 @@ def orbitDetermination(tracks,
     """
     # We do statistical ranging first, one track at the time. Then we do LSL on
     # the orbits we get from statistical ranging.
-    i = -1
     for track in tracks:
-        i += 1
-        # track = tracks[i]: [tracklet1, tracklet2, ...]
-        trackId = i
+        trackId = track.getTrackId()
         coords = []
         mjds = []
         mags = []
@@ -202,7 +199,7 @@ def orbitDetermination(tracks,
         obscodes = []                           # In reality we only have one!
         
         # Get to the DiaSources.
-        for tracklet in track:
+        for tracklet in track.getTracklets():
             for d in tracklet.getDiaSources():
                 coords.append([d.getRa(), stdDev, d.getDec(), stdDev])
                 mags.append(lib.fluxToMag(d.getApFlux(), 

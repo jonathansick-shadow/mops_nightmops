@@ -110,6 +110,7 @@ class TelescopeSimulatorStage(DayMOPSStage):
         db.endTransaction()
         del(db)
         self.logIt('INFO', 'Inserted DiaSource IDs into DIASourceIDTonight')
+        self.outputQueue.addDataset(self.activeClipboard)
         return
     
     def _shutdownPipeline(self):

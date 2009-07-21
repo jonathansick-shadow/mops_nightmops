@@ -86,6 +86,11 @@ class AttributionStage(DayMOPSStage):
         self.dbLocStr = self.getValueFromPolicy('database')
         return
     
+    def preprocess(self):
+        super(AttributionStage, self).preprocess()
+        self.outputQueue.addDataset(self.activeClipboard)
+        return
+    
     def process(self):
         # Fetch the clipboard.
         self.activeClipboard = self.inputQueue.getNextDataset()

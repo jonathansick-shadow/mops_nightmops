@@ -181,7 +181,7 @@ def _fetchDeepTracklets(dbLocStr, where, extraTables=[], sliceId=None,
     tables = ['mops_Tracklet', 'mops_TrackletsToDIASource', 'DiaSource'] + \
              list(extraTables)
     db.setTableListForQuery(tables)
-    db.outColumn('mops_Tracklet.trackletId', True)
+    db.outColumn('mops_Tracklet.trackletId')
     db.outColumn('mops_Tracklet.velRa')
     db.outColumn('mops_Tracklet.velDecl')
     db.outColumn('mops_Tracklet.velTot')
@@ -208,6 +208,7 @@ def _fetchDeepTracklets(dbLocStr, where, extraTables=[], sliceId=None,
     if(sliceId != None and numSlices > 1):
         w += ' and mops_Tracklet.trackletId %% %d = %d' %(numSlices, sliceId)
     db.setQueryWhere(w)
+    db.orderBy('mops_Tracklet.trackletId')
     db.query()
     
     # Fetch the results.
@@ -307,8 +308,8 @@ def save(dbLocStr, tracklets):
     dbTrk.setTableForInsert('mops_Tracklet')
     dbSrc.setTableForInsert('mops_TrackletsToDIASource')
     
-    dbTrk.startTransaction()
-    dbSrc.startTransaction()
+    # dbTrk.startTransaction()
+    # dbSrc.startTransaction()
     for tracklet in tracklets:
         # If the tracklet has an id already, use that, otherwise use a new 
         # one.
@@ -339,8 +340,8 @@ def save(dbLocStr, tracklets):
             dbSrc.setColumnLong('trackletId', trackletId)
             dbSrc.setColumnLong('diaSourceId', diaSource.getDiaSourceId())
             dbSrc.insertRow()
-    dbTrk.endTransaction()
-    dbSrc.endTransaction()
+    # dbTrk.endTransaction()
+    # dbSrc.endTransaction()
     return
 
 
