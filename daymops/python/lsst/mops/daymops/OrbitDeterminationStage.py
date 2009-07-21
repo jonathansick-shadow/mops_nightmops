@@ -38,7 +38,7 @@ class OrbitDeterminationStage(DayMOPSStage):
         """
         Standard Stage initializer.
         """
-        super(InterNightLinkingStage, self).__init__(stageId, policy)
+        super(OrbitDeterminationStage, self).__init__(stageId, policy)
         
         # Read the configuration from policy.
         self.obsCode = str(self.getValueFromPolicy('obsCode'))
