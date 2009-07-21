@@ -4,8 +4,10 @@ F. Pierfederici
 
 In order to generate some test data
 
-1. Execute lsst_root/cat/trunk/sql/lsstSchema4mysqlDC3b.sql
-2. Execute testData.sql in this directory
+1. Execute lsst_root/cat/trunk/sql/lsstSchema4mysqlDC3b.sql 
+   (copied here for convenience).
+2. Generate the test data SQL by using the psmops_to_daymops.py script.
+3. Execute the test data SQL script generated in the step above.
 
 This will create the necessary database schema and populate it with a full 
 lunation of DIASources over a simple cadence. It will also contain a small
