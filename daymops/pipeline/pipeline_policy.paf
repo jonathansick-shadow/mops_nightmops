@@ -28,11 +28,11 @@ appStage: {
      stagePolicy: @policy/IntraNightLinkingStage.paf
 }
 
-appStage: { 
-     stageName: "lsst.mops.daymops.AttributionStage" 
-     eventTopic: "None" 
-     stagePolicy: @policy/AttributionStage.paf
-}
+# appStage: { 
+#      stageName: "lsst.mops.daymops.AttributionStage" 
+#      eventTopic: "None" 
+#      stagePolicy: @policy/AttributionStage.paf
+# }
 
 appStage: { 
      stageName: "lsst.mops.daymops.InterNightLinkingStage" 
@@ -41,13 +41,19 @@ appStage: {
 }
 
 appStage: { 
-     stageName: "lsst.mops.daymops.OrbitManagementStage" 
+     stageName: "lsst.mops.daymops.OrbitDeterminationStage" 
      eventTopic: "None" 
-     stagePolicy: @policy/OrbitManagementStage.paf
+     stagePolicy: @policy/OrbitDeterminationStage.paf
 }
 
-appStage: { 
-     stageName: "lsst.mops.daymops.PrecoveryStage" 
-     eventTopic: "None" 
-     stagePolicy: @policy/PrecoveryStage.paf
-}
+# appStage: { 
+#      stageName: "lsst.mops.daymops.OrbitManagementStage" 
+#      eventTopic: "None" 
+#      stagePolicy: @policy/OrbitManagementStage.paf
+# }
+# 
+# appStage: { 
+#      stageName: "lsst.mops.daymops.PrecoveryStage" 
+#      eventTopic: "None" 
+#      stagePolicy: @policy/PrecoveryStage.paf
+# }
