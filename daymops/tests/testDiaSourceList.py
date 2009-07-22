@@ -75,23 +75,24 @@ from DIASource'''
         sql = 'select DIASourceIDTonight.DIASourceId from DIASourceIDTonight'
         n = self._dbc.execute(sql)
         self.trueIdsForTonight = [int(r[0]) for r in self._dbc.fetchall()]
-        return
-    
-    def testDiaSourceListForTonightOneSlice(self):
+        
         iter = DiaSourceList.diaSourceListForTonight(self.dbLocStr,
                                                      sliceId=0,
                                                      numSlices=1)
-        tonightDiaSources = dict([(d.getDiaSourceId(), d) for d in iter])
-        
+        self.tonightDiaSources = dict([(d.getDiaSourceId(), d) for d in iter])
+        return
+    
+    def testDiaSourceListForTonightQuick(self):
         # Check that their number is correct.
-        self.failUnless(len(tonightDiaSources.keys()) == \
+        self.failUnless(len(self.tonightDiaSources.keys()) == \
                         len(self.trueIdsForTonight),
                         'incorrect number of DiaSources for tonight.')
-        
+    
+    def testDiaSourceListForTonightQuick(self):
         # Now check that their attributes match.
         for _id in self.trueIdsForTonight:
             trueSource = self.trueDiaSources.get(_id, None)
-            source = tonightDiaSources.get(_id, None)
+            source = self.tonightDiaSources.get(_id, None)
             
             # Check for existance.
             self.failUnless(trueSource != None, 'database inconsistency error.')
@@ -114,6 +115,9 @@ from DIASource'''
                             'DiaSource ID %d has incorrect ap.flux err.' %(_id))
             self.failUnlessAlmostEqual(trueSource.getRefMag(), source.getRefMag(), 6,
                             'DiaSource ID %d has incorrect ref. mag.' %(_id))
+        return
+    
+    def testComputeVelocityStats(self):
         return
 
 
