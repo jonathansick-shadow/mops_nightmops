@@ -160,10 +160,9 @@ def sphericalDistance(point1, point2):
     # Compute the distances.
     cosDec = math.cos((p1[1] + p2[1]) / 2.)
     
-    raDist = RAD_TO_DEG * (p2[0] - p1[0]) * cosDec
-    decDist = RAD_TO_DEG * (p2[1] - p1[1])
-    totDist = RAD_TO_DEG * math.sqrt(((p1[0] - p2[0]) * cosDec)**2 + \
-              (p1[1] - p2[1])**2)
+    raDist = (p2[0] - p1[0]) * cosDec * RAD_TO_DEG
+    decDist = (p2[1] - p1[1]) * RAD_TO_DEG
+    totDist = math.sqrt(raDist**2 + decDist**2)
     return((raDist, decDist, totDist))
 
 
