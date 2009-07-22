@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+import math
+import random
 import unittest
 
 import MySQLdb as DBI
@@ -76,23 +78,107 @@ from DIASource'''
         n = self._dbc.execute(sql)
         self.trueIdsForTonight = [int(r[0]) for r in self._dbc.fetchall()]
         
+        
+        # Now fetch the sources for tonight using the function we are testing.
+        # Full fetch.
         iter = DiaSourceList.diaSourceListForTonight(self.dbLocStr,
                                                      sliceId=0,
                                                      numSlices=1)
         self.tonightDiaSources = dict([(d.getDiaSourceId(), d) for d in iter])
+        
+        # Two partial fetches.
+        iter = DiaSourceList.diaSourceListForTonight(self.dbLocStr,
+                                                     sliceId=0,
+                                                     numSlices=2)
+        self.tonightDiaSourcesParallel = \
+            dict([(d.getDiaSourceId(), d) for d in iter])
+        iter = DiaSourceList.diaSourceListForTonight(self.dbLocStr,
+                                                     sliceId=1,
+                                                     numSlices=2)
+        self.tonightDiaSourcesParallel.update(dict([(d.getDiaSourceId(), d) \
+                                                    for d in iter]))
         return
     
     def testDiaSourceListForTonightQuick(self):
+        return(self._testDiaSourceListForTonightQuick(self.tonightDiaSources))
+    
+    def testDiaSourceListForTonightQuickParallel(self):
+        return(self._testDiaSourceListForTonightQuick(self.tonightDiaSourcesParallel))
+    
+    def testDiaSourceListForTonightFull(self):
+        return(self._testDiaSourceListForTonightFull(self.tonightDiaSources))
+    
+    def testDiaSourceListForTonightFullParallel(self):
+        return(self._testDiaSourceListForTonightFull(self.tonightDiaSourcesParallel))
+    
+    def testComputeVelocityStatsZero(self):
+        # Get a random id.
+        max = len(self.trueDiaSources.keys()) - 1
+        idx = int(max * random.random())
+        _id = self.trueDiaSources.keys()[idx]
+        
+        d = self.trueDiaSources[_id]
+        self.failUnlessRaises(Exception, 
+                              DiaSourceList.computeVelocityStats, 
+                              [d, d])
+        return
+    
+    def testComputeVelocityStatsNonZero(self):
+        # Get two random id.
+        max = len(self.trueDiaSources.keys()) - 1
+        idx1 = int(max * random.random())
+        _id1 = self.trueDiaSources.keys()[idx1]
+        idx2 = int(max * random.random())
+        if(idx2 == idx1 and idx1 <= max and idx1 > 0):
+            idx2 = idx1 - max(1, int(idx1 / 2.))
+        elif(idx2 == idx1 and idx1 == 0):
+            idx2 = int(max / 2.)
+        _id2 = self.trueDiaSources.keys()[idx2]
+        
+        d1 = self.trueDiaSources[_id1]
+        d2 = self.trueDiaSources[_id2]
+        
+        # Compute the distance manually.
+        DEG_TO_RAD = math.pi / 180.
+        RAD_TO_DEG = 180. / math.pi
+        
+        mjd1 = d1.getTaiMidPoint()
+        mjd2 = d2.getTaiMidPoint()
+        ra1 = d1.getRa() * DEG_TO_RAD
+        ra2 = d2.getRa() * DEG_TO_RAD
+        dec1 = d1.getDec() * DEG_TO_RAD
+        dec2 = d2.getDec() * DEG_TO_RAD
+        deltaRa = ra2 - ra1
+        deltaDec = dec2 - dec1
+        cosDec = math.cos(abs(dec1 + dec2) / 2.)
+        deltaMjd = abs(mjd1 - mjd2)
+        
+        if(mjd1 > mjd2):
+            deltaRa *= -1.
+            deltaDec *= -1.
+        
+        trueVelRa = deltaRa * cosDec * RAD_TO_DEG / deltaMjd
+        trueVelDec = deltaDec * RAD_TO_DEG / deltaMjd
+        trueVelTot = math.sqrt(trueVelRa**2 + trueVelDec**2)
+        
+        # Now check.
+        [velRa, velDec, velTot] = DiaSourceList.computeVelocityStats([d1, d2])
+        self.failUnlessAlmostEqual(velRa, trueVelRa, 6, 'incorrect velRa for sources %d and %d: (%f /= %f)' %(_id1, _id2, trueVelRa, velRa))
+        self.failUnlessAlmostEqual(velDec, trueVelDec, 6, 'incorrect velDec for sources %d and %d: (%f /= %f)' %(_id1, _id2, trueVelDec, velDec))
+        self.failUnlessAlmostEqual(velTot, trueVelTot, 6, 'incorrect velTot for sources %d and %d: (%f /= %f)' %(_id1, _id2, trueVelTot, velTot))
+        return
+    
+    def _testDiaSourceListForTonightQuick(self, testDataDict):
         # Check that their number is correct.
-        self.failUnless(len(self.tonightDiaSources.keys()) == \
+        self.failUnless(len(testDataDict.keys()) == \
                         len(self.trueIdsForTonight),
                         'incorrect number of DiaSources for tonight.')
-    
-    def testDiaSourceListForTonightQuick(self):
+        
+    def _testDiaSourceListForTonightFull(self, testDataDict):
         # Now check that their attributes match.
         for _id in self.trueIdsForTonight:
             trueSource = self.trueDiaSources.get(_id, None)
-            source = self.tonightDiaSources.get(_id, None)
+            source = testDataDict.get(_id, None)
             
             # Check for existance.
             self.failUnless(trueSource != None, 'database inconsistency error.')
@@ -115,9 +201,6 @@ from DIASource'''
                             'DiaSource ID %d has incorrect ap.flux err.' %(_id))
             self.failUnlessAlmostEqual(trueSource.getRefMag(), source.getRefMag(), 6,
                             'DiaSource ID %d has incorrect ref. mag.' %(_id))
-        return
-    
-    def testComputeVelocityStats(self):
         return
 
 
