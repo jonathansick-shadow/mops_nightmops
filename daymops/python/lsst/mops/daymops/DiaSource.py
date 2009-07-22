@@ -39,21 +39,33 @@ class DiaSource(detection.DiaSource):
         return
     
     def __lt__(self, other):
+        if(other == None):
+            return(False)
         return(self.getTaiMidPoint() < other.getTaiMidPoint())
     
     def __le__(self, other):
+        if(other == None):
+            return(False)
         return(self.getTaiMidPoint() <= other.getTaiMidPoint())
     
     def __eq__(self, other):
+        if(other == None):
+            return(False)
         return(self.getTaiMidPoint() == other.getTaiMidPoint())
     
     def __ne__(self, other):
+        if(other == None):
+            return(True)
         return(self.getTaiMidPoint() != other.getTaiMidPoint())
 
     def __gt__(self, other):
+        if(other == None):
+            return(False)
         return(self.getTaiMidPoint() > other.getTaiMidPoint())
     
     def __ge__(self, other):
+        if(other == None):
+            return(False)
         return(self.getTaiMidPoint() >= other.getTaiMidPoint())
     
     
