@@ -13,8 +13,10 @@ import math
 DEFAULT_UT_OFFSET = -4. / 24.
 DEG_TO_RAD = math.pi / 180.
 RAD_TO_DEG = 1. / DEG_TO_RAD
+RAD_TO_DEG_SQ = RAD_TO_DEG**2.
 LOG10 = math.log(10)
 K = -2.5 / LOG10
+pi2 = math.pi / 2.
 
 
 
@@ -153,6 +155,16 @@ def sphericalDistance(point1, point2):
     
     Return (distanceRa, distanceDec, distanceModulus) (degrees)
     """
+    if(abs(point1[1] - point2[1]) < 1.):
+        return(_fastSphericalDistance(point1, point2))
+    return(_slowSphericalDistance(point1, point2))
+
+
+def _fastSphericalDistance(point1, point2):
+    """
+    Only valid for small distances.
+    """
+    print('fast')
     # Convert everything to radians.
     p1 = [x * DEG_TO_RAD for x in point1]
     p2 = [x * DEG_TO_RAD for x in point2]
@@ -166,6 +178,30 @@ def sphericalDistance(point1, point2):
     return((raDist, decDist, totDist))
 
 
+def _slowSphericalDistance(point1, point2):
+    """
+    General formula.
+    """
+    [ra1, dec1] = [x * DEG_TO_RAD for x in point1]
+    [ra2, dec2] = [x * DEG_TO_RAD for x in point2]
+    h = (pi2 - dec1)
+    k = (pi2 - dec2)
+    w = math.cos(ra2-ra1)
+    cosh = math.cos(h)
+    cosk = math.cos(k)
+    sinh = math.sin(h)
+    sink = math.sin(k)
+    cosh_cosk = cosh * cosk
+    sinh_sink = sinh * sink
+    
+    raDist = math.acos(cosh**2 + w * sinh**2) * RAD_TO_DEG_SQ * math.cos(dec1)
+    while(raDist > 180.):
+        raDist -= 180.
+    decDist = math.acos(cosh_cosk + sinh_sink) * RAD_TO_DEG
+    while(decDist > 180.):
+        decDist -= 180.
+    totDist = math.acos(cosh_cosk + sinh_sink * w) * RAD_TO_DEG
+    return((raDist, decDist, totDist))
 
 
 
