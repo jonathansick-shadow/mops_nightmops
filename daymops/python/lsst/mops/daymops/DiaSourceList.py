@@ -89,7 +89,7 @@ def computeVelocityStats(diaSources):
     # Compute time distance in days.
     timeDistance = last.getTaiMidPoint() - first.getTaiMidPoint()
     if(not timeDistance):
-        print([(d.getRa(), d.getDec(), d.getTaiMidPoint()) for d in diaSources])
+        # FIXME: is this a good idea? Should we just return [0., 0., 0.]?
         raise(Exception('No temporal spread in DiaSources!'))
     
     # Compute spherical distance.
