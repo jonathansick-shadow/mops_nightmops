@@ -62,7 +62,7 @@ def _getMovingObjects(dbLocStr, where, shallow=True,
     """
     if(not shallow):
         # FIXME: Implement deep copy!
-        raise(NotImplementedError('Implement deep copy!'))
+        raise(NotImplementedError('Implement deep fetch!'))
     
     # Send the query.
     # sql: select movingObjectId, mopsStatus, h_v, g, 
@@ -72,7 +72,7 @@ def _getMovingObjects(dbLocStr, where, shallow=True,
     #      src19, src20, src21 from MovingObject where
     #      mopsStatus != "M"
     cols = [('movingObjectId', 'Long'), 
-            ('mopsStatus', 'Char'),         # See bug #807
+            ('mopsStatus', 'String'),
             ('h_v', 'Double'), 
             ('g', 'Double'), 
             ('arcLengthDays', 'Double'),
