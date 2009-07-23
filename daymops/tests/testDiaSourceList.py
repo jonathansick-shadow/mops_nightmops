@@ -25,6 +25,20 @@ DB_PASS = 'zxcvbnm'
 
 
 class TestDiaSourceList(unittest.TestCase):
+    def checkObjs(self, obj1, obj2, attrName):
+        fName = 'get%s%s' %(attrName[0].upper(), attrName[1:])
+        v1 = getattr(obj1, fName)()
+        v2 = getattr(obj2, fName)()
+        if(isinstance(v1, float)):
+            self.failUnlessAlmostEqual(v1, v2, 6,
+                                       '%s is different: %s /= %s' %(attrName,
+                                                                     str(v1),
+                                                                     str(v2)))
+            return
+        self.failUnlessEqual(v1, v2, '%s is different: %s /= %s' %(attrName,
+                                                                   str(v1),
+                                                                   str(v2)))
+    
     def setUp(self):
         # Build the connection string for the persistence framework.
         self.dbLocStr = 'mysql://%s:%d/%s' %(DB_HOST, int(DB_PORT), DB_DBNAME)
@@ -142,22 +156,9 @@ from DIASource'''
             self.failUnless(source != None, 'no DiaSource for ID %d.' %(_id))
             
             # Check for equality.
-            self.failUnlessAlmostEqual(trueSource.getRa(), source.getRa(), 6,
-                            'DiaSource ID %d has incorrect RA.' %(_id))
-            self.failUnlessAlmostEqual(trueSource.getDec(), source.getDec(), 6,
-                            'DiaSource ID %d has incorrect Dec.' %(_id))
-            self.failUnlessEqual(trueSource.getFilterId(), source.getFilterId(), 
-                            'DiaSource ID %d has incorrect filterId.' %(_id))
-            self.failUnlessAlmostEqual(trueSource.getTaiMidPoint(), source.getTaiMidPoint(), 6,
-                            'DiaSource ID %d has incorrect taiMidPoint.' %(_id))
-            self.failUnlessEqual(trueSource.getObsCode(), source.getObsCode(), 
-                            'DiaSource ID %d has incorrect obscode.' %(_id))
-            self.failUnlessAlmostEqual(trueSource.getApFlux(), source.getApFlux(), 6,
-                            'DiaSource ID %d has incorrect ap. flux.' %(_id))
-            self.failUnlessAlmostEqual(trueSource.getApFluxErr(), source.getApFluxErr(), 6,
-                            'DiaSource ID %d has incorrect ap.flux err.' %(_id))
-            self.failUnlessAlmostEqual(trueSource.getRefMag(), source.getRefMag(), 6,
-                            'DiaSource ID %d has incorrect ref. mag.' %(_id))
+            for attr in ('diaSourceId', 'ra', 'dec', 'filterId', 'taiMidPoint', 
+                         'obsCode', 'apFlux', 'apFluxErr', 'refMag'):
+                self.checkObjs(trueSource, source, attr)
         return
 
 
