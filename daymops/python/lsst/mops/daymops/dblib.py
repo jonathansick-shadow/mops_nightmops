@@ -77,7 +77,8 @@ def _simpleObjectCreation(db, name, cols):
     # setters = [lambda x: setattr(obj, '_%s' %(c[0]), x) for c in cols]
     setters = [getattr(obj, 'set%s%s' %(c[0][0].upper(), c[0][1:])) \
                for c in cols]
-    fetchers = [getattr(db, 'getColumnByPos%s' %(c[1])) for c in cols]
+    fetchers = [partial(_safeFetcher, db, 'getColumnByPos%s' %(c[1])) \
+                for c in cols]
     idxs = range(len(cols))
     _setAttrs(setters, fetchers, idxs)
     return(obj)
@@ -164,21 +165,18 @@ def simpleTwoObjectFetch(dbLocStr, table, className1, columns1,
     
     # Fetch the results and instantiate the objects.
     # tt0 = time.time()
-    # Compute the column indeces.
-    idxs1 = range(len(columns1))
-    idxs2 = range(len(columns1), len(columns2), 1)
-    
-    # Build getters and setters.
     class1 = globals()[className1]
     class2 = globals()[className2]
     setterNames1 = ['set%s%s' %(c[0][0].upper(), c[0][1:]) for c in columns1]
     setterNames2 = ['set%s%s' %(c[0][0].upper(), c[0][1:]) for c in columns2]
-    # fetchers1 = [getattr(db, 'getColumnByPos%s' %(c[1])) for c in columns1]
-    # fetchers2 = [getattr(db, 'getColumnByPos%s' %(c[1])) for c in columns2]
     fetchers1 = [partial(_safeFetcher, db, 'getColumnByPos%s' %(c[1])) \
                  for c in columns1]
     fetchers2 = [partial(_safeFetcher, db, 'getColumnByPos%s' %(c[1])) \
                  for c in columns2]
+                 
+    # Compute the column indeces.
+    idxs1 = range(len(columns1))
+    idxs2 = range(len(columns1), len(columns2), 1)
     
     while(db.next()):
         # t0 = time.time()
