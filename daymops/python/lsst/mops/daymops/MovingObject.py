@@ -28,7 +28,7 @@ class MovingObject(DayMOPSObject):
         self._orbit = orbit
         self._h_v = h_v
         self.setG(g)
-        self._archLength = arcLength
+        self._arcLength = arcLength
         
         # This updates the arcLength...
         self.setTracklets(tracklets)
@@ -51,7 +51,7 @@ class MovingObject(DayMOPSObject):
         """
         self._tracklets = tracklets
         if(tracklets):
-            self._archLength = TrackletList.getArcLength(tracklets)
+            self._arcLength = TrackletList.getArcLength(tracklets)
         return
     
     def __str__(self):
@@ -59,9 +59,10 @@ class MovingObject(DayMOPSObject):
     
     # Aliases
     def setArcLengthDays(self, length):
-        return(self.setArchLength(length))
+        return(self.setArcLength(length))
     
-    
+    def getArcLengthDays(self):
+        return(self.getArcLength())
     
         
     
