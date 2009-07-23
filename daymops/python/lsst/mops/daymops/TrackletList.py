@@ -117,6 +117,8 @@ def _fetchShallowTracklets(dbLocStr, where, extraTables=[], sliceId=None,
     
     Do not fetch DiaSources (shallow fetch).
     
+    Tracklets ordered by trackletId
+    
     Return interator.
     """
     # Send the query.
@@ -141,6 +143,7 @@ def _fetchShallowTracklets(dbLocStr, where, extraTables=[], sliceId=None,
     if(sliceId != None and numSlices > 1):
         w += ' and mops_Tracklet.trackletId %% %d = %d' %(numSlices, sliceId)
     db.setQueryWhere(w)
+    db.orderBy('mops_Tracklet.trackletId')
     db.query()
     
     # Fetch the results.
@@ -172,6 +175,8 @@ def _fetchDeepTracklets(dbLocStr, where, extraTables=[], sliceId=None,
     Use  sliceId and numSlices to implement some form of parallelism.
     
     Fetch DiaSources (deep fetch).
+    
+    Tracklets ordered by trackletId
     
     Return interator.
     """
@@ -264,6 +269,11 @@ def _fetchDeepTracklets(dbLocStr, where, extraTables=[], sliceId=None,
         # Add d to diaSources.
         diaSources.append(d)
     db.finishQuery()
+    
+    # yiled the last one.
+    t.setDiaSources(diaSources)
+    yield(t)
+    
     del(db)
     # return
 
