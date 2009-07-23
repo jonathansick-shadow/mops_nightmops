@@ -96,7 +96,8 @@ select MovingObject.movingObjectId,
        MovingObject.src18,
        MovingObject.src19,
        MovingObject.src20,
-       MovingObject.src21
+       MovingObject.src21,
+       MovingObject.stablePass
 from MovingObject'''
         
         # Send the query.
@@ -139,7 +140,8 @@ from MovingObject'''
              src[17],
              src[18],
              src[19],
-             src[20]) = row
+             src[20],
+             stablePass) = row
             # Create the MovingObject and its Orbit instance.
             o = Orbit()
             o.setQ(float(q))
@@ -150,6 +152,7 @@ from MovingObject'''
             o.setTimePeri(float(timePeri))
             o.setEpoch(float(epoch))
             o.setSrc(src)
+            o.setStablePass(str(stablePass))
             
             m = MovingObject()
             m.setMovingObjectId(int(_id))
@@ -200,6 +203,32 @@ from MovingObject'''
                                movingObjects[_id].getOrbit(), attr)
         return
     
+    def testGetAllUnstableMovingObjects(self):
+        iter = MovingObjectList.getAllUnstableMovingObjects(self.dbLocStr,
+                                                            shallow=True,
+                                                            sliceId=0,
+                                                            numSlices=1)
+        movingObjects = dict([(m.getMovingObjectId(), m) for m in iter])
+        
+        trueNonMergedObjs = dict([(m.getMovingObjectId(), m) \
+            for m in self.trueMovingObjects.values() \
+            if m.getMopsStatus != STATUS['MERGED'] and \
+               m.getOrbit().getStablePass() != STABLE_STATUS['STABLE']])
+        
+        # Make sure that we got the same number of objects.
+        self.failUnlessEqual(len(trueNonMergedObjs), len(movingObjects),
+                             'number of retrieved objects is incorrect: %d /= %d' %(len(trueNonMergedObjs), len(movingObjects)))
+        
+        # Check 'em piece by piece.
+        for _id in trueNonMergedObjs.keys():
+            for attr in ('movingObjectId', 'mopsStatus', 'h_v', 'g', 
+                         'arcLength'):
+                self.checkObjs(trueNonMergedObjs[_id], movingObjects[_id], attr)
+            for attr in ('q', 'e', 'i', 'node', 'argPeri', 'timePeri', 'epoch',
+                         'src'):
+                self.checkObjs(trueNonMergedObjs[_id].getOrbit(), 
+                               movingObjects[_id].getOrbit(), attr)
+        return
 
 
 
