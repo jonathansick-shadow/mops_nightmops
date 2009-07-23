@@ -164,7 +164,6 @@ def _fastSphericalDistance(point1, point2):
     """
     Only valid for small distances.
     """
-    print('fast')
     # Convert everything to radians.
     p1 = [x * DEG_TO_RAD for x in point1]
     p2 = [x * DEG_TO_RAD for x in point2]
