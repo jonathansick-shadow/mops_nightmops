@@ -7,6 +7,7 @@ from DayMOPSStage import DayMOPSStage
 import lib
 
 import lsst.daf.persistence as persistence
+from SafeDbStorage import SafeDbStorage
 
 
 
@@ -36,7 +37,7 @@ class TelescopeSimulatorStage(DayMOPSStage):
         
         # Fetch the oldest DIASource time (in UT TAI nsec).
         # Connect to the database.
-        db = persistence.DbStorage()
+        db = SafeDbStorage()
         db.setRetrieveLocation(persistence.LogicalLocation(self.dbLocStr))
         
         # If we do not have data between those two times, go to the next 
@@ -77,7 +78,7 @@ class TelescopeSimulatorStage(DayMOPSStage):
         self.lastProcessedNight += 1
         
         # Wipe the table clean.
-        db = persistence.DbStorage()
+        db = SafeDbStorage()
         db.setPersistLocation(persistence.LogicalLocation(self.dbLocStr))
         db.startTransaction()
         db.executeSql('delete from DIASourceIDTonight')
@@ -103,7 +104,7 @@ class TelescopeSimulatorStage(DayMOPSStage):
         sql = 'insert into DIASourceIDTonight (DIASourceId) \
                (select diaSourceId from DIASource \
                 where taiMidPoint between %f and %f)'
-        db = persistence.DbStorage()
+        db = SafeDbStorage()
         db.setRetrieveLocation(persistence.LogicalLocation(self.dbLocStr))
         db.startTransaction()
         db.executeSql(sql %(tMin, tMax))

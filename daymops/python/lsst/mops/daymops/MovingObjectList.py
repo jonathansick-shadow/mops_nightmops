@@ -7,6 +7,7 @@ from Orbit import STABLE_STATUS
 import dblib
 
 import lsst.daf.persistence as persistence
+from SafeDbStorage import SafeDbStorage
 
 
 
@@ -133,7 +134,7 @@ def _getNextMovingObjectId(dbLocStr):
     movingObjectId = 0
             
     # Connect to the database.
-    db = persistence.DbStorage()
+    db = SafeDbStorage()
     db.setRetrieveLocation(persistence.LogicalLocation(dbLocStr))
     
     db.setTableForQuery('MovingObject')

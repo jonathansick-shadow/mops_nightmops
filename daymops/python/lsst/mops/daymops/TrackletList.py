@@ -6,6 +6,7 @@ from DiaSource import DiaSource
 import DiaSourceList
 from Tracklet import Tracklet, STATUS
 import lsst.daf.persistence as persistence
+from SafeDbStorage import SafeDbStorage
 
 
 
@@ -122,7 +123,7 @@ def _fetchShallowTracklets(dbLocStr, where, extraTables=[], sliceId=None,
     Return interator.
     """
     # Send the query.
-    db = persistence.DbStorage()
+    db = SafeDbStorage()
     db.setPersistLocation(persistence.LogicalLocation(dbLocStr))
     tables = ['mops_Tracklet', 'mops_TrackletsToDIASource'] + list(extraTables)
     db.setTableListForQuery(tables)
@@ -181,7 +182,7 @@ def _fetchDeepTracklets(dbLocStr, where, extraTables=[], sliceId=None,
     Return interator.
     """
     # Send the query.
-    db = persistence.DbStorage()
+    db = SafeDbStorage()
     db.setPersistLocation(persistence.LogicalLocation(dbLocStr))
     tables = ['mops_Tracklet', 'mops_TrackletsToDIASource', 'DiaSource'] + \
              list(extraTables)
@@ -309,9 +310,9 @@ def save(dbLocStr, tracklets):
     newTrackletId = _getNextTrackletId(dbLocStr)
 
     # Connect to the database.
-    dbTrk = persistence.DbStorage()
+    dbTrk = SafeDbStorage()
     dbTrk.setPersistLocation(persistence.LogicalLocation(dbLocStr))
-    dbSrc = persistence.DbStorage()
+    dbSrc = SafeDbStorage()
     dbSrc.setPersistLocation(persistence.LogicalLocation(dbLocStr))
     
     # Prepare for insert.
@@ -361,7 +362,7 @@ def _getNextTrackletId(dbLocStr):
     trackletId = 0
         
     # Connect to the database.
-    db = persistence.DbStorage()
+    db = SafeDbStorage()
     db.setRetrieveLocation(persistence.LogicalLocation(dbLocStr))
     
     db.setTableForQuery('mops_Tracklet')

@@ -7,6 +7,7 @@ import lib
 from Tracklet import Tracklet
 
 import lsst.daf.persistence as persistence
+from SafeDbStorage import SafeDbStorage
 
 import auton
 
@@ -29,7 +30,7 @@ def getTonightsNightNumber(dbLocStr, utOffset):
     # Send the query
     # sql = select DIASource.taiMidPoint from DIASource, DIASourceIDTonight
     #       where DIASource.diaSourceId=DIASourceIDTonight.DIASourceId limit 1
-    db = persistence.DbStorage()
+    db = SafeDbStorage()
     db.setPersistLocation(persistence.LogicalLocation(dbLocStr))
     db.setTableListForQuery(('DIASource', 'DIASourceIDTonight'))
     db.outColumn('DIASource.taiMidPoint')

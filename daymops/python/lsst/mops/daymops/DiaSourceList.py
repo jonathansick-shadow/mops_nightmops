@@ -6,6 +6,7 @@ from DiaSource import DiaSource
 import lib
 
 import lsst.daf.persistence as persistence
+from SafeDbStorage import SafeDbStorage
 
 
 
@@ -26,7 +27,7 @@ def diaSourceListForTonight(dbLocStr, sliceId=None, numSlices=None):
     #      d.obsCode, d.apFlux, d.apFluxErr, d.refMag from \
     #      DIASource d, DIASourceIDTonight t where \
     #      t.DIASourceId=d.diaSourceId;
-    db = persistence.DbStorage()
+    db = SafeDbStorage()
     db.setPersistLocation(persistence.LogicalLocation(dbLocStr))
     db.setTableListForQuery(('DIASource', 'DIASourceIDTonight'))
     db.outColumn('DIASource.diaSourceId')
