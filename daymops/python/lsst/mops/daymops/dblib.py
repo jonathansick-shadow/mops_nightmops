@@ -4,6 +4,8 @@ Generic database-related functions and classes.
 Here you will find funtions that retrieve an object from the database and build
 an instance of a given class based on the data retrieved.
 """
+from functools import partial
+
 import lsst.daf.persistence as persistence
 
 # Supported classes
@@ -76,12 +78,33 @@ def _simpleObjectCreation(db, name, cols):
     setters = [getattr(obj, 'set%s%s' %(c[0][0].upper(), c[0][1:])) \
                for c in cols]
     fetchers = [getattr(db, 'getColumnByPos%s' %(c[1])) for c in cols]
-    _setAttrs(setters, fetchers, cols)
+    idxs = range(len(cols))
+    _setAttrs(setters, fetchers, idxs)
     return(obj)
 
 
-def _setAttrs(setters, fetchers, cols):
-    [setters[i](fetchers[i](i)) for i in range(len(cols))]
+def _safeFetcher(dbInstance, fetcherName, columnIndex):
+    """
+    IMPORTANT
+    
+    From KT:
+    Francesco,
+
+       If the database value is NULL, getColumnByPos*() functions and
+bound variables set with outParam*() will return garbage, which may be a
+previous value or anything else.
+
+       You need to test columnIsNull() first.
+    """
+    isNull = getattr(dbInstance, 'columnIsNull')
+    if(isNull(columnIndex)):
+        return(None)
+    return(getattr(dbInstance, fetcherName)(columnIndex))
+    
+
+
+def _setAttrs(setters, fetchers, indeces):
+    [setters[i](fetchers[i](indeces[i])) for i in range(len(indeces))]
     return
 
 
@@ -141,12 +164,22 @@ def simpleTwoObjectFetch(dbLocStr, table, className1, columns1,
     
     # Fetch the results and instantiate the objects.
     # tt0 = time.time()
+    # Compute the column indeces.
+    idxs1 = range(len(columns1))
+    idxs2 = range(len(columns1), len(columns2), 1)
+    
+    # Build getters and setters.
     class1 = globals()[className1]
     class2 = globals()[className2]
     setterNames1 = ['set%s%s' %(c[0][0].upper(), c[0][1:]) for c in columns1]
     setterNames2 = ['set%s%s' %(c[0][0].upper(), c[0][1:]) for c in columns2]
-    fetchers1 = [getattr(db, 'getColumnByPos%s' %(c[1])) for c in columns1]
-    fetchers2 = [getattr(db, 'getColumnByPos%s' %(c[1])) for c in columns2]
+    # fetchers1 = [getattr(db, 'getColumnByPos%s' %(c[1])) for c in columns1]
+    # fetchers2 = [getattr(db, 'getColumnByPos%s' %(c[1])) for c in columns2]
+    fetchers1 = [partial(_safeFetcher, db, 'getColumnByPos%s' %(c[1])) \
+                 for c in columns1]
+    fetchers2 = [partial(_safeFetcher, db, 'getColumnByPos%s' %(c[1])) \
+                 for c in columns2]
+    
     while(db.next()):
         # t0 = time.time()
         o1 = class1()
@@ -154,8 +187,8 @@ def simpleTwoObjectFetch(dbLocStr, table, className1, columns1,
         setters1 = [getattr(o1, name) for name in setterNames1]
         setters2 = [getattr(o1, name) for name in setterNames2]
         
-        _setAttrs(setters1, fetchers1, columns1)
-        _setAttrs(setters2, fetchers2, columns2)
+        _setAttrs(setters1, fetchers1, idxs1)
+        _setAttrs(setters2, fetchers2, idxs2)
         # print('%.02fs fetch one row' %(time.time() - t0))
         yield((o1, o2))
     # print('%.02fs fetch all rows' %(time.time() - tt0))
