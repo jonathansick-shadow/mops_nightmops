@@ -173,17 +173,17 @@ def simpleTwoObjectFetch(dbLocStr, table, className1, columns1,
                  for c in columns1]
     fetchers2 = [partial(_safeFetcher, db, 'getColumnByPos%s' %(c[1])) \
                  for c in columns2]
-                 
+    
     # Compute the column indeces.
     idxs1 = range(len(columns1))
-    idxs2 = range(len(columns1), len(columns2), 1)
+    idxs2 = range(len(columns1), len(columns1 + columns2), 1)
     
     while(db.next()):
         # t0 = time.time()
         o1 = class1()
         o2 = class2()
         setters1 = [getattr(o1, name) for name in setterNames1]
-        setters2 = [getattr(o1, name) for name in setterNames2]
+        setters2 = [getattr(o2, name) for name in setterNames2]
         
         _setAttrs(setters1, fetchers1, idxs1)
         _setAttrs(setters2, fetchers2, idxs2)
@@ -200,7 +200,7 @@ def profileThis():
                                       'MovingObject',
                                       'MovingObject',
                                       [('movingObjectId', 'Long'), 
-                                       ('mopsStatus', 'Char'), # bug #807
+                                       ('mopsStatus', 'String'),
                                        ('h_v', 'Double'), 
                                        ('g', 'Double'), 
                                        ('arcLengthDays', 'Double')],

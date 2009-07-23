@@ -61,12 +61,36 @@ class Orbit(DayMOPSObject):
         self._moid2 = moid2
         self._moidLong1 = moidLong1
         self._moidLong2 = moidLong2
+        
+        # Internal use only.
+        self._src01 = None
+        self._src02 = None
+        self._src03 = None
+        self._src04 = None
+        self._src05 = None
+        self._src06 = None
+        self._src07 = None
+        self._src08 = None
+        self._src09 = None
+        self._src10 = None
+        self._src11 = None
+        self._src12 = None
+        self._src13 = None
+        self._src14 = None
+        self._src15 = None
+        self._src16 = None
+        self._src17 = None
+        self._src18 = None
+        self._src19 = None
+        self._src20 = None
+        self._src21 = None
         return
 
     def __str__(self):
-        return('(%.05f, %.05f,%.05f, %.05f, %.05f, %.05f, %.05f, %.05f, %.05f)'\
-               %(self._a, self._q, self._e, self._i, self._node, self._m, 
-                 self._timePeri, self._argPeri, self._epoch, ))
+        return('(%s, %s,%s, %s, %s, %s, %s, %s, %s)'\
+               % tuple([str(x) for x in (self._a, self._q, self._e, self._i, 
+                       self._node, self._m, self._timePeri, self._argPeri, 
+                       self._epoch)]))
 
     def setSrc(self, src):
         """

@@ -115,7 +115,10 @@ def _getMovingObjects(dbLocStr, where, shallow=True,
                                               className2='Orbit',
                                               columns2=cols[5:],
                                               where=where):
-    
+        # Patch the src
+        o.setSrc([getattr(o, 'getSrc%02d' %(i))() for i in range(1, 22, 1)])
+        # print([getattr(o, 'getSrc%02d' %(i))() for i in range(1, 22, 1)])
+        
         # Now add the Orbit to each MovingObject.
         mo.setOrbit(o)
         yield(mo)
