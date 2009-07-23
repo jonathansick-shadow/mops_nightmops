@@ -103,7 +103,8 @@ def _getMovingObjects(dbLocStr, where, shallow=True,
             ('src18', 'Double'), 
             ('src19', 'Double'), 
             ('src20', 'Double'), 
-            ('src21', 'Double')]
+            ('src21', 'Double'),
+            ('stablePass', 'String')]
     if(sliceId != None and numSlices > 1):
         where += ' and movingObjectId %% %d = %d' %(numSlices, sliceId)
     
