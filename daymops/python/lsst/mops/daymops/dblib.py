@@ -4,8 +4,7 @@ Generic database-related functions and classes.
 Here you will find funtions that retrieve an object from the database and build
 an instance of a given class based on the data retrieved.
 """
-from functools import partial
-
+from SafeDbStorage import SafeDbStorage
 import lsst.daf.persistence as persistence
 
 # Supported classes
@@ -13,6 +12,7 @@ from MovingObject import MovingObject
 from Orbit import Orbit
 from Tracklet import Tracklet
 from DiaSource import DiaSource
+
 
 import time
 
@@ -52,7 +52,7 @@ def simpleObjectFetch(dbLocStr, table, className, columns, where=None):
         raise(NotImplementedError(msg))
     
     # Send the query.
-    db = persistence.DbStorage()
+    db = SafeDbStorage()
     db.setPersistLocation(persistence.LogicalLocation(dbLocStr))
     db.setTableForQuery(table)
     errs = [db.outColumn(c[0]) for c in columns]
@@ -77,31 +77,10 @@ def _simpleObjectCreation(db, name, cols):
     # setters = [lambda x: setattr(obj, '_%s' %(c[0]), x) for c in cols]
     setters = [getattr(obj, 'set%s%s' %(c[0][0].upper(), c[0][1:])) \
                for c in cols]
-    fetchers = [partial(_safeFetcher, db, 'getColumnByPos%s' %(c[1])) \
-                for c in cols]
+    fetchers = [getattr(db, 'getColumnByPos%s' %(c[1])) for c in cols]
     idxs = range(len(cols))
     _setAttrs(setters, fetchers, idxs)
     return(obj)
-
-
-def _safeFetcher(dbInstance, fetcherName, columnIndex):
-    """
-    IMPORTANT
-    
-    From KT:
-    Francesco,
-
-       If the database value is NULL, getColumnByPos*() functions and
-bound variables set with outParam*() will return garbage, which may be a
-previous value or anything else.
-
-       You need to test columnIsNull() first.
-    """
-    isNull = getattr(dbInstance, 'columnIsNull')
-    if(isNull(columnIndex)):
-        return(None)
-    return(getattr(dbInstance, fetcherName)(columnIndex))
-    
 
 
 def _setAttrs(setters, fetchers, indeces):
@@ -154,7 +133,7 @@ def simpleTwoObjectFetch(dbLocStr, table, className1, columns1,
     
     # Send the query.
     # t0 = time.time()
-    db = persistence.DbStorage()
+    db = SafeDbStorage()
     db.setPersistLocation(persistence.LogicalLocation(dbLocStr))
     db.setTableForQuery(table)
     errs = [db.outColumn(c[0]) for c in columns1+columns2]
@@ -169,10 +148,8 @@ def simpleTwoObjectFetch(dbLocStr, table, className1, columns1,
     class2 = globals()[className2]
     setterNames1 = ['set%s%s' %(c[0][0].upper(), c[0][1:]) for c in columns1]
     setterNames2 = ['set%s%s' %(c[0][0].upper(), c[0][1:]) for c in columns2]
-    fetchers1 = [partial(_safeFetcher, db, 'getColumnByPos%s' %(c[1])) \
-                 for c in columns1]
-    fetchers2 = [partial(_safeFetcher, db, 'getColumnByPos%s' %(c[1])) \
-                 for c in columns2]
+    fetchers1 = [getattr(db, 'getColumnByPos%s' %(c[1])) for c in columns1]
+    fetchers2 = [getattr(db, 'getColumnByPos%s' %(c[1])) for c in columns2]
     
     # Compute the column indeces.
     idxs1 = range(len(columns1))

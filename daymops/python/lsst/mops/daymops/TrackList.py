@@ -3,8 +3,11 @@ Helper functions to create/retrieve a list of Track instances.
 """
 from DayMOPSObject import DayMOPSObject
 from DiaSource import DiaSource
+from Tracklet import Tracklet
 import DiaSourceList
 from Track import Track
+from SafeDbStorage import SafeDbStorage
+
 import lsst.daf.persistence as persistence
 
 
@@ -76,7 +79,7 @@ def _fetchShallowTracks(dbLocStr, where, extraTables=[], sliceId=None,
     Return interator.
     """
     # Send the query.
-    db = persistence.DbStorage()
+    db = SafeDbStorage()
     db.setPersistLocation(persistence.LogicalLocation(dbLocStr))
     tables = ['mops_TracksToTracklet', ] + list(extraTables)
     db.setTableListForQuery(tables)
@@ -157,7 +160,7 @@ def _fetchDeepTracks(dbLocStr, where, extraTables=[], sliceId=None,
     Return interator.
     """
     # Send the query.
-    db = persistence.DbStorage()
+    db = SafeDbStorage()
     db.setPersistLocation(persistence.LogicalLocation(dbLocStr))
     tables = ['mops_TracksToTracklet', 
               'mops_TrackletsToDIASource', 
@@ -192,7 +195,7 @@ def _fetchDeepTracks(dbLocStr, where, extraTables=[], sliceId=None,
     if(sliceId != None and numSlices > 1):
         w += ' and mops_TracksToTracklet.trackId %% %d = %d' %(numSlices, sliceId)
     db.setQueryWhere(w)
-    db.orderBy('mops_TracksToTracklet.trackId, ')
+    db.orderBy('mops_TracksToTracklet.trackId')
     db.query()
     
     # Fetch the results.
@@ -308,7 +311,7 @@ def deleteAllTracks(dbLocStr):
     None
     """
     # Connect to the database.
-    db = persistence.DbStorage()
+    db = SafeDbStorage()
     db.setPersistLocation(persistence.LogicalLocation(dbLocStr))
     db.startTransaction()
     db.executeSql('delete from mops_TracksToTracklet')
@@ -330,7 +333,7 @@ def save(dbLocStr, tracks):
     newTrackId = _getNextTrackId(dbLocStr)
 
     # Connect to the database.
-    db = persistence.DbStorage()
+    db = SafeDbStorage()
     db.setPersistLocation(persistence.LogicalLocation(dbLocStr))
     
     # Prepare for insert.
@@ -361,7 +364,7 @@ def _getNextTrackId(dbLocStr):
     trackId = 0
         
     # Connect to the database.
-    db = persistence.DbStorage()
+    db = SafeDbStorage()
     db.setRetrieveLocation(persistence.LogicalLocation(dbLocStr))
     
     db.setTableForQuery('mops_TracksToTracklet')
