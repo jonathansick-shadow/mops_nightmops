@@ -357,6 +357,60 @@ def save(dbLocStr, tracklets):
     return
 
 
+def update(dbLocStr, tracklets):
+    """
+    Updates the input list of Tracklet instances in the database. It assumes
+    that these Tracklets are already present in the DB and hence only does an
+    update. The non obvious implication is that the Tracklets have to have valid
+    trackletIds. It only updates the Tracklets themselves and their associations
+    to DiaSources, not the DiaSource themselves. For that, update the DiaSources
+    separately.
+    
+    @param dbLocStr: database connection string.
+    @param tracklets: a list of Tracklet instances.
+    
+    Return
+    None
+    """
+    # Connect to the database.
+    db = SafeDbStorage()
+    db.setPersistLocation(persistence.LogicalLocation(dbLocStr))
+    
+    # Prepare the SQL statements.
+    trSql = 'update mops_Tracklet set status="%s", velRa=%s, velDecl=%s, '
+    trSql += 'velTot=%s where trackletId=%d'
+    
+    tdSql = 'update mops_TrackletsToDIASource set diaSourceId=%d '
+    tdSql += 'where trackletId=%d'
+    
+    db.startTransaction()
+    for tracklet in tracklets:
+        # Update Tracklet data.
+        trackletId = tracklet.getTrackletId()
+        if(trackletId == None):
+            raise(Exception('Tracklet instance %s does not have a valid ID.' \
+                            %(str(tracklet))))
+        velRa = tracklet.getVelRa()
+        if(velRa == None):
+            valRa = 'NULL'
+        velDec = tracklet.getVelDec()
+        if(velDec == None):
+            velDec = 'NULL'
+        velTot = tracklet.getVelTot()
+        if(velTot == None):
+            velTot = 'NULL'
+        
+        # Update the Tracklet data.
+        db.executeSql(trSql %(status, str(velRa), str(velDec), str(velTot), 
+                              trackletId))
+                
+        # Update the trackletId <-> diaSourceIds info.
+        for diaSource in tracklet.getDiaSources():
+            db.executeSql(tdSql %(diaSource.getDiaSourceId(), trackletId))
+    db.endTransaction()
+    return
+
+
 def _getNextTrackletId(dbLocStr):
     # Since trackletId is autoincrement, it cannot be 0. It will get
     # incremented by 1 at the end of the function call...
