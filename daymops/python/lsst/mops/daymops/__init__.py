@@ -1,7 +1,7 @@
 """
-Standard module __init__.py
+LSST-MOPS
 
-Nothing to see here.
+This is where most of the LSST-MOPS (aka DayMOPS) code is.
 """
 from SetupStage import SetupStage
 from TelescopeSimulatorStage import TelescopeSimulatorStage

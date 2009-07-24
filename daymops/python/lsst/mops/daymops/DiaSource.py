@@ -3,9 +3,9 @@ Class to represent a DIASource object.
 
 This is monkeypatching the corresponding C++ class.
 """
-from DayMOPSObject import DayMOPSObject
 import lsst.afw.detection as detection
-import lsst.daf.persistence as persistence
+
+
 
 
 # This should realy left-inherit from DayMOPSObject, but that doesn't work with
@@ -21,18 +21,28 @@ class DiaSource(detection.DiaSource):
     _obsCode = ''
     
     def getRefMag(self):
+        """
+        Getter for refMag
+        """
         return(self._refMag)
     
     def setRefMag(self, mag):
+        """
+        Setter for refMag
+        """
         self._refMag = mag
         return
     
     def getObsCode(self):
-        # FIXME: to be obsoleted by fix to bug #796
+        """
+        Getter for obsCode
+        """
         return(self._obsCode)
     
     def setObsCode(self, obsCode):
-        # FIXME: to be obsoleted by fix to bug #796
+        """
+        Setter for obsCode
+        """
         if(not isinstance(obsCode, str) or len(obsCode) != 3):
             raise(SyntaxError('obsCode has to be a 3-letter string.'))
         self._obsCode = str(obsCode)
@@ -40,9 +50,15 @@ class DiaSource(detection.DiaSource):
     
     # Aliases
     def setDecl(self, dec):
+        """
+        Alias for self.setDec()
+        """
         return(self.setDec(dec))
     
     def getDecl(self):
+        """
+        Alias for self.getDec()
+        """
         return(self.getDec())
         
     # Comparison by MJD.
