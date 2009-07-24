@@ -195,7 +195,7 @@ def _fetchDeepTracks(dbLocStr, where, extraTables=[], sliceId=None,
     if(sliceId != None and numSlices > 1):
         w += ' and mops_TracksToTracklet.trackId %% %d = %d' %(numSlices, sliceId)
     db.setQueryWhere(w)
-    db.orderBy('mops_TracksToTracklet.trackId')
+    db.orderBy('mops_TracksToTracklet.trackId,mops_TracksToTracklet.trackletId,DiaSource.diaSourceId')
     db.query()
     
     # Fetch the results.
@@ -237,7 +237,7 @@ def _fetchDeepTracks(dbLocStr, where, extraTables=[], sliceId=None,
             # Init refTrackId and refTrackletId.
             refTrackId = trackId
             refTrackletId = trackletId
-        elif(refTrackId != trackletId):
+        elif(refTrackId != trackId):
             # New Track. Finish up the old track. This also means that the
             # current Tracklet needs to be closed and then re-initialized.
             tr.setDiaSources(diaSources)
@@ -254,10 +254,10 @@ def _fetchDeepTracks(dbLocStr, where, extraTables=[], sliceId=None,
             
             tr = Tracklet()
             tr.setTrackletId(trackletId)
-            tr.setVelRa(db.getColumnByPosDouble(1))
-            tr.setVelDec(db.getColumnByPosDouble(2))
-            tr.setVelTot(db.getColumnByPosDouble(3))
-            tr.setStatus(db.getColumnByPosString(4))
+            tr.setVelRa(db.getColumnByPosDouble(2))
+            tr.setVelDec(db.getColumnByPosDouble(3))
+            tr.setVelTot(db.getColumnByPosDouble(4))
+            tr.setStatus(db.getColumnByPosString(5))
             
             # Update refTrackId.
             refTrackId = trackId
@@ -277,16 +277,18 @@ def _fetchDeepTracks(dbLocStr, where, extraTables=[], sliceId=None,
                 # And reset tr.
                 tr = Tracklet()
                 tr.setTrackletId(trackletId)
-                tr.setVelRa(db.getColumnByPosDouble(1))
-                tr.setVelDec(db.getColumnByPosDouble(2))
-                tr.setVelTot(db.getColumnByPosDouble(3))
-                tr.setStatus(db.getColumnByPosString(4))
+                tr.setVelRa(db.getColumnByPosDouble(2))
+                tr.setVelDec(db.getColumnByPosDouble(3))
+                tr.setVelTot(db.getColumnByPosDouble(4))
+                tr.setStatus(db.getColumnByPosString(5))
                 
                 # Update refTrackId.
                 refTrackletId = trackletId
             else:
-                # Same Tracklet: do nothing.
-                pass
+                # Same Tracklet: do not bother adding the tracklet to tracklets.
+                # Just update diaSources and continue.
+                diaSources.append(d)
+                continue
         
         # Update the lists.
         diaSources.append(d)
@@ -294,6 +296,7 @@ def _fetchDeepTracks(dbLocStr, where, extraTables=[], sliceId=None,
     db.finishQuery()
     
     # yield the last one.
+    tracklets[-1].setDiaSources(diaSources)
     t.setTracklets(tracklets)
     yield(t)
     del(db)
