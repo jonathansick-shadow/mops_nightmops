@@ -13,8 +13,9 @@ from Orbit import Orbit
 from Tracklet import Tracklet
 from DiaSource import DiaSource
 
+# import time
 
-import time
+
 
 
 
@@ -49,14 +50,14 @@ def simpleObjectFetch(dbLocStr, table, className, columns, where=None,
         raise(Exception('columns must specify both column name and type.'))
     
     if(className not in globals().keys()):
-        msg = '%s is not supported yet for simple DB extraction' %(className)
+        msg = '%s is not supported yet for simple DB extraction' % (className)
         raise(NotImplementedError(msg))
     
     # Send the query.
     db = SafeDbStorage()
     db.setPersistLocation(persistence.LogicalLocation(dbLocStr))
     db.setTableForQuery(table)
-    errs = [db.outColumn(c[0]) for c in columns]
+    [db.outColumn(c[0]) for c in columns]
     if(where):
         db.setQueryWhere(where)
     if(orderBy):
@@ -77,16 +78,20 @@ def _simpleObjectCreation(db, name, cols):
     obj = globals()[name]()
     # This would be significantly faster: approximately 12% faster but we canot
     # do it since we need custom setters (especialy for classes coming from C++
-    # setters = [lambda x: setattr(obj, '_%s' %(c[0]), x) for c in cols]
-    setters = [getattr(obj, 'set%s%s' %(c[0][0].upper(), c[0][1:])) \
+    # setters = [lambda x: setattr(obj, '_%s' % (c[0]), x) for c in cols]
+    setters = [getattr(obj, 'set%s%s' % (c[0][0].upper(), c[0][1:])) \
                for c in cols]
-    fetchers = [getattr(db, 'getColumnByPos%s' %(c[1])) for c in cols]
+    fetchers = [getattr(db, 'getColumnByPos%s' % (c[1])) for c in cols]
     idxs = range(len(cols))
     _setAttrs(setters, fetchers, idxs)
     return(obj)
 
 
 def _setAttrs(setters, fetchers, indeces):
+    """
+    More black magic: this basically does setYYY(getColumnByPosXXX(j)) for the
+    appropriate values of j.
+    """
     [setters[i](fetchers[i](indeces[i])) for i in range(len(indeces))]
     return
 
@@ -128,10 +133,10 @@ def simpleTwoObjectFetch(dbLocStr, table, className1, columns1,
         raise(Exception('columns must specify both column name and type.'))
     
     if(className1 not in globals().keys()):
-        msg = '%s is not supported yet for simple DB extraction' %(className1)
+        msg = '%s is not supported yet for simple DB extraction' % (className1)
         raise(NotImplementedError(msg))
     if(className2 not in globals().keys()):
-        msg = '%s is not supported yet for simple DB extraction' %(className2)
+        msg = '%s is not supported yet for simple DB extraction' % (className2)
         raise(NotImplementedError(msg))
     
     # Send the query.
@@ -139,22 +144,22 @@ def simpleTwoObjectFetch(dbLocStr, table, className1, columns1,
     db = SafeDbStorage()
     db.setPersistLocation(persistence.LogicalLocation(dbLocStr))
     db.setTableForQuery(table)
-    errs = [db.outColumn(c[0]) for c in columns1+columns2]
+    [db.outColumn(c[0]) for c in columns1+columns2]
     if(where):
         db.setQueryWhere(where)
     if(orderBy):
         db.orderBy(orderBy)
     db.query()
-    # print('%.02fs compose and send query' %(time.time() - t0))
+    # print('%.02fs compose and send query' % (time.time() - t0))
     
     # Fetch the results and instantiate the objects.
     # tt0 = time.time()
     class1 = globals()[className1]
     class2 = globals()[className2]
-    setterNames1 = ['set%s%s' %(c[0][0].upper(), c[0][1:]) for c in columns1]
-    setterNames2 = ['set%s%s' %(c[0][0].upper(), c[0][1:]) for c in columns2]
-    fetchers1 = [getattr(db, 'getColumnByPos%s' %(c[1])) for c in columns1]
-    fetchers2 = [getattr(db, 'getColumnByPos%s' %(c[1])) for c in columns2]
+    setterNames1 = ['set%s%s' % (c[0][0].upper(), c[0][1:]) for c in columns1]
+    setterNames2 = ['set%s%s' % (c[0][0].upper(), c[0][1:]) for c in columns2]
+    fetchers1 = [getattr(db, 'getColumnByPos%s' % (c[1])) for c in columns1]
+    fetchers2 = [getattr(db, 'getColumnByPos%s' % (c[1])) for c in columns2]
     
     # Compute the column indeces.
     idxs1 = range(len(columns1))
@@ -169,15 +174,18 @@ def simpleTwoObjectFetch(dbLocStr, table, className1, columns1,
         
         _setAttrs(setters1, fetchers1, idxs1)
         _setAttrs(setters2, fetchers2, idxs2)
-        # print('%.02fs fetch one row' %(time.time() - t0))
+        # print('%.02fs fetch one row' % (time.time() - t0))
         yield((o1, o2))
-    # print('%.02fs fetch all rows' %(time.time() - tt0))
+    # print('%.02fs fetch all rows' % (time.time() - tt0))
     db.finishQuery()
     # return
 
 
 
 def profileThis():
+    """
+    Utility funtion for profiling purposes only.
+    """
     for moOrb in simpleTwoObjectFetch('mysql://localhost:3306/mops_onelunation',
                                       'MovingObject',
                                       'MovingObject',
@@ -215,7 +223,8 @@ def profileThis():
                                        ('src19', 'Double'), 
                                        ('src20', 'Double'), 
                                        ('src21', 'Double')],
-                                      where='mopsStatus != "M" and movingObjectId < 50000'):
+                                      where='mopsStatus != "M" and ' + \
+                                            'movingObjectId < 50000'):
         # print(moOrb)
         pass
     return
@@ -225,7 +234,6 @@ def profileThis():
 if(__name__ == '__main__'):
     import cProfile
     import pstats
-    import sys
     
     
     f = '/tmp/daymops_profile'
