@@ -32,9 +32,6 @@ class TestTrackList(unittest.TestCase):
         fName = 'get%s%s' %(attrName[0].upper(), attrName[1:])
         v1 = getattr(obj1, fName)()
         v2 = getattr(obj2, fName)()
-        
-        # print(attrName, v1, v2)
-        
         if(isinstance(v1, float)):
             self.failUnlessAlmostEqual(v1, v2, 6,
                                        '%s is different: %s /= %s' %(attrName,
@@ -192,6 +189,60 @@ order by trackId'''
                 for attr in ('trackletId', ):
                     self.checkObjs(trueTracklets[i], tracklets[i], attr)
         return
+    
+    
+    def testNewTracksDeep(self):
+        iter = TrackList.newTracks(self.dbLocStr,
+                                   shallow=False,
+                                   sliceId=0,
+                                   numSlices=1)
+        tracks = dict([(t.getTrackId(), t) for t in iter])
+        
+        # Same number?
+        self.failUnlessEqual(len(self.trueTrackToTracklets), len(tracks),
+                             'the number of Tracks is different: %d /= %d' %(len(self.trueTrackToTracklets), len(tracks)))
+        
+        # And now, one by one.
+        for trackId in self.trueTrackToTracklets.keys():
+            # TrackId has to be there.
+            self.failUnless(trackId in tracks.keys())
+            
+            track = tracks[trackId]
+            trueTrack = self.trueTrackToTracklets[trackId]
+            
+            # And now check the Tracklets.
+            trueTracklets = [self.trueTracklets[tId] for tId in trueTrack]
+            tracklets = track.getTracklets()
+            
+            self.failUnlessEqual(len(trueTracklets), len(tracklets),
+                                 'the number of Tracklets is different: %d /= %d' %(len(trueTracklets), len(tracklets)))
+            if(not trueTracklets):
+                continue
+            
+            # This is a deep fetch.
+            for i in range(len(trueTracklets)):
+                # Check Tracklet attributes.
+                for attr in ('trackletId', 'velRa', 'velDec', 'status'):
+                    self.checkObjs(trueTracklets[i], tracklets[i], attr)
+                
+                # Now the DiaSources.
+                trueSourcesIds = self.trueTrackletToDiaSources[trueTracklets[i].getTrackletId()]
+                trueSources = [self.trueDiaSources[_id] for _id in trueSourcesIds]
+                sources = tracklets[i].getDiaSources()
+                
+                self.failUnlessEqual(len(trueSources), len(sources), 'number of DiaSources is different: %d /= %d' %(len(trueSources), len(sources)))
+                
+                # And now the attributes.
+                sources.sort()
+                trueSources.sort()
+                for j in range(len(sources)):
+                    for attr in ('diaSourceId', 'ra', 'dec', 'filterId', 
+                                 'taiMidPoint', 'obsCode', 'apFlux', 'apFluxErr', 
+                                 'refMag'):
+                        self.checkObjs(trueSources[j], sources[j], attr)
+        return
+                
+
 
 
 
