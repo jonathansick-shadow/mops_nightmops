@@ -3,7 +3,7 @@ Class to represent a MovingObject object.
 """
 from DayMOPSObject import DayMOPSObject
 import TrackletList
-import lsst.daf.persistence as persistence
+
 
 
 # Constants
@@ -16,6 +16,12 @@ STATUS = {'NEW':            'N',
 
 
 class MovingObject(DayMOPSObject):
+    """
+    Representation of a MovingObject.
+    
+    This, together with the Orbit class, fully describe the subset of the
+    MovingObject table of interset to MOPS.
+    """
     def __init__(self, 
                  movingObjectId=None, 
                  status=STATUS['NEW'],
@@ -24,14 +30,18 @@ class MovingObject(DayMOPSObject):
                  g=.150,
                  tracklets=[],
                  arcLength=None):
+        super(MovingObject, self).__init__()
+        
         self._movingObjectId = movingObjectId
         self._status = status
         self._orbit = orbit
         self._h_v = h_v
+        self._g = None
         self.setG(g)
         self._arcLength = arcLength
         
         # This updates the arcLength...
+        self._tracklets = None
         self.setTracklets(tracklets)
         return
     
@@ -60,9 +70,15 @@ class MovingObject(DayMOPSObject):
     
     # Aliases
     def setArcLengthDays(self, length):
+        """
+        Alias to self.setArcLength()
+        """
         return(self.setArcLength(length))
     
     def getArcLengthDays(self):
+        """
+        Alias to self.getArcLength()
+        """
         return(self.getArcLength())
     
         
