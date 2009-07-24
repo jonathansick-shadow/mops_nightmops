@@ -4,7 +4,7 @@ import numpy
 
 
 
-def findtracklets(detections, maxv, minobs, maxt, etime):
+def findtracklets(detections, *args, **kwargs):
     """
     Just return random associations of detections as a list of the form
         [[detId1, detId2, ...], ]
@@ -47,12 +47,16 @@ def findtracklets(detections, maxv, minobs, maxt, etime):
 
 def linktracklets(detections, *args, **kwargs):
     """
-    Same as above
+    Just return random associations of tracklets as a list of the form
+        [[trackletId1, trackletId2, ...], ]
     
-    Input detections have the form
+    Input detections list havs the form
         [(trackletId, detMjd, detRa, detDec, detMag, detObsCode, trackletName),]
-    In the end, several entries share the same tracletId, since each tracklet 
-    has many DiaSources.
+    Several entries share the same tracletId, since each tracklet has >= 2 
+    DiaSources.
+    
+    @param detections: list of input tracklets/detections.
+    All other parameters are ignored.
     """
     # Get the number of unique trackletIds, this is the only thing we care 
     # about.
