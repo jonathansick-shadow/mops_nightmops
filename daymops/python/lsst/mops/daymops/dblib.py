@@ -18,7 +18,8 @@ import time
 
 
 
-def simpleObjectFetch(dbLocStr, table, className, columns, where=None):
+def simpleObjectFetch(dbLocStr, table, className, columns, where=None, 
+                      orderBy=None):
     """
     Fetch relevant rows from a given table and instantiate one object per row.
     It is assumed that the objects to be created have a method called
@@ -58,6 +59,8 @@ def simpleObjectFetch(dbLocStr, table, className, columns, where=None):
     errs = [db.outColumn(c[0]) for c in columns]
     if(where):
         db.setQueryWhere(where)
+    if(orderBy):
+        db.orderBy(orderBy)
     db.query()
     
     # Fetch the results and instantiate the objects.
@@ -89,7 +92,7 @@ def _setAttrs(setters, fetchers, indeces):
 
 
 def simpleTwoObjectFetch(dbLocStr, table, className1, columns1, 
-                         className2, columns2, where=None):
+                         className2, columns2, where=None, orderBy=None):
     """
     Fetch relevant rows from one table and instantiate two objects per row. The
     main use case for this is
@@ -139,6 +142,8 @@ def simpleTwoObjectFetch(dbLocStr, table, className1, columns1,
     errs = [db.outColumn(c[0]) for c in columns1+columns2]
     if(where):
         db.setQueryWhere(where)
+    if(orderBy):
+        db.orderBy(orderBy)
     db.query()
     # print('%.02fs compose and send query' %(time.time() - t0))
     
