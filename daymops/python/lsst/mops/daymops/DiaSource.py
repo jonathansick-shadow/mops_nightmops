@@ -38,6 +38,14 @@ class DiaSource(detection.DiaSource):
         self._obsCode = str(obsCode)
         return
     
+    # Aliases
+    def setDecl(self, dec):
+        return(self.setDec(dec))
+    
+    def getDecl(self):
+        return(self.getDec())
+        
+    # Comparison by MJD.
     def __lt__(self, other):
         if(other == None):
             return(False)
