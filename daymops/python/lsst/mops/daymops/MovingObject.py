@@ -11,7 +11,8 @@ STATUS = {'NEW':            'N',
           'MERGED':         'M',
           'IOD FAILED':     'I',
           'DIFF FAILED':    'F',
-          'OK':             'Y'}
+          'OK':             'Y',
+          'PRELIMINARY':    'T'}
 
 
 class MovingObject(DayMOPSObject):
