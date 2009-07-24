@@ -135,8 +135,9 @@ def _fetchShallowTracks(dbLocStr, where, extraTables=[], sliceId=None,
     db.finishQuery()
     
     # yield the last one.
-    t.setTracklets(tracklets)
-    yield(t)
+    if(tracklets):
+        t.setTracklets(tracklets)
+        yield(t)
     
     del(db)
     # return
@@ -296,9 +297,10 @@ def _fetchDeepTracks(dbLocStr, where, extraTables=[], sliceId=None,
     db.finishQuery()
     
     # yield the last one.
-    tracklets[-1].setDiaSources(diaSources)
-    t.setTracklets(tracklets)
-    yield(t)
+    if(tracklets):
+        tracklets[-1].setDiaSources(diaSources)
+        t.setTracklets(tracklets)
+        yield(t)
     del(db)
     # return
 

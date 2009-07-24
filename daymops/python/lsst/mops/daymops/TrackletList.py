@@ -272,8 +272,9 @@ def _fetchDeepTracklets(dbLocStr, where, extraTables=[], sliceId=None,
     db.finishQuery()
     
     # yiled the last one.
-    t.setDiaSources(diaSources)
-    yield(t)
+    if(diaSources):
+        t.setDiaSources(diaSources)
+        yield(t)
     
     del(db)
     # return
