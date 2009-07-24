@@ -24,7 +24,7 @@ Output
   1. None/error code?
 """
 from DayMOPSStage import DayMOPSStage
-import TrackletList
+import TrackList
 import linking
 import lib
 
@@ -63,8 +63,8 @@ class OrbitDeterminationStage(DayMOPSStage):
         self.logIt('INFO', 'Slice ID: %d/%d' %(i, n))
         
         # Get all Tracks from the database.
-        tracks = TrackletList.newTracks(self.dbLocStr, shallow=False,
-                                        sliceId=i, numSlices=n)
+        tracks = [t for t in TrackList.newTracks(self.dbLocStr, shallow=False,
+                                                 sliceId=i, numSlices=n)]
         if(not tracks):
             self.outputQueue.addDataset(self.activeClipboard)
             self.logIt('INFO', 'Found 0 tracks found. Quitting.')
