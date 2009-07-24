@@ -13,7 +13,9 @@ import DiaSourceList
 import Orbit
 from Tracklet import Tracklet
 
+# import fake_auton as auton
 import auton
+
 import numpy
 import oorb
 
@@ -250,7 +252,8 @@ def orbitDetermination(tracks,
         for i in (0, 1, 2, 3, 4, 5):
             for j in range(i):
                 cov.append(res[1][i][j])
-        yield(Orbit.Orbit(a=res[0][0],
+        # q = (1 - e) * a
+        yield(Orbit.Orbit(q=(1. - res[0][1]) * res[0][0],
                           e=res[0][1],
                           i=res[0][2],
                           node=res[0][3],
