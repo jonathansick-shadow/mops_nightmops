@@ -126,7 +126,6 @@ class InterNightLinkingStage(DayMOPSStage):
             tklts = [Tracklet(trackletId=tId) for tId in rawTrack]
             tracks.append(Track(trackId=None, tracklets=tklts))
 
-        print(i)
         self.logIt('INFO', 'Found %d tracks.' %(len(tracks)))
         if(not tracks):
             self.outputQueue.addDataset(self.activeClipboard)
