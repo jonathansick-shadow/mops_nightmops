@@ -11,8 +11,13 @@ STABLE_STATUS = {'STABLE':      'Y',
 
 
 class Orbit(DayMOPSObject):
+    """
+    Representation of an Orbit.
+    
+    This, together with the MovingObject class, fully describe the subset of the
+    MovingObject table of interset to MOPS.
+    """
     def __init__(self, 
-                 a=None,
                  q=None, 
                  e=None, 
                  i=None, 
@@ -42,6 +47,8 @@ class Orbit(DayMOPSObject):
         epoch: orbit epoch (TAI MJD)
         src: 21 element array (covariance matrix in diagonal form).
         """
+        super(Orbit, self).__init__()
+        
         self._q = q
         self._e = e
         self._i = i
@@ -50,6 +57,7 @@ class Orbit(DayMOPSObject):
         self._m = m
         self._timePeri = timePeri
         self._epoch = epoch
+        self._src = None
         self.setSrc(src)
         
         self._orbFitResidual = orbFitResidual
