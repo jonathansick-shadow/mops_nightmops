@@ -42,7 +42,6 @@ class Orbit(DayMOPSObject):
         epoch: orbit epoch (TAI MJD)
         src: 21 element array (covariance matrix in diagonal form).
         """
-        self._a = a
         self._q = q
         self._e = e
         self._i = i
@@ -65,9 +64,8 @@ class Orbit(DayMOPSObject):
 
     def __str__(self):
         return('(%s, %s,%s, %s, %s, %s, %s, %s, %s)'\
-               % tuple([str(x) for x in (self._a, self._q, self._e, self._i, 
-                       self._node, self._m, self._timePeri, self._argPeri, 
-                       self._epoch)]))
+               % tuple([str(x) for x in (self._q, self._e, self._i, self._node, 
+                        self._m, self._timePeri, self._argPeri, self._epoch)]))
 
     def setSrc(self, src):
         """
