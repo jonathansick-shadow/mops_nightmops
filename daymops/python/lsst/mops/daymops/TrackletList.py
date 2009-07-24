@@ -401,12 +401,49 @@ def update(dbLocStr, tracklets):
             velTot = 'NULL'
         
         # Update the Tracklet data.
-        db.executeSql(trSql %(status, str(velRa), str(velDec), str(velTot), 
-                              trackletId))
+        db.executeSql(trSql %(tracklet.getStatus(), str(velRa), str(velDec), 
+                              str(velTot), trackletId))
                 
         # Update the trackletId <-> diaSourceIds info.
         for diaSource in tracklet.getDiaSources():
             db.executeSql(tdSql %(diaSource.getDiaSourceId(), trackletId))
+    db.endTransaction()
+    return
+
+
+def updateStatus(dbLocStr, tracklets):
+    """
+    Updates the input list of Tracklet instances in the database. It assumes
+    that these Tracklets are already present in the DB and hence only does an
+    update. The non obvious implication is that the Tracklets have to have valid
+    trackletIds. It only updates the Tracklets status.
+    
+    This is a convenience function that does a fraction of what update() does.
+    However if one only needs to update status, this is faster.
+    
+    @param dbLocStr: database connection string.
+    @param tracklets: a list of Tracklet instances.
+    
+    Return
+    None
+    """
+    # Connect to the database.
+    db = SafeDbStorage()
+    db.setPersistLocation(persistence.LogicalLocation(dbLocStr))
+    
+    # Prepare the SQL statements.
+    trSql = 'update mops_Tracklet set status="%s" where trackletId=%d'
+    
+    db.startTransaction()
+    for tracklet in tracklets:
+        # Update Tracklet data.
+        trackletId = tracklet.getTrackletId()
+        if(trackletId == None):
+            raise(Exception('Tracklet instance %s does not have a valid ID.' \
+                            %(str(tracklet))))
+        
+        # Update the Tracklet data.
+        db.executeSql(trSql %(tracklet.getStatus(), trackletId))
     db.endTransaction()
     return
 
