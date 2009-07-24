@@ -4,6 +4,7 @@ Helper functions to create/retrieve a list of MovingObject instances.
 from DayMOPSObject import DayMOPSObject
 from MovingObject import MovingObject, STATUS
 from Orbit import STABLE_STATUS
+import TrackletList
 import dblib
 
 import lsst.daf.persistence as persistence
@@ -126,6 +127,91 @@ def _getMovingObjects(dbLocStr, where, shallow=True,
         yield(mo)
     # return
 
+
+def save(dbLocStr, movingObjects, updateTrackletStatus=True):
+    """
+    Save the input list of MovingObject instances to the database.
+    
+    @param dbLocStr: database connection string.
+    @param movingObjects: a list of MovingObject instances.
+    @param updateTrackletStatus: if True, also update Tracklet status as a 
+           convenience. It is assumed that the caller has properly updated the
+           status of the relevant Tracklet instances.
+    
+    Return
+    None
+    """
+    # Get the next available movingObjectId.
+    newMovingObjectId = _getNextMovingObjectId(dbLocStr)
+
+    # Connect to the database.
+    db = SafeDbStorage()
+    db.setPersistLocation(persistence.LogicalLocation(dbLocStr))
+    
+    # Prepare for insert.
+    db.setTableForInsert('MovingObject')
+    
+    for movingObject in movingObjects:
+        # If the movingObject has an id already, use that, otherwise use a new 
+        # one.
+        movingObjectId = movingObject.getMovingObjectId()
+        if(movingObjectId == None):
+            movingObjectId = newMovingObjectId
+            movingObject.setMovingObjectId(newMovingObjectId)
+            newMovingObjectId += 1
+        orbit = movingObject.getOrbit()
+        src = orbit.getSrc()
+        
+        # Update the MovingObject table.
+        db.setColumnLong('movingObjectId', movingObjectId)
+        db.setColumnString('mopsStatus', movingObject.getStatus())
+        h_v = movingObject.getH_v()
+        if(h_v == None):
+            db.setColumnToNull('h_v')
+        else:
+            db.setColumnDouble('h_v', h_v)
+        g = movingObject.getG()
+        if(g == None):
+            db.setColumnToNull('g')
+        else:
+            db.setColumnDouble('g', g)
+        db.setColumnDouble('q', orbit.getQ())
+        db.setColumnDouble('e', orbit.getE())
+        db.setColumnDouble('i', orbit.getI())
+        db.setColumnDouble('node', orbit.getNode())
+        db.setColumnDouble('argPeri', orbit.getArgPeri())
+        db.setColumnDouble('timePeri', orbit.getTimePeri())
+        for i in range(1, 22, 1):
+            db.setColumnDouble('src%02d' %(i), src[i-1])
+        db.insertRow()
+    
+    # Now add the MovingObject -> Tracklet info.
+    # TODO: is it better to use 3 cursors and do all of this in the loop above?
+    if(updateTrackletStatus):
+        db.setTableForInsert('mops_MovingObjectToTracklet')
+        for movingObject in movingObjects:
+            movingObjectId = movingObject.getMovingObjectId()
+            tracklets = movingObject.getTracklets()
+            
+            for tracklet in tracklets:
+                db.setColumnLong('movingObjectId', movingObjectId)
+                db.setColumnLong('trackletId', tracklet.getTrackletId())
+                db.insertRow()
+        
+            # Finally, update the tracklet status. We assume that the caller has
+            # set the status appropriately, of course.
+            TrackletList.updateStatus(tracklets)
+    else:
+        db.setTableForInsert('mops_MovingObjectToTracklet')
+        for movingObject in movingObjects:
+            movingObjectId = movingObject.getMovingObjectId()
+            tracklets = movingObject.getTracklets()
+            
+            for tracklet in tracklets:
+                db.setColumnLong('movingObjectId', movingObjectId)
+                db.setColumnLong('trackletId', tracklet.getTrackletId())
+                db.insertRow()
+    return
 
 
 def _getNextMovingObjectId(dbLocStr):
