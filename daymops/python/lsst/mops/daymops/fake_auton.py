@@ -2,6 +2,8 @@
 This is just for testing: do not use in production!
 """
 import random
+import warnings
+warnings.warn('Please use the real Auton module')
 
 
 
