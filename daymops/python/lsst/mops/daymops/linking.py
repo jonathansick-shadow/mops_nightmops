@@ -164,104 +164,97 @@ def linkTracklets(tracklets, slowMinV, slowMaxV, slowVtreeThresh,slowPredThresh,
     # return(rawTracks)
 
 
-def orbitDetermination(tracks, 
+def orbitDetermination(track, 
                        elementType='keplerian', 
                        numRangingOrbits=5000,
                        stdDev=8.3333333333333331e-05,
                        obscode='566'):
     """
-    Given a list of tracks, determine one or zero orbits per track and return a
-    list of the form
-        [orbit|None, ]
-    where for each track, we either have an orbit or None.
+    Given a Track instance, determine one or zero orbits for this Track and 
+    return
+        orbit|None
+    meaning we either have an orbit or None.
     
-    @param tracks: a list of Track instances.
+    @param track: a Track instance.
     @param elementType: name of the orbital element type to use.
     @param numRangingOrbits: number of ranging orbits to produce.
     @param stdDev: observational RA/Dec uncertainty in degrees.
     
     Return
-    An iterator to the final orbit list, one orbit (or None) for each input 
-    Track:
-        [Orbit|None, ]
+    Orbit|None
     
     Notes
     If orbit determination fails for a given Track (and it will, most of the 
-    time as most Tracks are non valid orbits), return None. This simplifies 
-    bookeeping on the calling end.
+    time as most Tracks are non valid orbits), return None.
     """
-    # We do statistical ranging first, one track at the time. Then we do LSL on
-    # the orbits we get from statistical ranging.
-    for track in tracks:
-        trackId = track.getTrackId()
-        coords = []
-        mjds = []
-        mags = []
-        filters = []
-        obscodes = []                           # In reality we only have one!
-        
-        # Get to the DiaSources.
-        for tracklet in track.getTracklets():
-            for d in tracklet.getDiaSources():
-                coords.append([d.getRa(), stdDev, d.getDec(), stdDev])
-                mags.append(lib.fluxToMag(d.getApFlux(), 
-                                          d.getApFluxErr(), 
-                                          d.getRefMag()))
-                mjds.append(d.getTaiMidPoint())
-                # TODO: do we need the filter name or is the ID string OK?
-                filters.append(str(d.getFilterId()))
-        
-        # Now convert those to numpy arrays.
-        coords = numpy.array(coords, dtype='d')
-        coords.shape = (len(coords), 4)
-        obscodes = [obscode, ] * len(mjds)
-        mjds = numpy.array(mjds, dtype='d')
-        mags = numpy.array(mags, dtype='d')
-        
-        # We can start statistical ranging.
-        try:
-            # Choose just 3 or 4 detections for ranging.
-            rangingOrbits = oorb.ranging_fast(trackId=trackId,
-                                              coords=coords[:3],
-                                              mjds=mjds[:3],
-                                              mags=mags[:3],
-                                              obscodes=obscodes[:3],
-                                              filters=filters[:3],
-                                              elementType=elementType,
-                                              numOrbits=numRangingOrbits)
+    # We do statistical ranging first. Then we do LSL on the orbits we get from 
+    # statistical ranging.
+    trackId = track.getTrackId()
+    coords = []
+    mjds = []
+    mags = []
+    filters = []
+    obscodes = []                           # In reality we only have one!
     
-            # Now pass them to LSL and this time use all detections.
-            # res = (out_orbit, out_covariance, out_sigmas, out_correlation)
-            res = oorb.lsl_fast(trackId=trackId,
-                                coords=coords,
-                                mjds=mjds,
-                                mags=mags,
-                                obscodes=obscodes,
-                                filters=filters,
-                                rangingOrbits=rangingOrbits)
-        except:
-            # Orbit determination failed for this track. Oh well. Try the next 
-            # one.
-            yield(None)
-            continue
-        
-        # If everything went well, we have an orbit with covariance.
-        # res[0]: [a, e, i, node, argPeri, m, epoch, H, G, elTypeId]
-        # res[1]: is a 6x6 covariance matrix, get the diagonal form.
-        cov = []
-        for i in (0, 1, 2, 3, 4, 5):
-            for j in range(i):
-                cov.append(res[1][i][j])
-        # q = (1 - e) * a
-        yield(Orbit.Orbit(q=(1. - res[0][1]) * res[0][0],
-                          e=res[0][1],
-                          i=res[0][2],
-                          node=res[0][3],
-                          argPeri=res[0][4],
-                          m=res[0][5],
-                          epoch=res[0][6],
-                          src=cov))
-    # return(orbits)
+    # Get to the DiaSources.
+    for tracklet in track.getTracklets():
+        for d in tracklet.getDiaSources():
+            coords.append([d.getRa(), stdDev, d.getDec(), stdDev])
+            mags.append(lib.fluxToMag(d.getApFlux(), 
+                                      d.getApFluxErr(), 
+                                      d.getRefMag()))
+            mjds.append(d.getTaiMidPoint())
+            # TODO: do we need the filter name or is the ID string OK?
+            filters.append(str(d.getFilterId()))
+    
+    # Now convert those to numpy arrays.
+    coords = numpy.array(coords, dtype='d')
+    coords.shape = (len(coords), 4)
+    obscodes = [obscode, ] * len(mjds)
+    mjds = numpy.array(mjds, dtype='d')
+    mags = numpy.array(mags, dtype='d')
+    
+    # We can start statistical ranging.
+    try:
+        # Choose just 3 or 4 detections for ranging.
+        rangingOrbits = oorb.ranging_fast(trackId=trackId,
+                                          coords=coords[:3],
+                                          mjds=mjds[:3],
+                                          mags=mags[:3],
+                                          obscodes=obscodes[:3],
+                                          filters=filters[:3],
+                                          elementType=elementType,
+                                          numOrbits=numRangingOrbits)
+
+        # Now pass them to LSL and this time use all detections.
+        # res = (out_orbit, out_covariance, out_sigmas, out_correlation)
+        res = oorb.lsl_fast(trackId=trackId,
+                            coords=coords,
+                            mjds=mjds,
+                            mags=mags,
+                            obscodes=obscodes,
+                            filters=filters,
+                            rangingOrbits=rangingOrbits)
+    except:
+        # Orbit determination failed for this track. Oh well.
+        return(None)
+    
+    # If everything went well, we have an orbit with covariance.
+    # res[0]: [a, e, i, node, argPeri, m, epoch, H, G, elTypeId]
+    # res[1]: is a 6x6 covariance matrix, get the diagonal form.
+    cov = []
+    for i in (0, 1, 2, 3, 4, 5):
+        for j in range(i):
+            cov.append(res[1][i][j])
+    # q = (1 - e) * a
+    return(Orbit.Orbit(q=(1. - res[0][1]) * res[0][0],
+                       e=res[0][1],
+                       i=res[0][2],
+                       node=res[0][3],
+                       argPeri=res[0][4],
+                       m=res[0][5],
+                       epoch=res[0][6],
+                       src=cov))
     
     
     

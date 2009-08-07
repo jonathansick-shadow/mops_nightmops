@@ -24,6 +24,8 @@ Output
   1. None/error code?
 """
 from DayMOPSStage import DayMOPSStage
+from MovingObject import MovingObject, STATUS
+import MovingObjectList
 import TrackList
 import linking
 import lib
@@ -72,33 +74,42 @@ class OrbitDeterminationStage(DayMOPSStage):
         self.logIt('INFO', 'Found %d tracks.' %(len(tracks)))
                 
         # Pass the Tracks to the OrbitDetermination code.
-        orbits = []
+        movingObjects = []
         numOrbits = 0
-        for o in linking.orbitDetermination(tracks, 
-                                            self.elementType,
-                                            self.numRangingOrbits,
-                                            self.stdDev,
-                                            self.obsCode):
-            self.logIt('INFO', 'Found something!')
-            orbits.append(o)
+        for track in tracks:
+            o = linking.orbitDetermination(track, 
+                                           self.elementType,
+                                           self.numRangingOrbits,
+                                           self.stdDev,
+                                           self.obsCode):
+            
             # Count the number of not null orbits.
             if(o != None):
-                self.logIt('INFO', 'Found something real!')
+                self.logIt('INFO', 'Found an Orbit!')
                 numOrbits += 1
-        self.logIt('INFO', 'Found %d possible orbits.' %(numOrbits))
+                
+                # Create temporary MovingObject instances ad write them to the 
+                # database.
+                movingObjects.append(MovingObject(movingObjectId=None, 
+                    status=STATUS['PRELIMINARY']), orbit=o,
+                    tracklets=track.getTracklets())
+                
+        self.logIt('INFO', 'Found %d possible Orbits.' %(numOrbits))
         if(not orbits):
             self.outputQueue.addDataset(self.activeClipboard)
             return
         
-        # Now we have a number of proposed linkages. We should pass them back to
-        # either another stage or our post-processing method for consolidation.
-        # The idea behid consolidation is to look for proposed linkages that 
-        # share at least one tracklet and choose one of those as "true" and
-        # discard all the others. Of course the underlying assumprion (namely
-        # that one tracklet can only belong to at most one orbit) is not 
-        # necessarily true!
+        # Now we have a number of proposed linkages. We pass them back to 
+        # another stage for consolidation. The idea behid consolidation is to 
+        # look for proposed linkages that share at least one tracklet and choose
+        # one of those as "true" and discard all the others. Of course the 
+        # underlying assumprion (namely that one tracklet can only belong to at 
+        # most one orbit) is not necessarily true!
         
-        # TOTO: do something at this point!
+        # Save these preliminary MovingObjects to the database.
+        # Do not update the status of each Tracklet instance since these are 
+        # just preliminary linkages and not necessarily true.
+        MovingObjectList.save(self.dbLocStr, movingObjects, False)
         
         # Put the clipboard back.
         self.outputQueue.addDataset(self.activeClipboard)

@@ -61,11 +61,6 @@ class OrbitManagementStage(DayMOPSStage):
         self.uncertaintySigma = self.getValueFromPolicy('uncertaintySigma')
         self.dbLocStr = self.getValueFromPolicy('database')
         return
-
-    def preprocess(self):
-        super(OrbitManagementStage, self).preprocess()
-        self.outputQueue.addDataset(self.activeClipboard)
-        return
     
     def process(self):
         # Fetch the clipboard.
