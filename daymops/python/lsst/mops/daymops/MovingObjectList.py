@@ -34,7 +34,8 @@ def getAllMovingObjects(dbLocStr, shallow=True, sliceId=None, numSlices=None):
 def getAllUnstableMovingObjects(dbLocStr, shallow=True, sliceId=None, 
                                 numSlices=None):
     """
-    Fetch all active and non merged MovingObjects we know anything about.
+    Fetch all active, non merged, non stable MovingObjects we know anything 
+    about.
     
     Use  sliceId and numSlices to implement some form of parallelism.
     If shallow=False, then fetch the Tracklets also.
@@ -49,6 +50,27 @@ def getAllUnstableMovingObjects(dbLocStr, shallow=True, sliceId=None,
     """
     where = 'mopsStatus != "%s" and stablePass != "%s"' \
             %(STATUS['MERGED'], STABLE_STATUS['STABLE'])
+    return(_getMovingObjects(dbLocStr, where, shallow, sliceId, numSlices))
+
+
+def getAllPreliminaryMovingObjects(dbLocStr, shallow=True, sliceId=None, 
+                                   numSlices=None):
+    """
+    Fetch all active, non merged, preliminary MovingObjects we know anything 
+    about.
+    
+    Use  sliceId and numSlices to implement some form of parallelism.
+    If shallow=False, then fetch the Tracklets also.
+    
+    @param dbLocStr: database connection string.
+    @param shallow: if True, do not bother retrieving Tracklets per MovingObject
+    @param sliceId: Id of the current Slice.
+    @param numSlices: number of available slices (i.e. MPI universe size - 1)
+    
+    Return 
+    Interator to the list of MovingObject instances.
+    """
+    where = 'mopsStatus = "%s"' %(STATUS['PRELIMINARY'])
     return(_getMovingObjects(dbLocStr, where, shallow, sliceId, numSlices))
 
 
@@ -128,6 +150,46 @@ def _getMovingObjects(dbLocStr, where, shallow=True,
     # return
 
 
+def updateStatus(dbLocStr, movingObjects, updateTrackletStatus=True):
+    """
+    Update the mopsStatus field of the input list of MovingObject instances in 
+    the database. It is assumed that the input MovingObjects have already been
+    saved in the database, of course. If not, use save().
+    
+    @param dbLocStr: database connection string.
+    @param movingObjects: a list of MovingObject instances.
+    @param updateTrackletStatus: if True, also update Tracklet status as a 
+           convenience. It is assumed that the caller has properly updated the
+           status of the relevant Tracklet instances.
+    
+    Return
+    None
+    """
+    # Connect to the database.
+    db = SafeDbStorage()
+    db.setPersistLocation(persistence.LogicalLocation(dbLocStr))
+    
+    # Prepare for the SQL statement.
+    sql = 'update MovingObject set mopsStatus="%s" where movingObjectId=%d'
+    
+    db.startTransaction()
+    for movingObject in movingObjects:
+        movingObjectId = movingObject.getMovingObjectId()
+        status = movingObject.getStatus()
+        
+        # Update the MovingObject data.
+        db.executeSql(sql %(status, movingObjectId))
+        
+        # If requested, update the Tracklet status as well.
+        if(updateTrackletStatus):
+            TrackletList.updateStatus(dbLocStr,
+                                      movingObject.getTracklets(),
+                                      inTransaction=True)
+    db.endTransaction()
+    return
+
+
+
 def save(dbLocStr, movingObjects, updateTrackletStatus=True):
     """
     Save the input list of MovingObject instances to the database.
@@ -200,7 +262,7 @@ def save(dbLocStr, movingObjects, updateTrackletStatus=True):
         
             # Finally, update the tracklet status. We assume that the caller has
             # set the status appropriately, of course.
-            TrackletList.updateStatus(tracklets)
+            TrackletList.updateStatus(dbLocStr, tracklets)
     else:
         db.setTableForInsert('mops_MovingObjectToTracklet')
         for movingObject in movingObjects:
