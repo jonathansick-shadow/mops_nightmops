@@ -8,6 +8,9 @@ into full Orbits.
 This modules uses OpenOrb wrappers (oorb module) as well as Auton wrappers 
 (auton module).
 """
+import random
+import warnings
+
 import lib
 import DiaSourceList
 import Orbit
@@ -255,6 +258,25 @@ def orbitDetermination(track,
                        m=res[0][5],
                        epoch=res[0][6],
                        src=cov))
+    
+    
+def chooseOrbit(movingObjects):
+    """
+    Given a list of MovingObject instances (presumably associated to the same
+    Tracklet instance), choose one.
+    
+    Now, the way to choose one out of many is up for debate and is a scientific
+    question, not a technical one. Also, do we need to choose? Can we live with
+    multiple MovingObjects per Tracklet? Probably we should, actually.
+    
+                    "Ai posteri l'ardua sentenza" A. Manzoni
+    """
+    # Be obnoxious so that people actually do something about this :-)
+    warnings.warn('chooseOrbit() needs to be properly thought out!')
+    
+    # And, to make it clear that we are not kidding, just return a random 
+    # object.
+    return(movingObjects[int(round(random.random()*(len(movingObjects)-1)))])
     
     
     
