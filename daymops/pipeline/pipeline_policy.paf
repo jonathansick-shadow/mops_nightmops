@@ -3,7 +3,9 @@
 # 
 # This is where we define the stages, stage policy files and stuff like that.
 # 
-eventBrokerHost: "lsst4.ncsa.uiuc.edu" 
+# eventBrokerHost: "lsst8.ncsa.uiuc.edu" 
+# eventBrokerHost: "lsst4.ncsa.uiuc.edu" 
+eventBrokerHost: "localhost" 
 localLogMode: true
 RunMode: "loop"
 shutdownTopic: "quitDayMOPS"
@@ -46,12 +48,12 @@ appStage: {
      stagePolicy: @policy/OrbitDeterminationStage.paf
 }
 
-# appStage: { 
-#      stageName: "lsst.mops.daymops.OrbitManagementStage" 
-#      eventTopic: "None" 
-#      stagePolicy: @policy/OrbitManagementStage.paf
-# }
-# 
+appStage: { 
+     stageName: "lsst.mops.daymops.OrbitManagementStage" 
+     eventTopic: "None" 
+     stagePolicy: @policy/OrbitManagementStage.paf
+}
+
 # appStage: { 
 #      stageName: "lsst.mops.daymops.PrecoveryStage" 
 #      eventTopic: "None" 
