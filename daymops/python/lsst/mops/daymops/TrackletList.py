@@ -411,7 +411,7 @@ def update(dbLocStr, tracklets):
     return
 
 
-def updateStatus(dbLocStr, tracklets):
+def updateStatus(dbLocStr, tracklets, inTransaction=False):
     """
     Updates the input list of Tracklet instances in the database. It assumes
     that these Tracklets are already present in the DB and hence only does an
@@ -421,8 +421,12 @@ def updateStatus(dbLocStr, tracklets):
     This is a convenience function that does a fraction of what update() does.
     However if one only needs to update status, this is faster.
     
+    If inTransaction=True, do not start a new transaction since we are already 
+    inside one.
+    
     @param dbLocStr: database connection string.
     @param tracklets: a list of Tracklet instances.
+    @param inTransaction: are we already inside a transaction?
     
     Return
     None
@@ -434,7 +438,8 @@ def updateStatus(dbLocStr, tracklets):
     # Prepare the SQL statements.
     trSql = 'update mops_Tracklet set status="%s" where trackletId=%d'
     
-    db.startTransaction()
+    if(not inTransaction):
+        db.startTransaction()
     for tracklet in tracklets:
         # Update Tracklet data.
         trackletId = tracklet.getTrackletId()
@@ -444,7 +449,8 @@ def updateStatus(dbLocStr, tracklets):
         
         # Update the Tracklet data.
         db.executeSql(trSql %(tracklet.getStatus(), trackletId))
-    db.endTransaction()
+    if(not inTransaction):
+        db.endTransaction()
     return
 
 
