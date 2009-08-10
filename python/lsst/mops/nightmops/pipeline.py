@@ -59,7 +59,8 @@ class MopsStage(lsst.pex.harness.Stage.Stage):
         -write those orbits out to a known database table so AP can read them
         """
         tt0 = time.time()
-                
+        Trace_setVerbosity('lsst.mops', 5)
+        
         # Get our slice ID  and tot number of slices(for simple parallelism 
         # purposes).        
         sliceId = self.getRank()
