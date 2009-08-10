@@ -32,6 +32,9 @@ echo "nodes ${nodes}"
 echo "nslices ${nslices}"
 echo "usize ${usize}"
 
+# Patch $MPDHOSTSFILE
+# echo `hostname`:4 > $MPDHOSTSFILE
+
 # MPI commands will be in PATH if mpich2 is in build
 echo "Running mpdboot --totalnum=${nodes} --file=$MPDHOSTSFILE --verbose"
 mpdboot --totalnum=${nodes} --file=$MPDHOSTSFILE --verbose
