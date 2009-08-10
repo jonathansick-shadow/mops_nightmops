@@ -30,8 +30,6 @@ from Tracklet import Tracklet
 import linking
 import lib
 
-import time
-
 
 
 
@@ -64,6 +62,10 @@ class InterNightLinkingStage(DayMOPSStage):
         return
     
     def preprocess(self):
+        """
+        Create Track instances from Tracklets which are not part of any orbit 
+        and have at least one DiaSource observed now - self.timeSpan days ago.
+        """
         # We create Tracks in a preprocess() method rather than in the parallel
         # process since
         # 1. We do not have sky tessellation abilities.

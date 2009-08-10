@@ -34,12 +34,9 @@ Side Effects
     1. None
 """
 from DayMOPSStage import DayMOPSStage
-from DiaSource import DiaSource
 import DiaSourceList
 import TrackletList
 import linking
-
-import time
 
 
 

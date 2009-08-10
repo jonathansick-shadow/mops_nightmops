@@ -1,5 +1,5 @@
 """
-BASIC SCENARIO
+BASIC SCENARIO (not fully implemented yet).
 
 System gets
 1. a list of NEW MovingObjects
@@ -41,9 +41,6 @@ from MovingObjectList import getAllPreliminaryMovingObjects, updateStatus
 from MovingObject import STATUS as MO_STATUS
 from Tracklet import STATUS as T_STATUS
 import linking
-import lib
-
-import time
 
 
 
