@@ -28,14 +28,23 @@ from MovingObject import MovingObject, STATUS
 import MovingObjectList
 import TrackList
 import linking
-import lib
-
-import time
 
 
 
 
 class OrbitDeterminationStage(DayMOPSStage):
+    """
+    Perform Orbit Determination (OD) on a given set of Track instances.
+    
+    OD is performed in parallel, on a per-Slice level. Each Slice retrieves one
+    n-th of the available Track instances from the database (where n is the size
+    of the MPI universe - 1). They then try OD on each of those Tracks and, if
+    OD succeeds, store the corresponding MovingObject instances. They also set 
+    the status of those MovingObjects to PRELIMINARY.
+    
+    Note that no conflict resolution is ever attempted here: that is the role of
+    a later Stage (i.e. OrbitManagementStage).
+    """
     def __init__(self, stageId=-1, policy=None):
         """
         Standard Stage initializer.
@@ -56,6 +65,12 @@ class OrbitDeterminationStage(DayMOPSStage):
         return
     
     def process(self):
+        """
+        Parallel processing: fetch a fraction of all available Track instances 
+        and try OD on each one of them. If OD succeeds, create a temporary 
+        MovingObject instance and store it away for later use in conflict 
+        resolution Stages.
+        """
         # Fetch the clipboard.
         self.activeClipboard = self.inputQueue.getNextDataset()
         
@@ -81,7 +96,7 @@ class OrbitDeterminationStage(DayMOPSStage):
                                            self.elementType,
                                            self.numRangingOrbits,
                                            self.stdDev,
-                                           self.obsCode):
+                                           self.obsCode)
             
             # Count the number of not null orbits.
             if(o != None):
@@ -95,7 +110,7 @@ class OrbitDeterminationStage(DayMOPSStage):
                     tracklets=track.getTracklets())
                 
         self.logIt('INFO', 'Found %d possible Orbits.' %(numOrbits))
-        if(not orbits):
+        if(not movingObjects):
             self.outputQueue.addDataset(self.activeClipboard)
             return
         
