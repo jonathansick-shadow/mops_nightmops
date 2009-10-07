@@ -20,7 +20,7 @@ dependencies = ["boost",
                 "afw"]
 
 env = scons.makeEnv(
-    "mops",
+    "mops_nightmops",
     r"$HeadURL$",
     [
         ["boost", "boost/cstdint.hpp"],
