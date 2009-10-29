@@ -45,6 +45,8 @@ env.Help("""
 LSST Moving Object Pipeline packages
 """)
 
+SConscript('python/lsst/mops/SConscript')
+
 ###############################################################################
 # Boilerplate below here.  Do not modify.
 
