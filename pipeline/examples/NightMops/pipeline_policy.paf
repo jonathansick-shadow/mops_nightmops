@@ -1,0 +1,21 @@
+# 
+# Standard Policy file for NightMOPS
+# 
+# This is where we define the stages, stage policy files and stuff like that.
+# 
+eventBrokerHost: "lsst8.ncsa.uiuc.edu" 
+localLogMode: true
+RunMode = "loop"
+
+
+appStage: { 
+     stageName: "lsst.mops.nightmops.pipeline.MopsStage" 
+     eventTopic: "triggerImageprocEvent0" 
+     stagePolicy: @policy/NightMopsStagePolicy.paf
+}
+
+appStage: { 
+     stageName: "lsst.pex.harness.IOStage.OutputStage" 
+     eventTopic: "None" 
+     stagePolicy: @policy/output_policy.paf
+}
