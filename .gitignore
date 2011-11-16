@@ -1,0 +1,20 @@
+
+# /
+/.*
+/config.log
+
+# /python/lsst/mops/
+/python/lsst/mops/*.pyc
+/python/lsst/mops/*.so
+/python/lsst/mops/mopsLib.py
+/python/lsst/mops/mopsLib_wrap.*
+
+# /python/lsst/mops/nightmops/
+/python/lsst/mops/nightmops/*.pyc
+
+# /src/
+/src/*.os
+
+# /tests/
+/tests/.tests
+/tests/MovingObjectPredictionIO_1
