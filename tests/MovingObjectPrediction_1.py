@@ -1,7 +1,7 @@
-# 
+#
 # LSST Data Management System
 # Copyright 2008, 2009, 2010 LSST Corporation.
-# 
+#
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
 #
@@ -9,14 +9,14 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
-# You should have received a copy of the LSST License Statement and 
-# the GNU General Public License along with this program.  If not, 
+#
+# You should have received a copy of the LSST License Statement and
+# the GNU General Public License along with this program.  If not,
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
@@ -45,11 +45,13 @@ import lsst.mops as mops
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+
 def checkMopsPredEqual(v1, v2):
     """Checks that two MopsPredVec objects are equal"""
     assert v1.size() == v2.size()
     for i in xrange(v1.size()):
         assert v1[i] == v2[i]
+
 
 class MopsPredTestCase(unittest.TestCase):
     """A test case for MopsPred and MopsPredVec"""
@@ -114,7 +116,7 @@ class MopsPredTestCase(unittest.TestCase):
         for i in xrange(self.mpv1.size() - split):
             copy.append(self.mpv1[split + i])
         del copy[split]
-        del copy[split : split + inserts - 1]
+        del copy[split: split + inserts - 1]
         checkMopsPredEqual(self.mpv1, copy)
 
     def testSlice(self):
@@ -135,7 +137,7 @@ class MopsPredTestCase(unittest.TestCase):
             pers = dafPers.Persistence.getPersistence(pol)
             loc = dafPers.LogicalLocation("mysql://lsst10.ncsa.uiuc.edu:3306/test")
             props = dafBase.PropertySet()
-            props.addInt("visitId", int(time.clock())*16384 + random.randint(0,16383))
+            props.addInt("visitId", int(time.clock())*16384 + random.randint(0, 16383))
             props.addInt("sliceId", 0)
             props.addInt("numSlices", 1)
             props.addString("itemName", "TestPreds")
@@ -146,12 +148,14 @@ class MopsPredTestCase(unittest.TestCase):
             stl.push_back(pers.getRetrieveStorage("DbStorage", loc))
             persistable = pers.unsafeRetrieve("PersistableMovingObjectPredictionVector", stl, props)
             res = mops.PersistableMopsPredVec.swigConvert(persistable)
-            afwDet.dropAllSliceTables(loc, pol.getPolicy("Formatter.PersistableMovingObjectPredictionVector"), props)
+            afwDet.dropAllSliceTables(loc, pol.getPolicy(
+                "Formatter.PersistableMovingObjectPredictionVector"), props)
             checkMopsPredEqual(res.getPredictions(), self.mpv1)
         else:
             print "skipping database tests"
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
 
 def suite():
     """Returns a suite containing all the test cases in this module."""

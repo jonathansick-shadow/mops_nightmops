@@ -1,7 +1,7 @@
-# 
+#
 # LSST Data Management System
 # Copyright 2008, 2009, 2010 LSST Corporation.
-# 
+#
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
 #
@@ -9,14 +9,14 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
-# You should have received a copy of the LSST License Statement and 
-# the GNU General Public License along with this program.  If not, 
+#
+# You should have received a copy of the LSST License Statement and
+# the GNU General Public License along with this program.  If not,
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
@@ -33,7 +33,7 @@ Each ephemeris is therefore a tuple of the form
     (movingObjectId, movingObjectVersion, mjd, ra, dec, mag, smaa, smia, pa)
 and not an Ephemeris instance.
 '''
-# We need to do this because lsstimport (part of base) changes the dlopen 
+# We need to do this because lsstimport (part of base) changes the dlopen
 # options to RTLD_GLOBAL|RTLD_NOW which SSD does not like (and segfaults).
 # We also need to move this import to the top otherwise it segfaults after a few
 # other imports... what a mess!!!!!!!!!!! This is definitely a HACK :-(
@@ -60,24 +60,22 @@ from lsst.pex.logging import endr, Log, Rec
 import time
 
 
-
 # Constants/globals.
 RIDICOLOUSLY_VERBOSE = False
 EXTRA_RIDICOLOUSLY_VERBOSE = False
 MOPS_LOG = Log(Log.getDefaultLog(), 'mops.stage')
 
 
-
-def logit(msg): 
+def logit(msg):
     return(Rec(MOPS_LOG, Log.INFO) << msg << endr)
 
 
-def selectOrbitsForFOV(dbLogicalLocation, 
-                       sliceId, 
+def selectOrbitsForFOV(dbLogicalLocation,
+                       sliceId,
                        numSlices,
-                       fovRA, 
-                       fovDec, 
-                       fovR, 
+                       fovRA,
+                       fovDec,
+                       fovR,
                        mjd):
     """
     Select from the orbit database those orbits that, at t=MJD, intersect the
@@ -85,30 +83,30 @@ def selectOrbitsForFOV(dbLogicalLocation,
     fovR (which is the half width of the smallest circle enclosing the actual
     FOV).
     """
-    if(RIDICOLOUSLY_VERBOSE): 
+    if(RIDICOLOUSLY_VERBOSE):
         logit('Started with selectOrbitsForFOV')
-    
+
     # We want to select orbits that would intersect an area that is a bit bigger
-    # than the FoV, just to be on the safe side. How much bigger? 
-    # MaxErrorEllipseRadius bigger to take into account realistic positional 
+    # than the FoV, just to be on the safe side. How much bigger?
+    # MaxErrorEllipseRadius bigger to take into account realistic positional
     # errors of good orbits.
-    MaxErrorEllipseRadius = 0.166 # ~1 arcminute in degrees
-    
+    MaxErrorEllipseRadius = 0.166  # ~1 arcminute in degrees
+
     # Fetch all known orbits and their ephemerides at midnight of the prev night
     # this night and next night.
     # orbitIdsAndPositions = [(orbitID, Ephemeris obj), ...]
-    if(RIDICOLOUSLY_VERBOSE): 
+    if(RIDICOLOUSLY_VERBOSE):
         t0 = time.time()
-    orbitIdsAndPositions = fetchOrbitIdsAndEphems(dbLogicalLocation, 
-                                                  sliceId, 
-                                                  numSlices, 
-                                                  mjd, 
+    orbitIdsAndPositions = fetchOrbitIdsAndEphems(dbLogicalLocation,
+                                                  sliceId,
+                                                  numSlices,
+                                                  mjd,
                                                   deltaMJD=1.)
-    if(RIDICOLOUSLY_VERBOSE): 
-        logit('  %.02fs: fetchOrbitIdsAndEphems()' %(time.time() - t0))
+    if(RIDICOLOUSLY_VERBOSE):
+        logit('  %.02fs: fetchOrbitIdsAndEphems()' % (time.time() - t0))
     if(not orbitIdsAndPositions):
         return([])
-    
+
     # Extract orbit_id, mjd, ra, dec.
     # Remember: each ephemeris is a tuple of the form
     # (movingObjectId, movingObjectVersion, mjd, ra, dec, mag, smaa, smia, pa)
@@ -116,30 +114,30 @@ def selectOrbitsForFOV(dbLogicalLocation,
     ephemData = [(oId, e[2], e[3], e[4]) for (oId, e) in orbitIdsAndPositions]
     if(not ephemData):
         return([])
-    
+
     # Create a field structure. We simply need a number for field id.
-    fields = [(0, mjd, fovRA, fovDec, fovR + MaxErrorEllipseRadius),] 
-    
+    fields = [(0, mjd, fovRA, fovDec, fovR + MaxErrorEllipseRadius), ]
+
     # Invoke fieldProximity and get a {fieldID: [orbit_id, ...]} mapping of
     # orbits that intersect our field of view (which was given a fieldId = 0).
-    if(RIDICOLOUSLY_VERBOSE): 
+    if(RIDICOLOUSLY_VERBOSE):
         t0 = time.time()
     mapping = auton.fieldproximity(fields=fields, orbits=ephemData, method=0)
-    if(RIDICOLOUSLY_VERBOSE): 
-        logit('  %.02fs: auton.fieldproximity()' %(time.time() - t0))
-    
-    # Simply return the orbits corresponding to the IDs we got from 
+    if(RIDICOLOUSLY_VERBOSE):
+        logit('  %.02fs: auton.fieldproximity()' % (time.time() - t0))
+
+    # Simply return the orbits corresponding to the IDs we got from
     # fieldProximity.
     return([fetchOrbit(dbLogicalLocation, oid) for oid in mapping.get('0', [])])
 
 
-def fetchOrbitIdsAndEphems(dbLogicalLocation, sliceId, numSlices, mjd, 
+def fetchOrbitIdsAndEphems(dbLogicalLocation, sliceId, numSlices, mjd,
                            deltaMJD=1.):
     """
     Fetch the orbit Id of all known moving objects from day-MOPS together with
     their precomputed ephemerides at int(mjd)-deltaMJD, int(mjd) and
     int(mjd)+deltaMJD.
-    
+
     @param dbLogicalLocation: pointer to the DB.
     @param sliceId: slice ID.
     @param numSlices: total number of slices.
@@ -150,31 +148,31 @@ def fetchOrbitIdsAndEphems(dbLogicalLocation, sliceId, numSlices, mjd,
         [(internal_orbitId: Ephemeris obj), ] sorted by mjd
     """
     # Init the persistance middleware.
-    if(RIDICOLOUSLY_VERBOSE): 
+    if(RIDICOLOUSLY_VERBOSE):
         t3 = time.time()
     db = dafPer.DbStorage()
-    
+
     # Connect to the DB.
     loc = dafPer.LogicalLocation(dbLogicalLocation)
     db.setRetrieveLocation(loc)
-    if(RIDICOLOUSLY_VERBOSE): 
-        logit('     %.02fs: connect to DB' %(time.time() - t3))
-    
+    if(RIDICOLOUSLY_VERBOSE):
+        logit('     %.02fs: connect to DB' % (time.time() - t3))
+
     # Prepare the query.
-    if(RIDICOLOUSLY_VERBOSE): 
+    if(RIDICOLOUSLY_VERBOSE):
         t3 = time.time()
     deltaMJD = abs(deltaMJD)
     mjdMin = mjd - deltaMJD
     mjdMax = mjd + deltaMJD
-    
+
     # TODO: handle different MovingObject versions. Meaning choose the highest
     # version. Not needed for DC3a.
-    where = 'mjd >= %f and mjd <= %f' %(mjdMin, mjdMax)
+    where = 'mjd >= %f and mjd <= %f' % (mjdMin, mjdMax)
     # Poor man parallelism ;-)
     # if(numSlices > 0):
     if(numSlices > 1):
-        where += ' and movingObjectId %% %d = %d' %(numSlices, sliceId)
-    
+        where += ' and movingObjectId %% %d = %d' % (numSlices, sliceId)
+
     db.startTransaction()
     db.setTableForQuery('_tmpl_mops_Ephemeris')
     db.setQueryWhere(where)
@@ -189,24 +187,24 @@ def fetchOrbitIdsAndEphems(dbLogicalLocation, sliceId, numSlices, mjd,
     db.outColumn('pa')
     db.orderBy('movingObjectId')
     db.orderBy('mjd')
-    if(RIDICOLOUSLY_VERBOSE): 
-        logit('     %.02fs: prepare SQL' %(time.time() - t3))
-    
+    if(RIDICOLOUSLY_VERBOSE):
+        logit('     %.02fs: prepare SQL' % (time.time() - t3))
+
     # Execute the query.
-    if(RIDICOLOUSLY_VERBOSE): 
+    if(RIDICOLOUSLY_VERBOSE):
         t3 = time.time()
     db.query()
-    if(RIDICOLOUSLY_VERBOSE): 
-        logit('     %.02fs: exec SQL' %(time.time() - t3))
+    if(RIDICOLOUSLY_VERBOSE):
+        logit('     %.02fs: exec SQL' % (time.time() - t3))
 
     # Fetch the results.
-    if(RIDICOLOUSLY_VERBOSE): 
+    if(RIDICOLOUSLY_VERBOSE):
         t0 = time.time()
         t1 = 0
         t2 = 0
     res = []
     while db.next():
-        if(RIDICOLOUSLY_VERBOSE): 
+        if(RIDICOLOUSLY_VERBOSE):
             tt2 = time.time()
         movingObjectId = db.getColumnByPosInt64(0)
         movingObjectVersion = db.getColumnByPosInt64(1)
@@ -219,84 +217,84 @@ def fetchOrbitIdsAndEphems(dbLogicalLocation, sliceId, numSlices, mjd,
                  db.getColumnByPosDouble(6),    # smaa
                  db.getColumnByPosDouble(7),    # smia
                  db.getColumnByPosDouble(8))    # pa
-        if(RIDICOLOUSLY_VERBOSE): 
+        if(RIDICOLOUSLY_VERBOSE):
             t2 += time.time() - tt2
-        # We now create a new temp id made by concatenating the movingobject id 
+        # We now create a new temp id made by concatenating the movingobject id
         # and its version. It will only be used internally.
         # res= [(new_orbit_id, Ephemeris obj), ...]
-        if(RIDICOLOUSLY_VERBOSE): 
+        if(RIDICOLOUSLY_VERBOSE):
             tt1 = time.time()
-        res.append(('%d-%d' %(movingObjectId, movingObjectVersion), ephem))
-        if(RIDICOLOUSLY_VERBOSE): 
+        res.append(('%d-%d' % (movingObjectId, movingObjectVersion), ephem))
+        if(RIDICOLOUSLY_VERBOSE):
             t1 += time.time() - tt1
-    
+
     # We are done with the query.
     db.finishQuery()
-    if(RIDICOLOUSLY_VERBOSE): 
-        logit('     %.02fs: fetch res' %(time.time() - t0 - t1 - t2))
-        logit('     %.02fs: Ephemeris()' %(t2))
-        logit('     %.02fs: results.append()' %(t1))
+    if(RIDICOLOUSLY_VERBOSE):
+        logit('     %.02fs: fetch res' % (time.time() - t0 - t1 - t2))
+        logit('     %.02fs: Ephemeris()' % (t2))
+        logit('     %.02fs: results.append()' % (t1))
     return(res)
-    
+
 
 def fetchOrbit(dbLogicalLocation, orbitId):
     """
     Fetch the full Orbit corresponding to the internal orbitId:
         orbitId = '%d-%d' %(movingObjectId, movingObjectVersion)
-    
+
     @param dbLogicalLocation: pointer to the DB.
     @param orbitId: orbit ID.
-    
+
     Return
         Orbit obj
     """
-    if(EXTRA_RIDICOLOUSLY_VERBOSE): 
+    if(EXTRA_RIDICOLOUSLY_VERBOSE):
         t0 = time.time()
-        
+
     # Init the persistance middleware.
     db = dafPer.DbStorage()
-    
+
     # Connect to the DB.
     loc = dafPer.LogicalLocation(dbLogicalLocation)
     db.setRetrieveLocation(loc)
-    
+
     # Remember that we defined a new internal orbitId as the concatenation of
-    # movingObjectId and movingObjectVersion: 
+    # movingObjectId and movingObjectVersion:
     # orbitId = '%d-%d' %(movingObjectId, movingObjectVersion)
     (movingObjectId, movingObjectVersion) = orbitId.split('-')
-    
+
     # Prepare the query.
     where = 'movingObjectId=%s and movingObjectVersion=%s' \
-            %(movingObjectId, movingObjectVersion)
-    cols = ['q', 'e', 'i', 'node', 'argPeri', 
-            'timePeri', 
-            'epoch', 
+            % (movingObjectId, movingObjectVersion)
+    cols = ['q', 'e', 'i', 'node', 'argPeri',
+            'timePeri',
+            'epoch',
             'h_v', 'g']
-    cols += ['src%02d' %(i) for i in range(1, 22)]
-    
+    cols += ['src%02d' % (i) for i in range(1, 22)]
+
     db.startTransaction()
     db.setTableForQuery('MovingObject')
     db.setQueryWhere(where)
     errs = map(lambda c: db.outColumn(c), cols)
-    
+
     # Execute the query.
     db.query()
     if(not db.next()):
-        if(RIDICOLOUSLY_VERBOSE): 
+        if(RIDICOLOUSLY_VERBOSE):
             logit('fetchOrbit: SQL query failed!')
-            logit('SQL: select %s from MovingObject where %s' \
-                  %(','.join(cols), where))
+            logit('SQL: select %s from MovingObject where %s'
+                  % (','.join(cols), where))
         return
-    
-    # Create the Orbit object and just spit it out.    
+
+    # Create the Orbit object and just spit it out.
     args = [int(movingObjectId), int(movingObjectVersion), ] + \
            [db.getColumnByPosDouble(i) for i in range(9)] + \
            [[db.getColumnByPosDouble(i) for i in range(9, 30, 1)]]
-    
+
     # We are done with the query.
     db.finishQuery()
-    if(EXTRA_RIDICOLOUSLY_VERBOSE): 
-        logit('     %.02fs: fetchOrbit()' %(time.time() - t0))
+    if(EXTRA_RIDICOLOUSLY_VERBOSE):
+        logit('     %.02fs: fetchOrbit()' % (time.time() - t0))
     return(Orbit(*args))
 
 
@@ -315,7 +313,7 @@ def propagateOrbit(orbit, mjd, obscode):
         smia: 1-sigma error ellipse semi minor axis (").
         pa: error ellipse position angle (deg).
     """
-    # Extract the orbital params and cast them into a numpy array. Convert the 
+    # Extract the orbital params and cast them into a numpy array. Convert the
     # time of perihelion passage to UTC from TAI.
     orbitalParams = numpy.array([orbit.q,
                                  orbit.e,
@@ -329,26 +327,26 @@ def propagateOrbit(orbit, mjd, obscode):
     # Convert the orbit epoch and the prediction requested mjd from TAI to UTC.
     # positions = [[RA, Dec, mag, mjd, raerr, decerr, smaa, smia, pa], ]
     # Convert orbit epoch and ephemerides MJD to UTC from TAI.
-    ephems = ssd.ephemerides(orbitalParams, 
+    ephems = ssd.ephemerides(orbitalParams,
                              DateTime(float(orbit.epoch)).mjd(DateTime.UTC),
-                             numpy.array([DateTime(mjd).mjd(DateTime.UTC), ]), 
+                             numpy.array([DateTime(mjd).mjd(DateTime.UTC), ]),
                              str(obscode),
-                             float(orbit.hv), 
-                             float(orbit.g), 
+                             float(orbit.hv),
+                             float(orbit.g),
                              orbit.src)
     (ra, dec, mag, predMjd, raErr, decErr, smaa, smia, pa) = ephems[0]
-    
+
     # Return the Ephemeris object. Return the TAI mjd instead of the one in UTC.
-    return((orbit.movingObjectId, 
-            orbit.movingObjectVersion, 
-            mjd, 
-            ra, 
-            dec, 
-            mag, 
-            smaa, 
-            smia, 
+    return((orbit.movingObjectId,
+            orbit.movingObjectVersion,
+            mjd,
+            ra,
+            dec,
+            mag,
+            smaa,
+            smia,
             pa))
-    
+
 
 
 

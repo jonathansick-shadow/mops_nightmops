@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-# 
+#
 # LSST Data Management System
 # Copyright 2008, 2009, 2010 LSST Corporation.
-# 
+#
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
 #
@@ -11,14 +11,14 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
-# You should have received a copy of the LSST License Statement and 
-# the GNU General Public License along with this program.  If not, 
+#
+# You should have received a copy of the LSST License Statement and
+# the GNU General Public License along with this program.  If not,
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
@@ -84,31 +84,36 @@ TAI_MINUS_UTC = '''
  2006 JAN  1 =JD 2453736.5  TAI-UTC=  33.0       S + (MJD - 41317.) X 0.0      S
  2009 JAN  1 =JD 2454832.5  TAI-UTC=  34.0       S + (MJD - 41317.) X 0.0      S
 '''
-class memoized(object):
-   """Decorator that caches a function's return value each time it is called.
-   If called later with the same arguments, the cached value is returned, and
-   not re-evaluated.
-   """
-   def __init__(self, func):
-      self.func = func
-      self.cache = {}
-   def __call__(self, *args):
-      try:
-         return self.cache[args]
-      except KeyError:
-         self.cache[args] = value = self.func(*args)
-         return value
-      except TypeError:
-         # uncachable -- for instance, passing a list as an argument.
-         # Better to not cache than to blow up entirely.
-         return self.func(*args)
-   def __repr__(self):
-      """Return the function's docstring."""
-      return self.func.__doc__
 
+
+class memoized(object):
+    """Decorator that caches a function's return value each time it is called.
+    If called later with the same arguments, the cached value is returned, and
+    not re-evaluated.
+    """
+
+    def __init__(self, func):
+        self.func = func
+        self.cache = {}
+
+    def __call__(self, *args):
+        try:
+            return self.cache[args]
+        except KeyError:
+            self.cache[args] = value = self.func(*args)
+            return value
+        except TypeError:
+            # uncachable -- for instance, passing a list as an argument.
+            # Better to not cache than to blow up entirely.
+            return self.func(*args)
+
+    def __repr__(self):
+        """Return the function's docstring."""
+        return self.func.__doc__
 
 
 class Converter(object):
+
     def __init__(self, x, y, z):
         self._x = x
         self._y = y
@@ -116,7 +121,7 @@ class Converter(object):
 
     def utc2tai(self, mjd_utc):
         return(mjd_utc + (self._x + (mjd_utc - self._y) * self._z) * SEC_TO_DAY)
-    
+
     def tai2utc(self, mjd_tai):
         return(mjd_tai - (self._x + self._y * self._z) / (self._z + 1) * SEC_TO_DAY)
 
@@ -124,7 +129,7 @@ class Converter(object):
 @memoized
 def _find_jd(jds, jd):
     jds.sort()
-    
+
     result = None
     for jd_start in jds:
         if(jd >= jd_start):
@@ -141,24 +146,24 @@ def parse(str=TAI_MINUS_UTC):
     '''
     import copy
     import re
-    
-    
+
     data = str.strip().split('\n')
-    p = re.compile('\s*[0-9]{4}\s*[A-Z]{3}\s*[0-9]{1}\s*=JD\s*([0-9\.]+)\s+TAI-UTC=\s*([0-9\.]+)\s*S\s\+\s*\(MJD\s*-\s*([0-9\.]+)\)\s*X\s*([0-9\.]+)\s*S')
-    
+    p = re.compile(
+        '\s*[0-9]{4}\s*[A-Z]{3}\s*[0-9]{1}\s*=JD\s*([0-9\.]+)\s+TAI-UTC=\s*([0-9\.]+)\s*S\s\+\s*\(MJD\s*-\s*([0-9\.]+)\)\s*X\s*([0-9\.]+)\s*S')
+
     jds = []
     converters = []
     for line in data:
         m = p.match(line)
         [jd, tai_utc, mjd_off, mjd_mul] = [float(x) for x in m.groups()]
-        # Using lambdas or partial function application does not work. This 
+        # Using lambdas or partial function application does not work. This
         # sucks BIG TIME!
         # converters.append((lambda x: tai_utc + (x - mjd_off) * mjd_mul,
         #                    lambda y: mjd_off + (y - tai_utc) / mjd_mul))
         converters.append(Converter(tai_utc, mjd_off, mjd_mul))
         jds.append(jd)
     return(jds, converters)
-    
+
 
 def utc_to_tai(mjd_utc, jd_limits=None, converters=None):
     '''
@@ -178,29 +183,27 @@ def tai_to_utc(mjd_tai, jd_limits=None, converters=None):
 def _convert(mjd, method, jd_limits=None, converters=None):
     if(not jd_limits or not converters):
         jd_limits, converters = parse()
-    
+
     # Convert the MJD to JD.
     jd = mjd + MJD_TO_JD
-    
+
     # Find the appropriate conversion formula and apply it.
     i = _find_jd(jd_limits, jd)
     if(i == None):
         # Ops! we are before Jan 1, 1961. Just assume that TAI-UTC=0
         return(mjd)
     return(getattr(converters[i], method)(mjd))
-    
-
 
 
 if(__name__ == '__main__'):
     import sys
-    
+
     if(len(sys.argv) != 3):
         sys.stderr.write('Usage: utctai.py <MJD> (utc|tai)\n')
         sys.exit(1)
-    
+
     jd_limits, converters = parse()
-    
+
     mjd = float(sys.argv[1])
     mjd_in = sys.argv[2]
     if(mjd_in.lower() == 'utc'):
@@ -212,7 +215,7 @@ if(__name__ == '__main__'):
     else:
         sys.stderr.write('Usage: utctai.py <MJD> (utc|tai)\n')
         sys.exit(2)
-    print('%f %s = %f %s' %(mjd, mjd_in, res, res_in))
+    print('%f %s = %f %s' % (mjd, mjd_in, res, res_in))
     sys.exit(0)
 
 

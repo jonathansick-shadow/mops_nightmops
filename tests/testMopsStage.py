@@ -1,9 +1,9 @@
 #! /usr/bin/env python
 
-# 
+#
 # LSST Data Management System
 # Copyright 2008, 2009, 2010 LSST Corporation.
-# 
+#
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
 #
@@ -11,14 +11,14 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
-# You should have received a copy of the LSST License Statement and 
-# the GNU General Public License along with this program.  If not, 
+#
+# You should have received a copy of the LSST License Statement and
+# the GNU General Public License along with this program.  If not,
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
@@ -37,7 +37,6 @@ from lsst.pex.logging import Log
 from lsst.pex.exceptions import LsstCppException
 from lsst.daf.base import PropertySet
 from lsst.mops.nightmops.pipeline import MopsStage
-
 
 
 # Each input FoV is a tuple of the form: (visitId, ra, decl, mjd).
@@ -847,7 +846,7 @@ def testFoV(visitId, ra, decl, mjd):
     # First create a tester.  To ensure that automatic Stage creation
     # works properly, use SimpleStageTester.create(), passing in the
     # fully qualified stage class name along with the policy file name.
-    # 
+    #
     file = pexPolicy.DefaultPolicyFile("mops",
                                        "tests/NightMopsStagePolicy.paf")
     tester = pexHarness.SimpleStageTester.create(MopsStage, file)
@@ -858,9 +857,9 @@ def testFoV(visitId, ra, decl, mjd):
     event.set('ra', ra)
     event.set('decl', decl)
     event.set('dateObs', mjd)
-    
+
     # create a simple dictionary with the data expected to be on the
-    # stage's input clipboard.  If this includes images, you will need to 
+    # stage's input clipboard.  If this includes images, you will need to
     # read in and create the image objects yourself.
     # Put the event on the clipboard.
     clipboard = {'triggerImageprocEvent0': event}
@@ -871,7 +870,7 @@ def testFoV(visitId, ra, decl, mjd):
 
     # ...or you can test it as part of a Worker.  Note that in the current
     # implementation, the output clipboard is the same instance as the input
-    # clipboard.  
+    # clipboard.
     # clipboard = dict( width=1.0, height=2.0 )
     outWorker = tester.runWorker(clipboard)
 
@@ -880,9 +879,10 @@ def testFoV(visitId, ra, decl, mjd):
 
 
 class MopsStageTestMetaclass(type):
+
     def __new__(meta, name, bases, attrs):
         for fov in INPUT_FOVS:
-            attrs['testVisit_%d' %(fov[0])] = lambda self: testFoV(*fov)
+            attrs['testVisit_%d' % (fov[0])] = lambda self: testFoV(*fov)
         return(type.__new__(meta, name, bases, attrs))
 
 
@@ -891,9 +891,8 @@ class MopsStageTest(unittest.TestCase):
 
 
 def suite():
-    tests = ['testVisit_%d' %(fov[0]) for fov in INPUT_FOVS]
+    tests = ['testVisit_%d' % (fov[0]) for fov in INPUT_FOVS]
     return(unittest.TestSuite(map(MopsStageTest, tests)))
-
 
 
 if __name__ == "__main__":

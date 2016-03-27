@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-# 
+#
 # LSST Data Management System
 # Copyright 2008, 2009, 2010 LSST Corporation.
-# 
+#
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
 #
@@ -11,14 +11,14 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
-# You should have received a copy of the LSST License Statement and 
-# the GNU General Public License along with this program.  If not, 
+#
+# You should have received a copy of the LSST License Statement and
+# the GNU General Public License along with this program.  If not,
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
@@ -27,7 +27,6 @@ import ephemDB_test as ephDB
 
 import math
 import time
-
 
 
 def process(visitId, fovRA, fovDec, mjd, num_cores=1, slice_id=0):
@@ -42,7 +41,7 @@ def process(visitId, fovRA, fovDec, mjd, num_cores=1, slice_id=0):
     - check whether current mjd range is still valid
     - if not, load orbit_id's for our slice (orbit_id%universe_size == rank)
       and current mjd
-    
+
     -get a python list of all orbits (use allOrbits function, which 
      interrogates the DB)
     -use rank to determine this slice's section of the orbits list
@@ -61,13 +60,13 @@ def process(visitId, fovRA, fovDec, mjd, num_cores=1, slice_id=0):
                                                mjd,
                                                num_cores,
                                                slice_id)
-    print('%.02fs: ephDB.selectOrbitsForFOV()' %(time.time() - t0))
+    print('%.02fs: ephDB.selectOrbitsForFOV()' % (time.time() - t0))
 
     # Propagate each orbit to mjd.
     t0 = time.time()
-    ephems = [ephDB.propagateOrbit(o, mjd, obscodeFromPolicy) 
+    ephems = [ephDB.propagateOrbit(o, mjd, obscodeFromPolicy)
               for o in candidateOrbits]
-    print('%.02fs: ephDB.propagateOrbit()' %(time.time() - t0))
+    print('%.02fs: ephDB.propagateOrbit()' % (time.time() - t0))
 
     mopsPreds = []
     t0 = time.time()
@@ -81,8 +80,8 @@ def process(visitId, fovRA, fovDec, mjd, num_cores=1, slice_id=0):
                           e[6],
                           e[8],
                           e[5]))
-    print('%.02fs: assemble mopsPreds' %(time.time() - t0))
-    
+    print('%.02fs: assemble mopsPreds' % (time.time() - t0))
+
     # Make sure that they are all in the FoV.
     # Adjust for fuzziness.
     t0 = time.time()
@@ -100,7 +99,7 @@ def process(visitId, fovRA, fovDec, mjd, num_cores=1, slice_id=0):
         t = ra_min
         ra_min = ra_max
         ra_max = t
-    
+
     i = 0
     while(i < len(mopsPreds)):
         pred_mjd, pred_ra, pred_dec = mopsPreds[i][2:5]
@@ -114,13 +113,13 @@ def process(visitId, fovRA, fovDec, mjd, num_cores=1, slice_id=0):
             del(mopsPreds[i])
         else:
             i += 1
-    print('%.02fs: final checks' %(time.time() - t0))
+    print('%.02fs: final checks' % (time.time() - t0))
     return(candidateOrbits, mopsPreds)
 
 
 if(__name__ == '__main__'):
     import sys
-    
+
     t0 = time.time()
     if(len(sys.argv) not in (6, 7, 8)):
         sys.stderr.write('usage: pipeline_test.py DB visitId, RA, Dec, mjd\n')
@@ -137,21 +136,21 @@ if(__name__ == '__main__'):
         slice_id = int(sys.argv[7])
     except:
         slice_id = 0
-    
+
     # Update the database name.
     ephDB.DB_DB = db
-    candidateOrbits, mopsPreds = process(int(visitId), 
+    candidateOrbits, mopsPreds = process(int(visitId),
                                          float(fovRA),
                                          float(fovDec),
                                          float(mjd),
                                          num_cores,
                                          slice_id)
-    
+
     # print('Found a total of %d predictions from %d possible orbits.' \
     #       %(len(mopsPreds), len(candidateOrbits)))
     err = len(mopsPreds) != len(candidateOrbits)
-    print('%.02fs: total time' %(time.time() - t0))
-    print('Total predictions: %d' %(len(mopsPreds)))
+    print('%.02fs: total time' % (time.time() - t0))
+    print('Total predictions: %d' % (len(mopsPreds)))
     if(err):
         sys.exit(1)
     sys.exit(0)
